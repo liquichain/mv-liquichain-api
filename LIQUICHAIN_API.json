@@ -1,0 +1,1 @@
+{"code":"LIQUICHAIN_API","description":"Liquichain json-rpc API","license":"GPL","currentVersion":"0.18","isInDraft":true,"moduleItems":[],"moduleDependencies":[{"code":"LIQUICHAIN","description":"Liquichain accounts","currentVersion":"0.18"}],"moduleFiles":[]}
