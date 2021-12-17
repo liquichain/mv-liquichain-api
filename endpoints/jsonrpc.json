@@ -1,0 +1,1 @@
+{"code":"jsonrpc","description":"eth json rpc api","secured":false,"checkPathParams":false,"serviceCode":"io.liquichain.api.rpc.EthApiScript","synchronous":true,"method":"POST","parameterMappings":[],"pathParameters":[],"roles":[],"returnedVariableName":"result","serializeResult":false,"contentType":"application/json","basePath":"jsonrpc","path":"/"}
