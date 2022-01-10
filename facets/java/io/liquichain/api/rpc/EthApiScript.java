@@ -350,6 +350,7 @@ public class EthApiScript extends Script {
             }
         	try {
             	LiquichainApp app = crossStorageApi.find(defaultRepo, LiquichainApp.class).by("name", appName).getResult();
+            	wallet.setUuid(walletHash.toLowerCase());
                 wallet.setName(name);
             	wallet.setHexHash(walletHash.toLowerCase());
         		wallet.setAccountHash(accountHash.toLowerCase());
