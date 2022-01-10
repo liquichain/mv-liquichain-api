@@ -281,9 +281,9 @@ public class EthApiScript extends Script {
       String message="transfer error";
       try {
         message = "cannot find origin wallet";
-        Wallet originWallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", transac.getFromHexHash()).getResult();
+        Wallet originWallet = crossStorageApi.find(defaultRepo, transac.getFromHexHash(),Wallet.class);
         message = "cannot find destination wallet";
-        Wallet destinationWallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", transac.getToHexHash()).getResult();
+        Wallet destinationWallet = crossStorageApi.find(defaultRepo, transac.getToHexHash(),Wallet.class);
         message = "insufficient balance";
         BigInteger originBalance = new BigInteger(originWallet.getBalance());
         log.info("originWallet 0x{} old balance:{}",transac.getFromHexHash(),originWallet.getBalance());
@@ -320,7 +320,7 @@ public class EthApiScript extends Script {
   
     private String getCode(String requestId, String hash) {
         try {
-            Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", hash.substring(2).toLowerCase()).getResult();
+            Wallet wallet = crossStorageApi.find(defaultRepo,hash.substring(2).toLowerCase(), Wallet.class);
             log.info("getCode wallet.app.uuid={}",wallet.getApplication().getUuid());
             //LiquichainApp app = crossStorageApi.find(defaultRepo, LiquichainApp.class);
             return createResponse(requestId, "0x"+wallet.getApplication().getUuid());
@@ -333,7 +333,7 @@ public class EthApiScript extends Script {
   
     private String getBalance(String requestId, String hash) {
         try {
-            Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", hash.toLowerCase()).getResult();
+            Wallet wallet = crossStorageApi.find(defaultRepo,hash.toLowerCase(), Wallet.class);
             return createResponse(requestId, "0x"+new BigInteger(wallet.getBalance()).toString(16));
         } catch (Exception e) {
             //e.printStackTrace();
@@ -342,7 +342,10 @@ public class EthApiScript extends Script {
     }
   
     public  String createWallet(String requestId,String appName,String name,String walletHash,String accountHash,String publicInfo){
-       Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", walletHash.toLowerCase()).getResult();
+       Wallet wallet = null;
+       try{
+       	wallet = crossStorageApi.find(defaultRepo,walletHash.toLowerCase(), Wallet.class);
+       } catch (Exception e){}
             if(wallet!=null){
             return createErrorResponse(requestId, "-32001", "Wallet already exists");
             } else {
@@ -352,7 +355,6 @@ public class EthApiScript extends Script {
             	LiquichainApp app = crossStorageApi.find(defaultRepo, LiquichainApp.class).by("name", appName).getResult();
             	wallet.setUuid(walletHash.toLowerCase());
                 wallet.setName(name);
-            	wallet.setHexHash(walletHash.toLowerCase());
         		wallet.setAccountHash(accountHash.toLowerCase());
                 wallet.setPublicInfo(publicInfo);
                 wallet.setBalance("0");
@@ -367,7 +369,10 @@ public class EthApiScript extends Script {
   
   
     public  String updateWallet(String requestId,String appName,String name,String walletHash,String publicInfo,String signature){
-       Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", walletHash.toLowerCase()).getResult();
+       Wallet wallet = null;
+       try{
+       	wallet = crossStorageApi.find(defaultRepo,walletHash.toLowerCase(), Wallet.class);
+       } catch (Exception e){}
        if(wallet==null){
             return createErrorResponse(requestId, "-32001", "Unkown Wallet");
        }	
@@ -383,7 +388,10 @@ public class EthApiScript extends Script {
     }
   
     public  String getWalletInfo(String requestId,String appName,String walletHash){
-       Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", walletHash.toLowerCase()).getResult();
+       Wallet wallet = null;
+       try{
+       	wallet = crossStorageApi.find(defaultRepo,walletHash.toLowerCase(), Wallet.class);
+       } catch (Exception e){}
        if(wallet==null){
             return createErrorResponse(requestId, "-32001", "Unkown Wallet");
        }
