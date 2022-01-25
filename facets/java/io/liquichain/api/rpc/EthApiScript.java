@@ -251,6 +251,7 @@ public class EthApiScript extends Script {
         transac.setV(hex(signatureData.getV()));
         transac.setS(hex(signatureData.getS()));
         transac.setR(hex(signatureData.getR()));
+        log.info("transac:{}",transac);
         String uuid = crossStorageApi.createOrUpdate(defaultRepo, transac);
         transferValue(transac,t.getValue());
         result = hash;
