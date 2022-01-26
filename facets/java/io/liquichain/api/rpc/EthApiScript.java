@@ -1,37 +1,29 @@
 package io.liquichain.api.rpc;
 
-import io.liquichain.core.BlockForgerScript;
-
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.List;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.ArrayList;
 import java.math.BigInteger;
-import java.io.IOException;
-import org.meveo.service.script.Script;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import org.meveo.admin.exception.BusinessException;
+import org.meveo.api.persistence.CrossStorageApi;
+import org.meveo.model.customEntities.LiquichainApp;
+import org.meveo.model.customEntities.Transaction;
+import org.meveo.model.customEntities.Wallet;
+import org.meveo.model.storage.Repository;
+import org.meveo.service.script.Script;
+import org.meveo.service.storage.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.math.BigInteger;
-import org.meveo.model.customEntities.Wallet;
-import org.meveo.model.customEntities.Transaction;
-import org.meveo.model.customEntities.LiquichainApp;
-import org.meveo.model.storage.Repository;
-import org.meveo.service.storage.RepositoryService;
-import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.api.exception.EntityDoesNotExistsException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.meveo.model.customEntities.CustomEntityInstance;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.Sign;
+import org.web3j.crypto.SignedRawTransaction;
+import org.web3j.crypto.TransactionDecoder;
 
-import org.web3j.crypto.*;
-import org.web3j.crypto.Sign.SignatureData;
+import io.liquichain.core.BlockForgerScript;
 
-import javax.enterprise.context.ApplicationScoped;
-
-@ApplicationScoped
 public class EthApiScript extends Script {
 
   private static final Logger log = LoggerFactory.getLogger(EthApiScript.class);
@@ -94,7 +86,7 @@ public class EthApiScript extends Script {
 
   private void processTransactionHooks(SignedRawTransaction transaction){
     String data =transaction.getData();
-    transactionHookMatchers.forEach((Pattern pattern,Script script) ->{
+    /*transactionHookMatchers.forEach((Pattern pattern,Script script) ->{
       Matcher matcher = pattern.matcher(data);
       if(matcher.find()) {
         Map<String,Object> context = new HashMap<>();
@@ -106,7 +98,10 @@ public class EthApiScript extends Script {
           log.error("error while invoking transaction hook {}",script,e);
         }
       }
-    });
+    });*/
+    if(data.contains("orderId")){
+      log.info("detected orderId:{}",data);
+    }
   }
 
   @Override
