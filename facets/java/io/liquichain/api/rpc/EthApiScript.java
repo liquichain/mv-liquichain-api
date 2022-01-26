@@ -16,6 +16,7 @@ import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.RawTransaction;
 import org.web3j.crypto.Sign;
@@ -85,7 +86,8 @@ public class EthApiScript extends Script {
   }
 
   private void processTransactionHooks(SignedRawTransaction transaction){
-    String data =transaction.getData();
+    try{
+      String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
     /*transactionHookMatchers.forEach((Pattern pattern,Script script) ->{
       Matcher matcher = pattern.matcher(data);
       if(matcher.find()) {
@@ -101,6 +103,9 @@ public class EthApiScript extends Script {
     });*/
     if(data.contains("orderId")){
       log.info("detected orderId:{}",data);
+    }
+    }catch (Exception ex){  
+      log.info("error while detecting order:{}",ex);
     }
   }
 
@@ -272,7 +277,7 @@ public class EthApiScript extends Script {
       return createErrorResponse(requestId, "-32001", "transaction already exists hexHash:" + hash.substring(2));
     }
     RawTransaction t = TransactionDecoder.decode(hexTransactionData);
-    log.info("nonce:{} to:{} , value:{}, data:{}", t.getNonce(), t.getTo(), t.getValue(),t.getData());
+    log.info("nonce:{} to:{} , value:{}", t.getNonce(), t.getTo(), t.getValue());
     if (t instanceof SignedRawTransaction) {
       SignedRawTransaction signedResult = (SignedRawTransaction) t;
       signedResult.getData();
