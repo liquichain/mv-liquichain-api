@@ -272,7 +272,7 @@ public class EthApiScript extends Script {
       return createErrorResponse(requestId, "-32001", "transaction already exists hexHash:" + hash.substring(2));
     }
     RawTransaction t = TransactionDecoder.decode(hexTransactionData);
-    log.info("nonce:{} to:{} , value:{}", t.getNonce(), t.getTo(), t.getValue());
+    log.info("nonce:{} to:{} , value:{}, data:{}", t.getNonce(), t.getTo(), t.getValue(),t.getData());
     if (t instanceof SignedRawTransaction) {
       SignedRawTransaction signedResult = (SignedRawTransaction) t;
       signedResult.getData();
