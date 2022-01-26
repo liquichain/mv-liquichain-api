@@ -3,8 +3,11 @@ package io.liquichain.api.rpc;
 import io.liquichain.core.BlockForgerScript;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.List;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.math.BigInteger;
 import java.io.IOException;
@@ -73,6 +76,37 @@ public class EthApiScript extends Script {
 
   public String getResult() {
     return result;
+  }
+
+  static private Map<String,Script> transactionHooks = new HashMap<>();
+  static private Map<Pattern,Script> transactionHookMatchers = new HashMap<>();
+
+  public static boolean addTransactionHook(String regex,Script script){
+    boolean result=true;
+    if(transactionHooks.containsKey(regex)){
+      result=false;
+    } else {
+      Pattern pattern = Pattern.compile(regex);
+      transactionHookMatchers.put(pattern, script);
+    }
+    return result;
+  }
+
+  private void processTransactionHooks(SignedRawTransaction transaction){
+    String data =transaction.getData();
+    transactionHookMatchers.forEach((Pattern pattern,Script script) ->{
+      Matcher matcher = pattern.matcher(data);
+      if(matcher.find()) {
+        Map<String,Object> context = new HashMap<>();
+        context.put("transaction", transaction);
+        context.put("matcher", matcher);
+        try{
+        script.execute(context);
+        } catch (Exception e){
+          log.error("error while invoking transaction hook {}",script,e);
+        }
+      }
+    });
   }
 
   @Override
@@ -246,6 +280,7 @@ public class EthApiScript extends Script {
     log.info("nonce:{} to:{} , value:{}", t.getNonce(), t.getTo(), t.getValue());
     if (t instanceof SignedRawTransaction) {
       SignedRawTransaction signedResult = (SignedRawTransaction) t;
+      signedResult.getData();
       Sign.SignatureData signatureData = signedResult.getSignatureData();
       // byte[] encodedTransaction = TransactionEncoder.encode(t);
       try {
@@ -258,6 +293,7 @@ public class EthApiScript extends Script {
         transac.setGasPrice("" + t.getGasPrice());
         transac.setGasLimit("" + t.getGasLimit());
         transac.setValue("" + t.getValue());
+        transac.setData(""+t.getData());
         transac.setSignedHash(hexTransactionData);
         transac.setCreationDate(java.time.Instant.now());
         transac.setV(hex(signatureData.getV()));
@@ -268,6 +304,9 @@ public class EthApiScript extends Script {
         transferValue(transac, t.getValue());
         result = hash;
         log.info("created transaction with uuid:{}", uuid);
+        if(t.getData()!=null && t.getData().length()>0){
+          processTransactionHooks(signedResult);
+        }
       } catch (Exception e) {
         // e.printStackTrace();
         return createErrorResponse(requestId, "-32001", e.getMessage());
@@ -275,6 +314,7 @@ public class EthApiScript extends Script {
     }
     return createResponse(requestId, result);
   }
+
 
   private String createResponse(String requestId, String result) {
     String res = "{\n";
