@@ -76,13 +76,12 @@ public class EthApiScript extends Script {
   static private Map<Pattern, Script> transactionHookMatchers = new HashMap<>();
 
   public static boolean addTransactionHook(String regex, Script script) {
+    log.info("addTransactionHook regex:");
     boolean result = true;
-    if (transactionHooks.containsKey(regex)) {
-      result = false;
-    } else {
-      Pattern pattern = Pattern.compile(regex);
-      transactionHookMatchers.put(pattern, script);
-    }
+    result =!transactionHooks.containsKey(regex);
+    Pattern pattern = Pattern.compile(regex);
+    transactionHooks.put(regex, script);
+    transactionHookMatchers.put(pattern, script);
     return result;
   }
 
