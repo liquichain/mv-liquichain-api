@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.meveo.admin.exception.BusinessException;
@@ -71,13 +72,13 @@ public class EthApiScript extends Script {
     return result;
   }
 
-  static private Map<String,Script> transactionHooks = new HashMap<>();
-  static private Map<Pattern,Script> transactionHookMatchers = new HashMap<>();
+  static private Map<String, Script> transactionHooks = new HashMap<>();
+  static private Map<Pattern, Script> transactionHookMatchers = new HashMap<>();
 
-  public static boolean addTransactionHook(String regex,Script script){
-    boolean result=true;
-    if(transactionHooks.containsKey(regex)){
-      result=false;
+  public static boolean addTransactionHook(String regex, Script script) {
+    boolean result = true;
+    if (transactionHooks.containsKey(regex)) {
+      result = false;
     } else {
       Pattern pattern = Pattern.compile(regex);
       transactionHookMatchers.put(pattern, script);
@@ -85,27 +86,27 @@ public class EthApiScript extends Script {
     return result;
   }
 
-  private void processTransactionHooks(SignedRawTransaction transaction){
-    try{
+  private void processTransactionHooks(SignedRawTransaction transaction) {
+    try {
       String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
-    /*transactionHookMatchers.forEach((Pattern pattern,Script script) ->{
-      Matcher matcher = pattern.matcher(data);
-      if(matcher.find()) {
-        Map<String,Object> context = new HashMap<>();
-        context.put("transaction", transaction);
-        context.put("matcher", matcher);
-        try{
-        script.execute(context);
-        } catch (Exception e){
-          log.error("error while invoking transaction hook {}",script,e);
+      transactionHookMatchers.forEach((Pattern pattern, Script script) -> {
+        Matcher matcher = pattern.matcher(data);
+        if (matcher.find()) {
+          Map<String, Object> context = new HashMap<>();
+          context.put("transaction", transaction);
+          context.put("matcher", matcher);
+          try {
+            script.execute(context);
+          } catch (Exception e) {
+            log.error("error while invoking transaction hook {}", script, e);
+          }
         }
+      });
+      if (data.contains("orderId")) {
+        log.info("detected orderId:{}", data);
       }
-    });*/
-    if(data.contains("orderId")){
-      log.info("detected orderId:{}",data);
-    }
-    }catch (Exception ex){  
-      log.info("error while detecting order:{}",ex);
+    } catch (Exception ex) {
+      log.info("error while detecting order:{}", ex);
     }
   }
 
@@ -232,37 +233,37 @@ public class EthApiScript extends Script {
     return "0x" + new BigInteger(i).toString(16);
   }
 
-  private String getTransactionByHash(String requestId, String hash){
-       try {
-            log.info("lookup transaction hexHash={}",hash);   
-         
-            if (hash.startsWith("0x")){
-              hash = hash.substring(2);
-            }  
-            Transaction transac = crossStorageApi.find(defaultRepo, Transaction.class).by("hexHash", hash).getResult();
-         	  String result ="{\n";
-            result+="\"blockHash\": \"0x"+transac.getBlockHash()+"\",\n";
-            result+="\"blockNumber\": \""+toBigHex(transac.getBlockNumber())+"\",\n";
-            result+="\"from\": \"0x"+transac.getFromHexHash()+"\",\n";
-            result+="\"gas\": \"0x"+toBigHex(transac.getGasLimit())+"\",\n";
-            result+="\"gasPrice\": \"0x"+toBigHex(transac.getGasPrice())+"\",\n";
-            result+="\"hash\": \""+hash+"\",\n";
-    		    result+="\"input\": \"\",\n";
-    		    result+="\"nonce\": \""+toBigHex(transac.getNonce())+"\",\n";
-    		    result+="\"r\": \""+transac.getR()+"\",\n";
-    		    result+="\"s\": \""+transac.getS()+"\",\n";
-    	    	result+="\"to\": \"0x"+transac.getToHexHash()+"\",\n";
-    		    result+="\"transactionIndex\": \"0x"+toBigHex(transac.getTransactionIndex()+"")+"\",";
-    		    result+="\"v\": \""+transac.getV()+"\",";
-    		    result+="\"value\": \""+toBigHex(transac.getValue())+"\"\n";
-            result+="}";
-            log.info("res={}"+result);
-            return createResponse(requestId, result);
-        } catch (Exception e) {
-            // e.printStackTrace();
-            return createErrorResponse(requestId, "-32001", "Resource not found");
-        }
+  private String getTransactionByHash(String requestId, String hash) {
+    try {
+      log.info("lookup transaction hexHash={}", hash);
+
+      if (hash.startsWith("0x")) {
+        hash = hash.substring(2);
+      }
+      Transaction transac = crossStorageApi.find(defaultRepo, Transaction.class).by("hexHash", hash).getResult();
+      String result = "{\n";
+      result += "\"blockHash\": \"0x" + transac.getBlockHash() + "\",\n";
+      result += "\"blockNumber\": \"" + toBigHex(transac.getBlockNumber()) + "\",\n";
+      result += "\"from\": \"0x" + transac.getFromHexHash() + "\",\n";
+      result += "\"gas\": \"0x" + toBigHex(transac.getGasLimit()) + "\",\n";
+      result += "\"gasPrice\": \"0x" + toBigHex(transac.getGasPrice()) + "\",\n";
+      result += "\"hash\": \"" + hash + "\",\n";
+      result += "\"input\": \"\",\n";
+      result += "\"nonce\": \"" + toBigHex(transac.getNonce()) + "\",\n";
+      result += "\"r\": \"" + transac.getR() + "\",\n";
+      result += "\"s\": \"" + transac.getS() + "\",\n";
+      result += "\"to\": \"0x" + transac.getToHexHash() + "\",\n";
+      result += "\"transactionIndex\": \"0x" + toBigHex(transac.getTransactionIndex() + "") + "\",";
+      result += "\"v\": \"" + transac.getV() + "\",";
+      result += "\"value\": \"" + toBigHex(transac.getValue()) + "\"\n";
+      result += "}";
+      log.info("res={}" + result);
+      return createResponse(requestId, result);
+    } catch (Exception e) {
+      // e.printStackTrace();
+      return createErrorResponse(requestId, "-32001", "Resource not found");
     }
+  }
 
   private String processTransaction(String requestId, String hexTransactionData) {
     String result = "0x0";
@@ -293,7 +294,7 @@ public class EthApiScript extends Script {
         transac.setGasPrice("" + t.getGasPrice());
         transac.setGasLimit("" + t.getGasLimit());
         transac.setValue("" + t.getValue());
-        transac.setData(""+t.getData());
+        transac.setData("" + t.getData());
         transac.setSignedHash(hexTransactionData);
         transac.setCreationDate(java.time.Instant.now());
         transac.setV(hex(signatureData.getV()));
@@ -304,7 +305,7 @@ public class EthApiScript extends Script {
         transferValue(transac, t.getValue());
         result = hash;
         log.info("created transaction with uuid:{}", uuid);
-        if(t.getData()!=null && t.getData().length()>0){
+        if (t.getData() != null && t.getData().length() > 0) {
           processTransactionHooks(signedResult);
         }
       } catch (Exception e) {
@@ -314,7 +315,6 @@ public class EthApiScript extends Script {
     }
     return createResponse(requestId, result);
   }
-
 
   private String createResponse(String requestId, String result) {
     String res = "{\n";
