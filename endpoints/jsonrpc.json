@@ -1,17 +1,12 @@
 {
   "code" : "jsonrpc",
   "description" : "eth json rpc api",
-  "secured" : true,
+  "secured" : false,
   "checkPathParams" : true,
   "serviceCode" : "io.liquichain.api.rpc.EthApiScript",
   "synchronous" : true,
   "method" : "POST",
-  "parameterMappings" : [ {
-    "serviceParameter" : "projectId",
-    "multivalued" : false,
-    "defaultValue" : "12",
-    "valueRequired" : false
-  } ],
+  "parameterMappings" : [ ],
   "pathParameters" : [ ],
   "roles" : [ ],
   "returnedVariableName" : "result",
