@@ -66,7 +66,7 @@ public class EthApiScript extends Script {
   // }
   private Repository defaultRepo = repositoryService.findDefaultRepository();
 
-  private String projectId;
+  //private String projectId;
 
   public String getResult() {
     return result;
@@ -460,7 +460,7 @@ public class EthApiScript extends Script {
     return createResponse(requestId, response);
   }
 
-  public void setProjectId(String projectId) {
-    this.projectId = projectId;
-  }
+ // public void setProjectId(String projectId) {
+   // this.projectId = projectId;
+  //}
 }
