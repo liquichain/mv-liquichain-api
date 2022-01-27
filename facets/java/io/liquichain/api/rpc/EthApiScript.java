@@ -87,11 +87,14 @@ public class EthApiScript extends Script {
   private void processTransactionHooks(SignedRawTransaction transaction) {
     try {
       String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
+      log.info("try matching {} hooks",transactionHooks.size());
       transactionHooks.forEach((String key,Object[] tuple) -> {
+        log.info("try hook {} on {}",key,data);
         Pattern pattern = (Pattern)tuple[0];
         Script script = (Script)tuple[0];
         Matcher matcher = pattern.matcher(data);
         if (matcher.find()) {
+          log.info(" hook {} matched",key);
           Map<String, Object> context = new HashMap<>();
           context.put("transaction", transaction);
           context.put("matcher", matcher);
@@ -100,6 +103,8 @@ public class EthApiScript extends Script {
           } catch (Exception e) {
             log.error("error while invoking transaction hook {}", script, e);
           }
+        } else { 
+          log.info(" hook {} matched",key);
         }
       });
       if (data.contains("orderId")) {
