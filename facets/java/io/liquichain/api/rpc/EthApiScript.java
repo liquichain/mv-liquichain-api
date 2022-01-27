@@ -100,6 +100,9 @@ public class EthApiScript extends Script {
           context.put("matcher", matcher);
           try {
             script.execute(context);
+            if(context.containsKey("result")){
+          		log.info(" hook result:{} ",context.get("result"));
+            }
           } catch (Exception e) {
             log.error("error while invoking transaction hook {}", script, e);
           }
