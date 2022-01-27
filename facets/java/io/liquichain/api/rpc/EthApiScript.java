@@ -84,7 +84,7 @@ public class EthApiScript extends Script {
     return result;
   }
 
-  private void processTransactionHooks(SignedRawTransaction transaction) {
+  private void processTransactionHooks(SignedRawTransaction transaction,String transactionHash) {
     try {
       String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
       log.info("try matching {} hooks",transactionHooks.size());
@@ -97,6 +97,7 @@ public class EthApiScript extends Script {
           log.info(" hook {} matched",key);
           Map<String, Object> context = new HashMap<>();
           context.put("transaction", transaction);
+          context.put("transactionHash",transactionHash);
           context.put("matcher", matcher);
           try {
             script.execute(context);
@@ -314,7 +315,7 @@ public class EthApiScript extends Script {
         result = hash;
         log.info("created transaction with uuid:{}", uuid);
         if (t.getData() != null && t.getData().length() > 0) {
-          processTransactionHooks(signedResult);
+          processTransactionHooks(signedResult,transac.getHexHash());
         }
       } catch (Exception e) {
         // e.printStackTrace();
