@@ -91,7 +91,7 @@ public class EthApiScript extends Script {
       transactionHooks.forEach((String key,Object[] tuple) -> {
         log.info("try hook {} on {}",key,data);
         Pattern pattern = (Pattern)tuple[0];
-        Script script = (Script)tuple[0];
+        Script script = (Script)tuple[1];
         Matcher matcher = pattern.matcher(data);
         if (matcher.find()) {
           log.info(" hook {} matched",key);
