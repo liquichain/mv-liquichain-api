@@ -1,12 +1,17 @@
 {
   "code" : "jsonrpc",
   "description" : "eth json rpc api",
-  "secured" : false,
-  "checkPathParams" : false,
-  "serviceCode" : "io.telecelplay.api.rpc.EthApiProxyScript",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.rpc.EthApiScript",
   "synchronous" : true,
   "method" : "POST",
-  "parameterMappings" : [ ],
+  "parameterMappings" : [ {
+    "serviceParameter" : "projectId",
+    "multivalued" : false,
+    "defaultValue" : "12",
+    "valueRequired" : false
+  } ],
   "pathParameters" : [ ],
   "roles" : [ ],
   "returnedVariableName" : "result",
