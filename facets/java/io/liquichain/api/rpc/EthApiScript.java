@@ -72,23 +72,23 @@ public class EthApiScript extends Script {
     return result;
   }
 
-  static private Map<String, Script> transactionHooks = new HashMap<>();
-  static private Map<Pattern, Script> transactionHookMatchers = new HashMap<>();
+  static private Map<String, Object[]> transactionHooks = new HashMap<>();
 
   public static boolean addTransactionHook(String regex, Script script) {
-    log.info("addTransactionHook regex:");
+    log.info("addTransactionHook regex:{}",regex);
     boolean result = true;
     result =!transactionHooks.containsKey(regex);
     Pattern pattern = Pattern.compile(regex);
-    transactionHooks.put(regex, script);
-    transactionHookMatchers.put(pattern, script);
+    transactionHooks.put(regex, new Object[]{pattern, script});
     return result;
   }
 
   private void processTransactionHooks(SignedRawTransaction transaction) {
     try {
       String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
-      transactionHookMatchers.forEach((Pattern pattern, Script script) -> {
+      transactionHooks.forEach((String regex,Object[] tuple) -> {
+        Pattern pattern = (Pattern)tuple[0];
+        Script script = (Script)tuple[0];
         Matcher matcher = pattern.matcher(data);
         if (matcher.find()) {
           Map<String, Object> context = new HashMap<>();
