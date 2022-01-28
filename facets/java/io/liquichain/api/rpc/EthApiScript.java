@@ -23,7 +23,6 @@ import org.web3j.crypto.RawTransaction;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.SignedRawTransaction;
 import org.web3j.crypto.TransactionDecoder;
-
 import io.liquichain.core.BlockForgerScript;
 
 public class EthApiScript extends Script {
