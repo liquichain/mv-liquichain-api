@@ -78,8 +78,10 @@ public class EthApiScript extends Script {
     log.info("addTransactionHook key:{}",key);
     boolean result = true;
     result =!transactionHooks.containsKey(key);
-    Pattern pattern = Pattern.compile(regex);
-    transactionHooks.put(key, new Object[]{pattern, script});
+    if(result == true){
+      Pattern pattern = Pattern.compile(regex);
+      transactionHooks.put(key, new Object[]{pattern, script});
+    }
     return result;
   }
 
