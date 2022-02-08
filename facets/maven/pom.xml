@@ -35,6 +35,10 @@
       <url>https://repo1.maven.org/maven2/</url>
     </repository>
     <repository>
+      <id>staging-teleceplay</id>
+      <url>https://staging.telecelplay.io/meveo/maven</url>
+    </repository>
+    <repository>
       <id>meveo-repo</id>
       <url>https://dev.telecelplay.io/meveo/maven</url>
     </repository>
