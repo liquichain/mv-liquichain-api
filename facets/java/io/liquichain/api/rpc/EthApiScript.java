@@ -271,7 +271,7 @@ public class EthApiScript extends Script {
       log.info("res={}" + result);
       return createResponse(requestId, result);
     } catch (Exception e) {
-      // e.printStackTrace();
+       e.printStackTrace();
       return createErrorResponse(requestId, "-32001", "Resource not found");
     }
   }
