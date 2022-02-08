@@ -276,8 +276,8 @@ public class EthApiScript extends Script {
       result += "\"blockHash\": \"0x" + transac.getBlockHash() + "\",\n";
       result += "\"blockNumber\": \"" + toBigHex(transac.getBlockNumber()) + "\",\n";
       result += "\"from\": \"0x" + transac.getFromHexHash() + "\",\n";
-      result += "\"gas\": \"0x" + toBigHex(transac.getGasLimit()) + "\",\n";
-      result += "\"gasPrice\": \"0x" + toBigHex(transac.getGasPrice()) + "\",\n";
+      result += "\"gas\": \"" + toBigHex(transac.getGasLimit()) + "\",\n";
+      result += "\"gasPrice\": \"" + toBigHex(transac.getGasPrice()) + "\",\n";
       result += "\"hash\": \"" + hash + "\",\n";
       result += "\"input\": \"\",\n";
       result += "\"nonce\": \"" + toBigHex(transac.getNonce()) + "\",\n";
