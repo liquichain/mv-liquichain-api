@@ -240,7 +240,11 @@ public class EthApiScript extends Script {
   }
 
   private String toBigHex(String i) {
-    return "0x" + new BigInteger(i).toString(16);
+    String result="";
+    try {
+     result = "0x" + new BigInteger(i).toString(16);
+    } catch(Exception e){};
+    return result;
   }
 
   private String getTransactionByHash(String requestId, String hash) {
