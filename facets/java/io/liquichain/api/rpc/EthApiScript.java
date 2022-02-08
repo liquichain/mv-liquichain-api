@@ -304,7 +304,11 @@ public class EthApiScript extends Script {
         transac.setGasPrice("" + t.getGasPrice());
         transac.setGasLimit("" + t.getGasLimit());
         transac.setValue("" + t.getValue());
-        transac.setData("" + t.getData());
+        if(t.getData()==null || t.getData().isEmpty()){
+          transac.setData("{\"type\":\"transfer\"}");
+        } else {
+          transac.setData("" + t.getData());
+        }
         transac.setSignedHash(hexTransactionData);
         transac.setCreationDate(java.time.Instant.now());
         transac.setV(hex(signatureData.getV()));
