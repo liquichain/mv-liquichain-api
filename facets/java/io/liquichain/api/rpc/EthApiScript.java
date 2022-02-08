@@ -260,6 +260,7 @@ public class EthApiScript extends Script {
       result += "\"hash\": \"" + hash + "\",\n";
       result += "\"input\": \"\",\n";
       result += "\"nonce\": \"" + toBigHex(transac.getNonce()) + "\",\n";
+      result += "\"nonce\": \"" + transac.getData()==null?"":transac.getData() + "\",\n";
       result += "\"r\": \"" + transac.getR() + "\",\n";
       result += "\"s\": \"" + transac.getS() + "\",\n";
       result += "\"to\": \"0x" + transac.getToHexHash() + "\",\n";
