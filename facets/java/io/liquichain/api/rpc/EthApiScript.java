@@ -368,7 +368,7 @@ public class EthApiScript extends Script {
       res += "  \"result\": \"" + result + "\"\n";
     }
     res += "}";
-    // log.info("res:{}", res);
+    log.info("res:{}", res);
     return res;
   }
 
