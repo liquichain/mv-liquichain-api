@@ -26,19 +26,6 @@ import org.web3j.crypto.TransactionDecoder;
 import io.liquichain.core.BlockForgerScript;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-final class JSONUtils {
-  private JSONUtils(){}
-
-  public static boolean isJSONValid(String jsonInString ) {
-    try {
-       final ObjectMapper mapper = new ObjectMapper();
-       mapper.readTree(jsonInString);
-       return true;
-    } catch (Exception e) {
-       return false;
-    }
-  }
-}
 
 public class EthApiScript extends Script {
 
@@ -69,6 +56,17 @@ public class EthApiScript extends Script {
       + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":[" + "],"
       + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
       + "\"uncles\":[  " + "]}";
+  
+  
+  public static boolean isJSONValid(String jsonInString ) {
+    try {
+       final ObjectMapper mapper = new ObjectMapper();
+       mapper.readTree(jsonInString);
+       return true;
+    } catch (Exception e) {
+       return false;
+    }
+  }
 
   private CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
   // {
@@ -282,7 +280,7 @@ public class EthApiScript extends Script {
       result += "\"input\": \"\",\n";
       result += "\"nonce\": \"" + toBigHex(transac.getNonce()) + "\",\n";
       if(transac.getData()!=null){
-        if(JSONUtils.isJSONValid(transac.getData())){
+        if(isJSONValid(transac.getData())){
       		result += "\"data\": " + transac.getData() + ",\n";
         } else {
       		result += "\"data\": \"" + transac.getData() + "\",\n";
