@@ -24,6 +24,21 @@ import org.web3j.crypto.Sign;
 import org.web3j.crypto.SignedRawTransaction;
 import org.web3j.crypto.TransactionDecoder;
 import io.liquichain.core.BlockForgerScript;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+final class JSONUtils {
+  private JSONUtils(){}
+
+  public static boolean isJSONValid(String jsonInString ) {
+    try {
+       final ObjectMapper mapper = new ObjectMapper();
+       mapper.readTree(jsonInString);
+       return true;
+    } catch (Exception e) {
+       return false;
+    }
+  }
+}
 
 public class EthApiScript extends Script {
 
@@ -264,7 +279,13 @@ public class EthApiScript extends Script {
       result += "\"hash\": \"" + hash + "\",\n";
       result += "\"input\": \"\",\n";
       result += "\"nonce\": \"" + toBigHex(transac.getNonce()) + "\",\n";
-      result += "\"data\": \"" + ((transac.getData()==null)?"":transac.getData()) + "\",\n";
+      if(transac.getData()!=null){
+        if(JSONUtils.isJSONValid(transac.getData())){
+      		result += "\"data\": " + transac.getData() + ",\n";
+        } else {
+      		result += "\"data\": \"" + transac.getData() + "\",\n";
+        }
+      } 
       result += "\"r\": \"" + transac.getR() + "\",\n";
       result += "\"s\": \"" + transac.getS() + "\",\n";
       result += "\"to\": \"0x" + transac.getToHexHash() + "\",\n";
