@@ -256,9 +256,11 @@ public class EthApiScript extends Script {
 
   private String toBigHex(String i) {
     String result="";
-    try {
-     result = "0x" + new BigInteger(i).toString(16);
-    } catch(Exception e){};
+    if(i!=null){
+      try {
+       result = "0x" + new BigInteger(i).toString(16);
+      } catch(Exception e){};
+    }
     return result;
   }
 
