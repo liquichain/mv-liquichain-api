@@ -3,8 +3,10 @@ package io.liquichain.api.scann;
 import io.liquichain.core.BlockForgerScript;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.math.BigInteger;
 import java.io.IOException;
@@ -12,7 +14,6 @@ import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.math.BigInteger;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.model.customEntities.LiquichainApp;
@@ -29,6 +30,16 @@ public class EthScannScript extends Script {
 
     private static final Logger log = LoggerFactory.getLogger(EthScannScript.class);
   
+    public static boolean isJSONValid(String jsonInString ) {
+      try {
+         final ObjectMapper mapper = new ObjectMapper();
+         mapper.readTree(jsonInString);
+         return true;
+      } catch (Exception e) {
+         return false;
+      }
+    }
+
   	private CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private Repository defaultRepo = repositoryService.findDefaultRepository();
@@ -36,10 +47,12 @@ public class EthScannScript extends Script {
     private String result;
   
     private String module;
-	private String action;
-	private String address;
+	  private String action;
+	  private String address;
     private String tag;
     private String apikey;
+    private int offset;
+    private int limit=10;
 
   
     public String getResult() {
@@ -65,6 +78,14 @@ public class EthScannScript extends Script {
     
     public void setApikey(String apikey){
       this.apikey = apikey;
+    }
+
+    public void setOffset(int offset){
+      this.offset = offset;
+    }
+
+    public void setLimit(int limit){
+      this.limit = limit;
     }
   
 public void execute(Map<String, Object> parameters) throws BusinessException {
@@ -116,9 +137,23 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
     }
   
     public String getTransactionList(String hash){
-         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class).by("fromHexHash", hash).getResults();
-         List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class).by("toHexHash", hash).getResults();
+         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class).by("fromHexHash", hash).limit(offset+limit).getResults();
+         List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class).by("toHexHash", hash).limit(offset+limit).getResults();
+         for(Transaction transac:transactionsTo){
+           //we reverse the amount for transfer received
+            BigInteger amount = new BigInteger(transac.getValue()).negate();
+            transac.setValue(amount.toString());
+          }
       	 transactions.addAll(transactionsTo);
+         transactions = transactions.stream()
+			      .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
+			      .collect(Collectors.toList());
+         //check offset and limit
+         if(transactions.size()<=offset){
+          transactions = new ArrayList<>();
+         } else {
+          transactions = transactions.subList(offset,Math.min(offset+limit,transactions.size()));
+         }
          String result="[";
       	 String sep="";
          for(Transaction transac:transactions){
@@ -132,6 +167,12 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
            result+="\"from\":\"0x"+transac.getFromHexHash()+"\",";
            result+="\"to\":\"0x"+transac.getToHexHash()+"\",";
            result+="\"value\":\"0x"+(new BigInteger(transac.getValue())).toString(16)+"\",";
+           if(transac.getData()!=null){
+             if(isJSONValid(transac.getData())){
+               result += "\"data\": " + transac.getData() + ",\n";
+             } else {
+               result += "\"data\": \"" + transac.getData() + "\",\n";
+             }
            result+="\"gas\":\"0\",";
            result+="\"gasPrice\":\"0x"+transac.getGasPrice()+"\",";
            result+="\"isError\":\"0\",";
@@ -141,6 +182,6 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
            sep=",";
          }
          result+="]";
-         return createResponse("1","OK-Missing/Invalid API Key, rate limit of 1/5sec applied",result);
+         return createResponse("1","OK",result);
     }
 }
