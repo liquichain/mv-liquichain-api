@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.math.BigInteger;
 import org.meveo.service.script.Script;
@@ -16,6 +17,8 @@ import org.meveo.model.customEntities.Transaction;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.storage.RepositoryService;
 import org.meveo.api.persistence.CrossStorageApi;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -130,6 +133,7 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
     }
   
     public String getTransactionList(String hash){
+         ObjectMapper mapper = new ObjectMapper();
          List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class).by("fromHexHash", hash).limit(offset+limit).getResults();
          List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class).by("toHexHash", hash).limit(offset+limit).getResults();
          for(Transaction transac:transactionsTo){
@@ -151,29 +155,31 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
          String result="[";
       	 String sep="";
          for(Transaction transac:transactions){
-           result+=sep+"{";
-           result+="\"blockNumber\":\""+transac.getBlockNumber()+"\",";
-           result+="\"timeStamp\":\""+transac.getCreationDate()+"\",";
-           result+="\"hash\":\"0x"+transac.getHexHash()+"\",";
-           result+="\"nonce\":\""+this.toBigHex(transac.getNonce())+"\",";
-           result+="\"blockHash\":\""+transac.getBlockHash()+"\",";
-           result+="\"transactionIndex\":\""+transac.getTransactionIndex()+"\",";
-           result+="\"from\":\"0x"+transac.getFromHexHash()+"\",";
-           result+="\"to\":\"0x"+transac.getToHexHash()+"\",";
-           result+="\"value\":\"0x"+(new BigInteger(transac.getValue())).toString(16)+"\",";
-           if(transac.getData()!=null){
-             if(isJSONValid(transac.getData())){
-               result += "\"data\": " + transac.getData() + ",\n";
-             } else {
-               result += "\"data\": \"" + transac.getData() + "\",\n";
-             }
-           }
-           result+="\"gas\":\"0\",";
-           result+="\"gasPrice\":\"0x"+transac.getGasPrice()+"\",";
-           result+="\"isError\":\"0\",";
-           result+="\"txreceipt_status\":\"1\",";
-           result+="\"input\":\"0x\",\"contractAddress\":\"\",\"cumulativeGasUsed\":\"\",\"gasUsed\":\"\",\"confirmations\":\"281736\"";
-           result+="}";
+           Map<String,Object> map = new HashMap<>();
+           map.put("blockNumber", transac.getBlockNumber());
+           map.put("timeStamp", transac.getCreationDate());
+           map.put("hash", transac.getHexHash());
+           map.put("nonce", this.toBigHex(transac.getNonce()));
+           map.put("blockHash", transac.getBlockHash());
+           map.put("transactionIndex", transac.getTransactionIndex());
+           map.put("from", "0x"+transac.getFromHexHash());
+           map.put("to", "0x"+transac.getToHexHash());
+           map.put("value", "0x"+(new BigInteger(transac.getValue())).toString(16));
+           map.put("data",transac.getData());
+           map.put("gas","0");
+           map.put("gasPrice", "0x"+transac.getGasPrice());
+           map.put("isError","0");
+           map.put("txreceipt_status","1");
+           map.put("input","0x");
+           map.put("contractAddress","");
+           map.put("cumulativeGasUsed","");
+           map.put("gasUsed","");
+           map.put("confirmations","1");
+           try {
+            result+=sep+mapper.writerWithDefaultPrettyPrinter().writeValueAsString(map);
+          } catch (JsonProcessingException e) {
+            e.printStackTrace();
+          }
            sep=",";
          }
          result+="]";
