@@ -173,6 +173,7 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
              } else {
                result += "\"data\": \"" + transac.getData() + "\",\n";
              }
+           }
            result+="\"gas\":\"0\",";
            result+="\"gasPrice\":\"0x"+transac.getGasPrice()+"\",";
            result+="\"isError\":\"0\",";
