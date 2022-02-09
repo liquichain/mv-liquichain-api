@@ -1,30 +1,23 @@
 package io.liquichain.api.scann;
 
-import io.liquichain.core.BlockForgerScript;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.math.BigInteger;
-import java.io.IOException;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.customEntities.Transaction;
-import org.meveo.model.customEntities.LiquichainApp;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.storage.RepositoryService;
 import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.api.exception.EntityDoesNotExistsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.meveo.model.customEntities.CustomEntityInstance;
 
-import org.web3j.crypto.*;
 
 public class EthScannScript extends Script {
 
@@ -145,6 +138,7 @@ public void execute(Map<String, Object> parameters) throws BusinessException {
             transac.setValue(amount.toString());
           }
       	 transactions.addAll(transactionsTo);
+         //we order by date descending
          transactions = transactions.stream()
 			      .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
 			      .collect(Collectors.toList());
