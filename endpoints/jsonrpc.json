@@ -3,7 +3,7 @@
   "description" : "eth json rpc api",
   "secured" : false,
   "checkPathParams" : true,
-  "serviceCode" : "io.liquichain.api.rpc.EthApiScript",
+  "serviceCode" : "io.liquichain.api.rpc.EthApiProxyScript",
   "synchronous" : true,
   "method" : "POST",
   "parameterMappings" : [ ],
