@@ -3,45 +3,54 @@ package io.liquichain.api.rpc;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.meveo.admin.exception.BusinessException;
+import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
+import org.meveo.commons.utils.ParamBean;
+import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.model.customEntities.LiquichainApp;
 import org.meveo.model.customEntities.Transaction;
+import org.meveo.model.customEntities.VerifiedEmail;
+import org.meveo.model.customEntities.VerifiedPhoneNumber;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.crypto.Hash;
-import org.web3j.crypto.RawTransaction;
-import org.web3j.crypto.Sign;
-import org.web3j.crypto.SignedRawTransaction;
-import org.web3j.crypto.TransactionDecoder;
-import io.liquichain.core.BlockForgerScript;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.web3j.crypto.*;
+
+import io.liquichain.core.BlockForgerScript;
 
 
 public class EthApiScript extends Script {
+  private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
+  private static final Map<String, Object[]> TRANSACTION_HOOKS = new HashMap<>();
 
-  private static final Logger log = LoggerFactory.getLogger(EthApiScript.class);
+  private static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
+  private static final String CREATE_WALLET_ERROR = "Failed to create wallet";
+  private static final String UPDATE_WALLET_ERROR = "Failed to update wallet";
+  private static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
+  private static final String UNKNOWN_APPLICATION_ERROR = "Unknown application";
+  private static final String WALLET_EXISTS_ERROR = "Wallet already exists";
+  private static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
+  private static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
+  private static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
+  private static final String INVALID_REQUEST = "-32600";
+  private static final String INTERNAL_ERROR = "-32603";
+  private static final String RESOURCE_NOT_FOUND = "-32001";
+  private static final String TRANSACTION_REJECTED = "-32003";
+  private static final String METHOD_NOT_FOUND = "-32601";
 
-  private long chainId = 76;
-
-  private String result;
-
-  private int networkId = 7;
-
-  private long blockHeight = 1662295;
-
-  private BigInteger balance = new BigInteger("999965000000000000000");
-
-  private String exampleBlock = "{" + "\"difficulty\":\"0x5\","
+  private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
       + "\"extraData\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
       + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
       + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
@@ -51,99 +60,32 @@ public class EthApiScript extends Script {
       + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
       + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
       + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-      + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\"," + "\"size\":\"0x260\","
+      + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
+      + "\"size\":\"0x260\","
       + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
-      + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":[" + "],"
+      + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
+      + "],"
       + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
       + "\"uncles\":[  " + "]}";
-  
-  
-  public static boolean isJSONValid(String jsonInString ) {
-    try {
-       final ObjectMapper mapper = new ObjectMapper();
-       mapper.readTree(jsonInString);
-       return true;
-    } catch (Exception e) {
-       return false;
-    }
-  }
 
-  private CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-  // {
-  // crossStorageApi = CDI.current().select(CrossStorageApi.class).get();
-  // }
-  private RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-  // {
-  // repositoryService = CDI.current().select(RepositoryService.class).get();
-  // }
-  private Repository defaultRepo = repositoryService.findDefaultRepository();
 
-  //private String projectId;
+  private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+  private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+  private final Repository defaultRepo = repositoryService.findDefaultRepository();
+  private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+  private ParamBean config = paramBeanFactory.getInstance();
 
-  public String getResult() {
-    return result;
-  }
+  private String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
-  static private Map<String, Object[]> transactionHooks = new HashMap<>();
-
-  public static boolean addTransactionHook(String regex, Script script) {
-    String key = regex+":"+script.getClass().getName();
-    log.info("addTransactionHook key:{}",key);
-    boolean result = true;
-    result =!transactionHooks.containsKey(key);
-    if(result == true){
-      Pattern pattern = Pattern.compile(regex);
-      transactionHooks.put(key, new Object[]{pattern, script});
-    }
-    return result;
-  }
-
-  private void processTransactionHooks(SignedRawTransaction transaction,String transactionHash) {
-    try {
-      String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
-      log.info("try matching {} hooks",transactionHooks.size());
-      transactionHooks.forEach((String key,Object[] tuple) -> {
-        log.info("try hook {} on {}",key,data);
-        Pattern pattern = (Pattern)tuple[0];
-        Script script = (Script)tuple[1];
-        Matcher matcher = pattern.matcher(data);
-        if (matcher.find()) {
-          log.info(" hook {} matched",key);
-          Map<String, Object> context = new HashMap<>();
-          context.put("transaction", transaction);
-          context.put("transactionHash",transactionHash);
-          context.put("matcher", matcher);
-          try {
-            script.execute(context);
-            if(context.containsKey("result")){
-          		log.info(" hook result:{} ",context.get("result"));
-            }
-          } catch (Exception e) {
-            log.error("error while invoking transaction hook {}", script, e);
-          }
-        } else { 
-          log.info(" hook {} matched",key);
-        }
-      });
-      if (data.contains("orderId")) {
-        log.info("detected orderId:{}", data);
-      }
-    } catch (Exception ex) {
-      log.info("error while detecting order:{}", ex);
-    }
-  }
+  private String result;
 
   @Override
   public void execute(Map<String, Object> parameters) throws BusinessException {
-    // log.info("projectId : {}", projectId);
     String method = "" + parameters.get("method");
-    log.info("json rpc: {}, parameters:{}", method, parameters);
+    LOG.info("json rpc: {}, parameters:{}", method, parameters);
     String requestId = "" + parameters.get("id");
     switch (method) {
       case "eth_call":
-        log.info("params={}", parameters.get("params"));
-        ArrayList<Object> paramscall = (ArrayList<Object>) parameters.get("params");
-        Object hashcall = paramscall.get(0);
         result = createResponse(requestId, "0x");
         break;
       case "eth_chainId":
@@ -153,32 +95,19 @@ public class EthApiScript extends Script {
         result = createResponse(requestId, "liquichainCentral");
         break;
       case "net_version":
-        result = createResponse(requestId, "" + networkId);
+        result = createResponse(requestId, "7");
         break;
       case "eth_blockNumber":
-        blockHeight = BlockForgerScript.blockHeight;
-        result = createResponse(requestId, "0x" + Long.toHexString(blockHeight));
+        result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
         break;
       case "eth_getBalance":
-        log.info("params={}", parameters.get("params"));
-        ArrayList<String> params = (ArrayList<String>) parameters.get("params");
-        String hash = params.get(0).toLowerCase();
-        if (hash.startsWith("0x")) {
-          hash = hash.substring(2);
-        }
-        result = getBalance(requestId, hash);
+        result = getBalance(requestId, parameters);
         break;
       case "eth_getTransactionCount":
-        log.info("params={}", parameters.get("params"));
-        ArrayList<String> paramsc = (ArrayList<String>) parameters.get("params");
-        String hashc = paramsc.get(0).toLowerCase();
-        if (hashc.startsWith("0x")) {
-          hashc = hashc.substring(2);
-        }
-        result = getTransactionCount(requestId, hashc);
+        result = getTransactionCount(requestId, parameters);
         break;
       case "eth_getBlockByNumber":
-        result = createResponse(requestId, exampleBlock);
+        result = createResponse(requestId, SAMPLE_BLOCK);
         break;
       case "eth_estimateGas":
         result = createResponse(requestId, "0x0");
@@ -187,309 +116,386 @@ public class EthApiScript extends Script {
         result = createResponse(requestId, "0x0");
         break;
       case "eth_getCode":
-        ArrayList<String> paramsco = (ArrayList<String>) parameters.get("params");
-        String hashco = paramsco.get(0).toLowerCase();
-        result = getCode(requestId, hashco);
+        result = getCode(requestId, parameters);
         break;
       case "eth_sendRawTransaction":
-        log.info("received transaction : params={}", parameters.get("params"));
-        ArrayList<String> params2 = (ArrayList<String>) parameters.get("params");
-        String transacEncoded = params2.get(0);
-        result = processTransaction(requestId, transacEncoded);
+        result = sendRawTransaction(requestId, parameters);
         break;
       case "eth_getTransactionByHash":
-        ArrayList<String> params3 = (ArrayList<String>) parameters.get("params");
-        String hash2 = params3.get(0).toLowerCase();
-        result = getTransactionByHash(requestId, hash2);
+        result = getTransactionByHash(requestId, parameters);
         break;
       case "wallet_creation":
-        ArrayList<String> params4 = (ArrayList<String>) parameters.get("params");
-        String name = params4.get(0);
-        String walletHash = params4.get(1).toLowerCase();
-        if (walletHash.startsWith("0x")) {
-          walletHash = walletHash.substring(2);
-        }
-        String accountHash = params4.get(2).toLowerCase();
-        if (accountHash.startsWith("0x")) {
-          accountHash = accountHash.substring(2);
-        }
-        String walletPublicInfo = params4.get(3);
-        result = createWallet(requestId, "licoin", name, walletHash, accountHash, walletPublicInfo);
+        result = createWallet(requestId, parameters);
         break;
       case "wallet_update":
-        ArrayList<String> params5 = (ArrayList<String>) parameters.get("params");
-        String uname = params5.get(0);
-        String uwalletHash = params5.get(1).toLowerCase();
-        if (uwalletHash.startsWith("0x")) {
-          uwalletHash = uwalletHash.substring(2);
-        }
-        String walletPublicInfo2 = params5.get(2);
-        String signature = params5.get(3);
-        result = updateWallet(requestId, "licoin", uname, uwalletHash, walletPublicInfo2, signature);
+        result = updateWallet(requestId, parameters);
         break;
       case "wallet_info":
-        ArrayList<String> params6 = (ArrayList<String>) parameters.get("params");
-        String iwalletHash = params6.get(0).toLowerCase();
-        if (iwalletHash.startsWith("0x")) {
-          iwalletHash = iwalletHash.substring(2);
-        }
-        result = getWalletInfo(requestId, "licoin", iwalletHash);
+        result = getWalletInfo(requestId, parameters);
         break;
       case "wallet_report":
-        ArrayList<String> params7 = (ArrayList<String>) parameters.get("params");
-        String reportedWalletHash = params7.get(0).toLowerCase();
-        String signature2 = params7.get(1);
         result = createResponse(requestId, "wallet reported");
         break;
+      default:
+        result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
+        break;
+    }
+  }
+
+  public String getResult() {
+    return result;
+  }
+
+  private String createResponse(String requestId, String result) {
+    String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
+    String response = new StringBuilder()
+        .append("{\n")
+        .append("  \"id\": ").append(requestId).append(",\n")
+        .append("  \"jsonrpc\": \"2.0\",\n")
+        .append("  \"result\": ").append(String.format(resultFormat, result)).append("\n")
+        .append("}").toString();
+    LOG.debug("response: {}", response);
+    return response;
+  }
+
+  private String createErrorResponse(String requestId, String errorCode, String message) {
+    return new StringBuilder()
+        .append("{\n")
+        .append("  \"id\": ").append(requestId).append(",\n")
+        .append("  \"jsonrpc\": \"2.0\",\n")
+        .append("  \"error\": {\n")
+        .append("    \"code\": ").append(errorCode).append(",\n")
+        .append("    \"message\": \"").append(message).append("\"\n")
+        .append("  }\n")
+        .append("}").toString();
+  }
+
+  private String normalizeHash(String hash) {
+    if (hash.startsWith("0x")) {
+      return hash.substring(2);
+    }
+    return hash;
+  }
+
+  private String retrieveHash(List<String> parameters, int parameterIndex) {
+    return normalizeHash(parameters.get(parameterIndex));
+  }
+
+  public static boolean isJSONValid(String jsonInString) {
+    try {
+      final ObjectMapper mapper = new ObjectMapper();
+      mapper.readTree(jsonInString);
+      return true;
+    } catch (Exception e) {
+      return false;
     }
   }
 
   public static String hex(byte[] bytes) {
-    StringBuilder result = new StringBuilder();
+    StringBuilder hexValue = new StringBuilder();
     for (byte aByte : bytes) {
-      result.append(String.format("%02x", aByte));
+      hexValue.append(String.format("%02x", aByte));
     }
-    return result.toString().toLowerCase();
+    return hexValue.toString().toLowerCase();
   }
 
-  private String toBigHex(String i) {
-    String result="";
-    if(i!=null){
+  private String toBigHex(String value) {
+    String hexValue = "";
+    if (value != null) {
       try {
-       result = "0x" + new BigInteger(i).toString(16);
-      } catch(Exception e){};
+        hexValue = "0x" + new BigInteger(value).toString(16);
+      } catch (NumberFormatException e) {
+        LOG.error("Failed to convert to hex {}", value, e);
+      }
+    }
+    return hexValue;
+  }
+
+  public static boolean addTransactionHook(String regex, Script script) {
+    String key = regex + ":" + script.getClass().getName();
+    LOG.info("addTransactionHook key:{}", key);
+    boolean result = true;
+    result = !TRANSACTION_HOOKS.containsKey(key);
+    if (result == true) {
+      Pattern pattern = Pattern.compile(regex);
+      TRANSACTION_HOOKS.put(key, new Object[] {pattern, script});
     }
     return result;
   }
 
-  private String getTransactionByHash(String requestId, String hash) {
+  private void processTransactionHooks(SignedRawTransaction transaction, String transactionHash) {
     try {
-      log.info("lookup transaction hexHash={}", hash);
-
-      if (hash.startsWith("0x")) {
-        hash = hash.substring(2);
-      }
-      Transaction transac = crossStorageApi.find(defaultRepo, Transaction.class).by("hexHash", hash).getResult();
-      String result = "{\n";
-      result += "\"blockHash\": \"0x" + transac.getBlockHash() + "\",\n";
-      result += "\"blockNumber\": \"" + toBigHex(transac.getBlockNumber()) + "\",\n";
-      result += "\"from\": \"0x" + transac.getFromHexHash() + "\",\n";
-      result += "\"gas\": \"" + toBigHex(transac.getGasLimit()) + "\",\n";
-      result += "\"gasPrice\": \"" + toBigHex(transac.getGasPrice()) + "\",\n";
-      result += "\"hash\": \"" + hash + "\",\n";
-      result += "\"input\": \"\",\n";
-      result += "\"nonce\": \"" + toBigHex(transac.getNonce()) + "\",\n";
-      if(transac.getData()!=null){
-        if(isJSONValid(transac.getData())){
-      		result += "\"data\": " + transac.getData() + ",\n";
+      String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
+      LOG.info("try matching {} hooks", TRANSACTION_HOOKS.size());
+      TRANSACTION_HOOKS.forEach((String key, Object[] tuple) -> {
+        LOG.info("try hook {} on {}", key, data);
+        Pattern pattern = (Pattern) tuple[0];
+        Script script = (Script) tuple[1];
+        Matcher matcher = pattern.matcher(data);
+        if (matcher.find()) {
+          LOG.info(" hook {} matched", key);
+          Map<String, Object> context = new HashMap<>();
+          context.put("transaction", transaction);
+          context.put("transactionHash", transactionHash);
+          context.put("matcher", matcher);
+          try {
+            script.execute(context);
+            if (context.containsKey("result")) {
+              LOG.info(" hook result:{} ", context.get("result"));
+            }
+          } catch (Exception e) {
+            LOG.error("error while invoking transaction hook {}", script, e);
+          }
         } else {
-      		result += "\"data\": \"" + transac.getData() + "\",\n";
+          LOG.info(" hook {} matched", key);
         }
-      } 
-      result += "\"r\": \"" + transac.getR() + "\",\n";
-      result += "\"s\": \"" + transac.getS() + "\",\n";
-      result += "\"to\": \"0x" + transac.getToHexHash() + "\",\n";
-      result += "\"transactionIndex\": \"0x" + toBigHex(transac.getTransactionIndex() + "") + "\",";
-      result += "\"v\": \"" + transac.getV() + "\",";
-      result += "\"value\": \"" + toBigHex(transac.getValue()) + "\"\n";
-      result += "}";
-      log.info("res={}" + result);
-      return createResponse(requestId, result);
-    } catch (Exception e) {
-       e.printStackTrace();
-      return createErrorResponse(requestId, "-32001", "Resource not found");
+      });
+      if (data.contains("orderId")) {
+        LOG.info("detected orderId:{}", data);
+      }
+    } catch (Exception ex) {
+      LOG.info("error while detecting order:{}", ex);
     }
   }
 
-  private String processTransaction(String requestId, String hexTransactionData) {
-    String result = "0x0";
-    String hash = Hash.sha3(hexTransactionData).toLowerCase();
-    Transaction existingTransaction = null;
+  private String getTransactionByHash(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String hash = retrieveHash(params, 0);
+    LOG.info("lookup transaction hexHash={}", hash);
+
     try {
-      existingTransaction = crossStorageApi.find(defaultRepo, Transaction.class).by("hexHash", hash.substring(2))
-          .getResult();
+      Transaction transaction =
+          crossStorageApi.find(defaultRepo, Transaction.class).by("hexHash", hash).getResult();
+      String transactionDetails = "{\n";
+      transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
+      transactionDetails +=
+          "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
+      transactionDetails += "\"from\": \"0x" + transaction.getFromHexHash() + "\",\n";
+      transactionDetails += "\"gas\": \"" + toBigHex(transaction.getGasLimit()) + "\",\n";
+      transactionDetails += "\"gasPrice\": \"" + toBigHex(transaction.getGasPrice()) + "\",\n";
+      transactionDetails += "\"hash\": \"" + hash + "\",\n";
+      transactionDetails += "\"input\": \"\",\n";
+      transactionDetails += "\"nonce\": \"" + toBigHex(transaction.getNonce()) + "\",\n";
+      if (transaction.getData() != null) {
+        if (isJSONValid(transaction.getData())) {
+          transactionDetails += "\"data\": " + transaction.getData() + ",\n";
+        } else {
+          transactionDetails += "\"data\": \"" + transaction.getData() + "\",\n";
+        }
+      }
+      transactionDetails += "\"r\": \"" + transaction.getR() + "\",\n";
+      transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
+      transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
+      transactionDetails +=
+          "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
+      transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
+      transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
+      transactionDetails += "}";
+      LOG.info("res={}" + transactionDetails);
+      return createResponse(requestId, transactionDetails);
     } catch (Exception e) {
+      e.printStackTrace();
+      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+    }
+  }
+
+  private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String transactionData = params.get(0);
+    String transactionHash = normalizeHash(Hash.sha3(transactionData));
+    Transaction existingTransaction = null;
+    result = "0x0";
+    try {
+      existingTransaction = crossStorageApi
+          .find(defaultRepo, Transaction.class).by("hexHash", transactionHash).getResult();
+    } catch (Exception e) {
+      // do nothing, we want transaction to be unique
     }
     if (existingTransaction != null) {
-      return createErrorResponse(requestId, "-32001", "transaction already exists hexHash:" + hash.substring(2));
+      return createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
     }
-    RawTransaction t = TransactionDecoder.decode(hexTransactionData);
-    log.info("nonce:{} to:{} , value:{}", t.getNonce(), t.getTo(), t.getValue());
-    if (t instanceof SignedRawTransaction) {
-      SignedRawTransaction signedResult = (SignedRawTransaction) t;
-      signedResult.getData();
+
+    RawTransaction rawTransaction = TransactionDecoder.decode(transactionData);
+
+    if (rawTransaction instanceof SignedRawTransaction) {
+      SignedRawTransaction signedResult = (SignedRawTransaction) rawTransaction;
       Sign.SignatureData signatureData = signedResult.getSignatureData();
-      // byte[] encodedTransaction = TransactionEncoder.encode(t);
       try {
-        log.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
-        Transaction transac = new Transaction();
-        transac.setHexHash(hash.substring(2).toLowerCase());
-        transac.setFromHexHash(signedResult.getFrom().substring(2).toLowerCase());
-        transac.setToHexHash(t.getTo().substring(2).toLowerCase());
-        transac.setNonce("" + t.getNonce());
-        transac.setGasPrice("" + t.getGasPrice());
-        transac.setGasLimit("" + t.getGasLimit());
-        transac.setValue("" + t.getValue());
-        if(t.getData()==null || t.getData().isEmpty()){
-          transac.setData("{\"type\":\"transfer\"}");
+        LOG.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
+        Transaction transaction = new Transaction();
+        transaction.setHexHash(transactionHash);
+        transaction.setFromHexHash(normalizeHash(signedResult.getFrom()));
+        transaction.setToHexHash(normalizeHash(rawTransaction.getTo()));
+        transaction.setNonce("" + rawTransaction.getNonce());
+        transaction.setGasPrice("" + rawTransaction.getGasPrice());
+        transaction.setGasLimit("" + rawTransaction.getGasLimit());
+        transaction.setValue("" + rawTransaction.getValue());
+        if (rawTransaction.getData() == null || rawTransaction.getData().isEmpty()) {
+          transaction.setData("{\"type\":\"transfer\"}");
         } else {
-          transac.setData("" + t.getData());
+          transaction.setData("" + rawTransaction.getData());
         }
-        transac.setSignedHash(hexTransactionData);
-        transac.setCreationDate(java.time.Instant.now());
-        transac.setV(hex(signatureData.getV()));
-        transac.setS(hex(signatureData.getS()));
-        transac.setR(hex(signatureData.getR()));
-        log.info("transac:{}", transac);
-        String uuid = crossStorageApi.createOrUpdate(defaultRepo, transac);
-        transferValue(transac, t.getValue());
-        result = hash;
-        log.info("created transaction with uuid:{}", uuid);
-        if (t.getData() != null && t.getData().length() > 0) {
-          processTransactionHooks(signedResult,transac.getHexHash());
+        transaction.setSignedHash(transactionData);
+        transaction.setCreationDate(java.time.Instant.now());
+        transaction.setV(hex(signatureData.getV()));
+        transaction.setS(hex(signatureData.getS()));
+        transaction.setR(hex(signatureData.getR()));
+        LOG.info("transaction:{}", transaction);
+        String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+        transferValue(transaction, rawTransaction.getValue());
+        result = "0x" + transactionHash;
+        LOG.info("created transaction with uuid:{}", uuid);
+        if (rawTransaction.getData() != null && rawTransaction.getData().length() > 0) {
+          processTransactionHooks(signedResult, transaction.getHexHash());
         }
       } catch (Exception e) {
-        // e.printStackTrace();
-        return createErrorResponse(requestId, "-32001", e.getMessage());
+        return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
       }
     }
     return createResponse(requestId, result);
   }
 
-  private String createResponse(String requestId, String result) {
-    String res = "{\n";
-    res += "  \"id\": " + requestId + ",\n";
-    res += "  \"jsonrpc\": \"2.0\",\n";
-    if (result.startsWith("{")) {
-      res += "  \"result\": " + result + "\n";
-    } else {
-      res += "  \"result\": \"" + result + "\"\n";
-    }
-    res += "}";
-    //log.info("res:{}", res);
-    return res;
-  }
-
-  private void transferValue(Transaction transac, BigInteger value) throws Exception {
+  private void transferValue(Transaction transaction, BigInteger value) throws BusinessException {
     String message = "transfer error";
     try {
       message = "cannot find origin wallet";
-      Wallet originWallet = crossStorageApi.find(defaultRepo, transac.getFromHexHash(), Wallet.class);
+      Wallet originWallet =
+          crossStorageApi.find(defaultRepo, transaction.getFromHexHash(), Wallet.class);
       message = "cannot find destination wallet";
-      Wallet destinationWallet = crossStorageApi.find(defaultRepo, transac.getToHexHash(), Wallet.class);
+      crossStorageApi.find(defaultRepo, transaction.getToHexHash(), Wallet.class);
       message = "insufficient balance";
       BigInteger originBalance = new BigInteger(originWallet.getBalance());
-      log.info("originWallet 0x{} old balance:{}", transac.getFromHexHash(), originWallet.getBalance());
+      LOG.info("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
+          originWallet.getBalance());
       if (value.compareTo(originBalance) <= 0) {
-        BlockForgerScript.addTransaction(transac);
+        BlockForgerScript.addTransaction(transaction);
       } else {
-        throw new RuntimeException("insufficient balance");
+        throw new BusinessException("insufficient balance");
       }
     } catch (Exception e) {
-      throw new Exception(message);
+      throw new BusinessException(message);
     }
   }
 
-  private String createErrorResponse(String requestId, String errorCode, String message) {
-    String res = "{\n";
-    res += "  \"id\": " + requestId + ",\n";
-    res += "  \"jsonrpc\": \"2.0\",\n";
-    res += "  \"error\": { \"code\" : " + errorCode + " , \"message\" : \"" + message + "\"}\n";
-    res += "}";
-    // log.info("err:{}", res);
-    return res;
-  }
-
-  private String getTransactionCount(String requestId, String hash) {
+  private String getTransactionCount(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String transactionHash = retrieveHash(params, 0);
     try {
-      int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class).by("fromHexHash", hash.toLowerCase())
+      int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class)
+          .by("fromHexHash", transactionHash)
           .getResults()).size();
-      return createResponse(requestId, "0x" + new BigInteger(nbTransaction + "").toString(16));
+      return createResponse(requestId, toBigHex(nbTransaction + ""));
     } catch (Exception e) {
-      // e.printStackTrace();
       return createResponse(requestId, "0x0");
     }
   }
 
-  private String getCode(String requestId, String hash) {
+  private String getCode(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String address = retrieveHash(params, 0);
     try {
-      Wallet wallet = crossStorageApi.find(defaultRepo, hash.substring(2).toLowerCase(), Wallet.class);
-      log.info("getCode wallet.app.uuid={}", wallet.getApplication().getUuid());
-      // LiquichainApp app = crossStorageApi.find(defaultRepo, LiquichainApp.class);
+      Wallet wallet =
+          crossStorageApi.find(defaultRepo, address, Wallet.class);
+      LOG.info("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
       return createResponse(requestId, "0x" + wallet.getApplication().getUuid());
     } catch (Exception e) {
-      // e.printStackTrace();
-      return createErrorResponse(requestId, "-32001", "Address not found");
+      LOG.error("Wallet address {} not found", address, e);
+      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
     }
   }
 
-  private String getBalance(String requestId, String hash) {
+  private String getBalance(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String address = retrieveHash(params, 0);
     try {
-      Wallet wallet = crossStorageApi.find(defaultRepo, hash.toLowerCase(), Wallet.class);
-      return createResponse(requestId, "0x" + new BigInteger(wallet.getBalance()).toString(16));
+      Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
+      return createResponse(requestId, toBigHex(wallet.getBalance()));
     } catch (Exception e) {
-      // e.printStackTrace();
-      return createErrorResponse(requestId, "-32001", "Resource not found");
+
+      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
     }
   }
 
-  public String createWallet(String requestId, String appName, String name, String walletHash, String accountHash,
-      String publicInfo) {
+  public String createWallet(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String name = params.get(0);
+    String walletHash = retrieveHash(params, 1);
+    String accountHash = retrieveHash(params, 2);
+    String publicInfo = params.get(3);
+
     Wallet wallet = null;
     try {
-      wallet = crossStorageApi.find(defaultRepo, walletHash.toLowerCase(), Wallet.class);
-    } catch (Exception e) {
+      wallet = crossStorageApi.find(defaultRepo, walletHash, Wallet.class);
+    } catch (EntityDoesNotExistsException e) {
+      // do nothing, we want wallet to be unique
     }
     if (wallet != null) {
-      return createErrorResponse(requestId, "-32001", "Wallet already exists");
+      return createErrorResponse(requestId, INVALID_REQUEST, WALLET_EXISTS_ERROR);
     } else {
       wallet = new Wallet();
     }
+    LiquichainApp app = null;
     try {
-      LiquichainApp app = crossStorageApi.find(defaultRepo, LiquichainApp.class).by("name", appName).getResult();
-      wallet.setUuid(walletHash.toLowerCase());
-      wallet.setName(name);
-      wallet.setAccountHash(accountHash.toLowerCase());
-      wallet.setPublicInfo(publicInfo);
-      wallet.setBalance("0");
-      wallet.setApplication(app);
-      crossStorageApi.createOrUpdate(defaultRepo, wallet);
-      return createResponse(requestId, walletHash.toLowerCase());
-    } catch (Exception ex) {
-      return createErrorResponse(requestId, "-32001", "Cannot find application " + appName);
+      app =
+          crossStorageApi.find(defaultRepo, LiquichainApp.class).by("name", APP_NAME).getResult();
+    } catch (Exception e) {
+      LOG.error(UNKNOWN_APPLICATION_ERROR, e);
+      return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_APPLICATION_ERROR);
     }
-
+    wallet.setUuid(walletHash);
+    wallet.setName(name);
+    wallet.setAccountHash(accountHash);
+    wallet.setPublicInfo(publicInfo);
+    wallet.setBalance("0");
+    wallet.setApplication(app);
+    try {
+      String savedHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
+      return createResponse(requestId, "0x" + savedHash);
+    } catch (Exception e) {
+      LOG.error(CREATE_WALLET_ERROR, e);
+      return createErrorResponse(requestId, INTERNAL_ERROR, CREATE_WALLET_ERROR);
+    }
   }
 
-  public String updateWallet(String requestId, String appName, String name, String walletHash, String publicInfo,
-      String signature) {
+  public String updateWallet(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String name = params.get(0);
+    String walletHash = retrieveHash(params, 1);
+    String publicInfo = params.get(2);
+
     Wallet wallet = null;
     try {
       wallet = crossStorageApi.find(defaultRepo, walletHash.toLowerCase(), Wallet.class);
-    } catch (Exception e) {
+    } catch (EntityDoesNotExistsException e) {
+      LOG.error(UNKNOWN_WALLET_ERROR, e);
+      wallet = null;
     }
     if (wallet == null) {
-      return createErrorResponse(requestId, "-32001", "Unkown Wallet");
+      return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_WALLET_ERROR);
     }
+    wallet.setName(name);
+    wallet.setPublicInfo(publicInfo);
     try {
-      wallet.setName(name);
-      wallet.setPublicInfo(publicInfo);
       crossStorageApi.createOrUpdate(defaultRepo, wallet);
       return createResponse(requestId, name);
-    } catch (Exception ex) {
-      return createErrorResponse(requestId, "-32001", "Cannot update wallet " + ex.getMessage());
+    } catch (Exception e) {
+      LOG.error(UPDATE_WALLET_ERROR, e);
+      return createErrorResponse(requestId, INTERNAL_ERROR, UPDATE_WALLET_ERROR);
     }
-
   }
 
-  public String getWalletInfo(String requestId, String appName, String walletHash) {
+  public String getWalletInfo(String requestId, Map<String, Object> parameters) {
+    List<String> params = (List<String>) parameters.get("params");
+    String walletHash = retrieveHash(params, 0);
     Wallet wallet = null;
     try {
       wallet = crossStorageApi.find(defaultRepo, walletHash.toLowerCase(), Wallet.class);
     } catch (Exception e) {
+      LOG.error(UNKNOWN_WALLET_ERROR, e);
+      wallet = null;
     }
     if (wallet == null) {
-      return createErrorResponse(requestId, "-32001", "Unkown Wallet");
+      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, UNKNOWN_WALLET_ERROR);
     }
     String response = "{\n";
     response += "\"name\":\"" + wallet.getName() + "\"";
@@ -499,8 +505,4 @@ public class EthApiScript extends Script {
     response += "\n}";
     return createResponse(requestId, response);
   }
-
- // public void setProjectId(String projectId) {
-   // this.projectId = projectId;
-  //}
 }
