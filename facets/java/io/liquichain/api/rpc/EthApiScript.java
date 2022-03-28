@@ -28,14 +28,14 @@ public class EthApiScript extends Script {
     public void execute(Map<String, Object> parameters) throws BusinessException {
         BlockchainProcessor processor = null;
         switch (BLOCKCHAIN_BACKEND) {
-            case BESU:
-                break;
-            case FABRIC:
-                break;
-            case SMART_CONTRACT:
-                break;
-            case BESU_DB:
-                break;
+//            case BESU:
+//                break;
+//            case FABRIC:
+//                break;
+//            case SMART_CONTRACT:
+//                break;
+//            case BESU_DB:
+//                break;
             case DATABASE:
             default:
                 processor = new DatabaseProcessor();
