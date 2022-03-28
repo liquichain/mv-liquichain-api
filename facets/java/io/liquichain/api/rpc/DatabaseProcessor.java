@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.liquichain.core.BlockForgerScript;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
@@ -22,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.web3j.crypto.*;
+
+import io.liquichain.api.rpc.DatabaseWallet;
+import io.liquichain.core.BlockForgerScript;
 
 public class DatabaseProcessor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
