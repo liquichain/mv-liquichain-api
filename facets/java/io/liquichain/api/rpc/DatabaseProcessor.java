@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import org.web3j.crypto.*;
 
-import io.liquichain.api.rpc.DatabaseWallet;
 import io.liquichain.core.BlockForgerScript;
 
 public class DatabaseProcessor extends Script {
@@ -30,16 +29,8 @@ public class DatabaseProcessor extends Script {
     private static final Map<String, Object[]> TRANSACTION_HOOKS = new HashMap<>();
 
     private static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
-    private static final String CREATE_WALLET_ERROR = "Failed to create wallet";
-    private static final String UPDATE_WALLET_ERROR = "Failed to update wallet";
-    private static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
-    private static final String UNKNOWN_APPLICATION_ERROR = "Unknown application";
-    private static final String WALLET_EXISTS_ERROR = "Wallet already exists";
-    private static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
-    private static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
     private static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
     private static final String INVALID_REQUEST = "-32600";
-    private static final String INTERNAL_ERROR = "-32603";
     private static final String RESOURCE_NOT_FOUND = "-32001";
     private static final String TRANSACTION_REJECTED = "-32003";
     private static final String METHOD_NOT_FOUND = "-32601";
