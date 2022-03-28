@@ -12,15 +12,10 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
-import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.commons.utils.ParamBean;
-import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.model.customEntities.LiquichainApp;
 import org.meveo.model.customEntities.VerifiedEmail;
 import org.meveo.model.customEntities.VerifiedPhoneNumber;
 import org.meveo.model.customEntities.Wallet;
-import org.meveo.model.storage.Repository;
-import org.meveo.service.storage.RepositoryService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

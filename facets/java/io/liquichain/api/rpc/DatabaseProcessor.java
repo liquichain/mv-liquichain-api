@@ -7,12 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
-import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.model.customEntities.Wallet;
-import org.meveo.model.storage.Repository;
 
-import org.meveo.service.storage.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +143,8 @@ public class DatabaseProcessor extends BlockchainProcessor {
         try {
             existingTransaction = crossStorageApi
                     .find(defaultRepo, Transaction.class)
-                    .by("hexHash", transactionHash).getResult();
+                    .by("hexHash", transactionHash)
+                    .getResult();
         } catch (Exception e) {
             // do nothing, we want transaction to be unique
         }
