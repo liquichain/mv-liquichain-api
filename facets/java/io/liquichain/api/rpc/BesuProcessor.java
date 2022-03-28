@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
 import org.web3j.utils.*;
 
+import io.liquichain.api.rpc.BlockchainProcessor;
+
 @ApplicationScoped
 public class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);

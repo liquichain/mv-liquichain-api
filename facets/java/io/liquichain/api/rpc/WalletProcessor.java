@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import org.web3j.crypto.*;
 
+import io.liquichain.api.rpc.BlockchainProcessor;
+
 public class WalletProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(WalletProcessor.class);
     public static final List<String> WALLET_METHODS = Arrays.asList("wallet_creation", "wallet_update", "wallet_info",
