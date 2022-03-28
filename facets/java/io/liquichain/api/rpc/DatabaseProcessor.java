@@ -13,7 +13,6 @@ import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
-import org.meveo.service.script.Script;
 
 import org.meveo.service.storage.RepositoryService;
 import org.slf4j.Logger;
@@ -23,7 +22,7 @@ import org.web3j.crypto.*;
 
 import io.liquichain.core.BlockForgerScript;
 
-public class DatabaseProcessor extends Script {
+public class DatabaseProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
 
     private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
@@ -212,7 +211,7 @@ public class DatabaseProcessor extends Script {
                 result = "0x" + transactionHash;
                 LOG.info("created transaction with uuid:{}", uuid);
                 if (rawTransaction.getData() != null && rawTransaction.getData().length() > 0) {
-                    processTransactionHooks(signedResult, transaction.getHexHash());
+                    processTransactionHooks(transaction.getHexHash(), signedResult);
                 }
             } catch (Exception e) {
                 return EthApiUtils.createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());

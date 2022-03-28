@@ -21,4 +21,6 @@ public class EthApiConstants extends Script {
     public static final String TRANSACTION_REJECTED = "-32003";
     public static final String METHOD_NOT_FOUND = "-32601";
     public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
+
+    public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, SMART_CONTRACT, BESU_DB}
 }
