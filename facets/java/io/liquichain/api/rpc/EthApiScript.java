@@ -22,14 +22,12 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.web3j.crypto.*;
-
 import io.liquichain.core.BlockForgerScript;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.web3j.crypto.*;
 
 public class EthApiScript extends Script {
   private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
