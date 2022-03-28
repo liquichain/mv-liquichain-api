@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private ParamBean config = paramBeanFactory.getInstance();
 
