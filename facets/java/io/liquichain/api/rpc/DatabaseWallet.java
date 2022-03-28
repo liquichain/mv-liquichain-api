@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import org.web3j.crypto.*;
 
-import io.liquichain.core.BlockForgerScript;
+import io.liquichain.api.rpc.EthApiUtils;
 
 public class DatabaseWallet extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseWallet.class);

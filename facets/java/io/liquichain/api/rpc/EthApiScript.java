@@ -22,6 +22,7 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
+import io.liquichain.api.rpc.EthApiUtils;
 import io.liquichain.core.BlockForgerScript;
 
 import org.slf4j.Logger;
