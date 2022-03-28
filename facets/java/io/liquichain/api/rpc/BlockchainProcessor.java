@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.web3j.crypto.*;
+import org.web3j.utils.*;
 
 import static io.liquichain.api.rpc.EthApiConstants.*;
 
