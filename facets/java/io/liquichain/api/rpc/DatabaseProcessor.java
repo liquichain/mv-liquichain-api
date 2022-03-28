@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.commons.utils.ParamBean;
-import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
@@ -45,16 +43,6 @@ public class DatabaseProcessor extends BlockchainProcessor {
             + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
             + "\"uncles\":[  " + "]}";
 
-
-    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-    private final Repository defaultRepo = repositoryService.findDefaultRepository();
-    private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
-    private ParamBean config = paramBeanFactory.getInstance();
-    private DatabaseWallet databaseWallet = new DatabaseWallet();
-
-    private String result;
-
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
@@ -62,19 +50,19 @@ public class DatabaseProcessor extends BlockchainProcessor {
         String requestId = "" + parameters.get("id");
         switch (method) {
             case "eth_call":
-                result = EthApiUtils.createResponse(requestId, "0x");
+                result = createResponse(requestId, "0x");
                 break;
             case "eth_chainId":
-                result = EthApiUtils.createResponse(requestId, "0x4c");
+                result = createResponse(requestId, "0x4c");
                 break;
             case "web3_clientVersion":
-                result = EthApiUtils.createResponse(requestId, "liquichainCentral");
+                result = createResponse(requestId, "liquichainCentral");
                 break;
             case "net_version":
-                result = EthApiUtils.createResponse(requestId, "7");
+                result = createResponse(requestId, "7");
                 break;
             case "eth_blockNumber":
-                result = EthApiUtils.createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
+                result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
                 break;
             case "eth_getBalance":
                 result = getBalance(requestId, parameters);
@@ -83,13 +71,13 @@ public class DatabaseProcessor extends BlockchainProcessor {
                 result = getTransactionCount(requestId, parameters);
                 break;
             case "eth_getBlockByNumber":
-                result = EthApiUtils.createResponse(requestId, SAMPLE_BLOCK);
+                result = createResponse(requestId, SAMPLE_BLOCK);
                 break;
             case "eth_estimateGas":
-                result = EthApiUtils.createResponse(requestId, "0x0");
+                result = createResponse(requestId, "0x0");
                 break;
             case "eth_gasPrice":
-                result = EthApiUtils.createResponse(requestId, "0x0");
+                result = createResponse(requestId, "0x0");
                 break;
             case "eth_getCode":
                 result = getCode(requestId, parameters);
@@ -100,48 +88,33 @@ public class DatabaseProcessor extends BlockchainProcessor {
             case "eth_getTransactionByHash":
                 result = getTransactionByHash(requestId, parameters);
                 break;
-            case "wallet_creation":
-                result = databaseWallet.createWallet(requestId, parameters);
-                break;
-            case "wallet_update":
-                result = databaseWallet.updateWallet(requestId, parameters);
-                break;
-            case "wallet_info":
-                result = databaseWallet.getWalletInfo(requestId, parameters);
-                break;
-            case "wallet_report":
-                result = EthApiUtils.createResponse(requestId, "wallet reported");
-                break;
             default:
-                result = EthApiUtils.createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
+                result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
                 break;
         }
     }
 
-    public String getResult() {
-        return result;
-    }
-
     private String getTransactionByHash(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        String hash = EthApiUtils.retrieveHash(params, 0);
+        String hash = retrieveHash(params, 0);
         LOG.info("lookup transaction hexHash={}", hash);
 
         try {
             Transaction transaction = crossStorageApi
-                    .find(defaultRepo, Transaction.class).by("hexHash", hash)
+                    .find(defaultRepo, Transaction.class)
+                    .by("hexHash", hash)
                     .getResult();
             String transactionDetails = "{\n";
             transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
-            transactionDetails += "\"blockNumber\": \"" + EthApiUtils.toBigHex(transaction.getBlockNumber()) + "\",\n";
+            transactionDetails += "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
             transactionDetails += "\"from\": \"0x" + transaction.getFromHexHash() + "\",\n";
-            transactionDetails += "\"gas\": \"" + EthApiUtils.toBigHex(transaction.getGasLimit()) + "\",\n";
-            transactionDetails += "\"gasPrice\": \"" + EthApiUtils.toBigHex(transaction.getGasPrice()) + "\",\n";
+            transactionDetails += "\"gas\": \"" + toBigHex(transaction.getGasLimit()) + "\",\n";
+            transactionDetails += "\"gasPrice\": \"" + toBigHex(transaction.getGasPrice()) + "\",\n";
             transactionDetails += "\"hash\": \"" + hash + "\",\n";
             transactionDetails += "\"input\": \"\",\n";
-            transactionDetails += "\"nonce\": \"" + EthApiUtils.toBigHex(transaction.getNonce()) + "\",\n";
+            transactionDetails += "\"nonce\": \"" + toBigHex(transaction.getNonce()) + "\",\n";
             if (transaction.getData() != null) {
-                if (EthApiUtils.isJSONValid(transaction.getData())) {
+                if (isJSONValid(transaction.getData())) {
                     transactionDetails += "\"data\": " + transaction.getData() + ",\n";
                 } else {
                     transactionDetails += "\"data\": \"" + transaction.getData() + "\",\n";
@@ -151,22 +124,22 @@ public class DatabaseProcessor extends BlockchainProcessor {
             transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
             transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
             transactionDetails +=
-                    "\"transactionIndex\": \"0x" + EthApiUtils.toBigHex(transaction.getTransactionIndex() + "") + "\",";
+                    "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
             transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
-            transactionDetails += "\"value\": \"" + EthApiUtils.toBigHex(transaction.getValue()) + "\"\n";
+            transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
             transactionDetails += "}";
             LOG.info("res={}" + transactionDetails);
-            return EthApiUtils.createResponse(requestId, transactionDetails);
+            return createResponse(requestId, transactionDetails);
         } catch (Exception e) {
             e.printStackTrace();
-            return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
         }
     }
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
         String transactionData = params.get(0);
-        String transactionHash = EthApiUtils.normalizeHash(Hash.sha3(transactionData));
+        String transactionHash = normalizeHash(Hash.sha3(transactionData));
         Transaction existingTransaction = null;
         result = "0x0";
         try {
@@ -177,7 +150,7 @@ public class DatabaseProcessor extends BlockchainProcessor {
             // do nothing, we want transaction to be unique
         }
         if (existingTransaction != null) {
-            return EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
+            return createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
         }
 
         RawTransaction rawTransaction = TransactionDecoder.decode(transactionData);
@@ -189,8 +162,8 @@ public class DatabaseProcessor extends BlockchainProcessor {
                 LOG.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
-                transaction.setFromHexHash(EthApiUtils.normalizeHash(signedResult.getFrom()));
-                transaction.setToHexHash(EthApiUtils.normalizeHash(rawTransaction.getTo()));
+                transaction.setFromHexHash(normalizeHash(signedResult.getFrom()));
+                transaction.setToHexHash(normalizeHash(rawTransaction.getTo()));
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
@@ -202,9 +175,9 @@ public class DatabaseProcessor extends BlockchainProcessor {
                 }
                 transaction.setSignedHash(transactionData);
                 transaction.setCreationDate(java.time.Instant.now());
-                transaction.setV(EthApiUtils.toHex(signatureData.getV()));
-                transaction.setS(EthApiUtils.toHex(signatureData.getS()));
-                transaction.setR(EthApiUtils.toHex(signatureData.getR()));
+                transaction.setV(toHex(signatureData.getV()));
+                transaction.setS(toHex(signatureData.getS()));
+                transaction.setR(toHex(signatureData.getR()));
                 LOG.info("transaction:{}", transaction);
                 String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
                 transferValue(transaction, rawTransaction.getValue());
@@ -214,10 +187,10 @@ public class DatabaseProcessor extends BlockchainProcessor {
                     processTransactionHooks(transaction.getHexHash(), signedResult);
                 }
             } catch (Exception e) {
-                return EthApiUtils.createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
             }
         }
-        return EthApiUtils.createResponse(requestId, result);
+        return createResponse(requestId, result);
     }
 
     private void transferValue(Transaction transaction, BigInteger value) throws BusinessException {
@@ -243,39 +216,39 @@ public class DatabaseProcessor extends BlockchainProcessor {
 
     private String getTransactionCount(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        String transactionHash = EthApiUtils.retrieveHash(params, 0);
+        String transactionHash = retrieveHash(params, 0);
         try {
             int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class)
                                                 .by("fromHexHash", transactionHash)
                                                 .getResults()).size();
-            return EthApiUtils.createResponse(requestId, EthApiUtils.toBigHex(nbTransaction + ""));
+            return createResponse(requestId, toBigHex(nbTransaction + ""));
         } catch (Exception e) {
-            return EthApiUtils.createResponse(requestId, "0x0");
+            return createResponse(requestId, "0x0");
         }
     }
 
     private String getCode(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        String address = EthApiUtils.retrieveHash(params, 0);
+        String address = retrieveHash(params, 0);
         try {
             Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
             LOG.info("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
-            return EthApiUtils.createResponse(requestId, "0x" + wallet.getApplication().getUuid());
+            return createResponse(requestId, "0x" + wallet.getApplication().getUuid());
         } catch (Exception e) {
             LOG.error("Wallet address {} not found", address, e);
-            return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
         }
     }
 
     private String getBalance(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        String address = EthApiUtils.retrieveHash(params, 0);
+        String address = retrieveHash(params, 0);
         try {
             Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
-            return EthApiUtils.createResponse(requestId, EthApiUtils.toBigHex(wallet.getBalance()));
+            return createResponse(requestId, toBigHex(wallet.getBalance()));
         } catch (Exception e) {
 
-            return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
         }
     }
 }

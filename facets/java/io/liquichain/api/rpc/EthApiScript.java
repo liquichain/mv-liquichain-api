@@ -26,25 +26,30 @@ public class EthApiScript extends Script {
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
+        String method = "" + parameters.get("method");
         BlockchainProcessor processor = null;
-        switch (BLOCKCHAIN_BACKEND) {
-//            case BESU:
-//                break;
-//            case FABRIC:
-//                break;
-//            case SMART_CONTRACT:
-//                break;
-//            case BESU_DB:
-//                break;
-            case DATABASE:
-            default:
-                processor = new DatabaseProcessor();
+        if (WalletProcessor.WALLET_METHODS.contains(method)) {
+            processor = new WalletProcessor();
+        } else {
+            switch (BLOCKCHAIN_BACKEND) {
+                case BESU:
+                    processor = new BesuProcessor();
+                    break;
+                case FABRIC:
+                    break;
+                case SMART_CONTRACT:
+                    break;
+                case BESU_DB:
+                    break;
+                case DATABASE:
+                default:
+                    processor = new DatabaseProcessor();
+            }
         }
         if (processor != null) {
             processor.execute(parameters);
             result = processor.getResult();
         } else {
-            String method = "" + parameters.get("method");
             LOG.info("json rpc: {}, parameters:{}", method, parameters);
             String requestId = "" + parameters.get("id");
             result = EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);

@@ -49,10 +49,6 @@ public class EthApiUtils extends Script {
     return hash;
   }
 
-  public static String retrieveHash(List<String> parameters, int parameterIndex) {
-    return normalizeHash(parameters.get(parameterIndex));
-  }
-
   public static boolean isJSONValid(String jsonInString) {
     try {
       final ObjectMapper mapper = new ObjectMapper();

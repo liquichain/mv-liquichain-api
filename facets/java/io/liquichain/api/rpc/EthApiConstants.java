@@ -12,6 +12,7 @@ public class EthApiConstants extends Script {
     public static final String NAME_REQUIRED_ERROR = "Wallet name is required";
     public static final String NAME_EXISTS_ERROR = "Wallet with name: %s, already exists";
     public static final String EMAIL_REQUIRED_ERROR = "Email address is required";
+    public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
     public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
     public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
     public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
