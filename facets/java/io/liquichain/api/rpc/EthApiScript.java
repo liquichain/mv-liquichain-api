@@ -86,19 +86,19 @@ public class EthApiScript extends Script {
     String requestId = "" + parameters.get("id");
     switch (method) {
       case "eth_call":
-        result = createResponse(requestId, "0x");
+        result = EthApiUtils.createResponse(requestId, "0x");
         break;
       case "eth_chainId":
-        result = createResponse(requestId, "0x4c");
+        result = EthApiUtils.createResponse(requestId, "0x4c");
         break;
       case "web3_clientVersion":
-        result = createResponse(requestId, "liquichainCentral");
+        result = EthApiUtils.createResponse(requestId, "liquichainCentral");
         break;
       case "net_version":
-        result = createResponse(requestId, "7");
+        result = EthApiUtils.createResponse(requestId, "7");
         break;
       case "eth_blockNumber":
-        result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
+        result = EthApiUtils.createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
         break;
       case "eth_getBalance":
         result = getBalance(requestId, parameters);
@@ -107,13 +107,13 @@ public class EthApiScript extends Script {
         result = getTransactionCount(requestId, parameters);
         break;
       case "eth_getBlockByNumber":
-        result = createResponse(requestId, SAMPLE_BLOCK);
+        result = EthApiUtils.createResponse(requestId, SAMPLE_BLOCK);
         break;
       case "eth_estimateGas":
-        result = createResponse(requestId, "0x0");
+        result = EthApiUtils.createResponse(requestId, "0x0");
         break;
       case "eth_gasPrice":
-        result = createResponse(requestId, "0x0");
+        result = EthApiUtils.createResponse(requestId, "0x0");
         break;
       case "eth_getCode":
         result = getCode(requestId, parameters);
@@ -134,81 +134,16 @@ public class EthApiScript extends Script {
         result = getWalletInfo(requestId, parameters);
         break;
       case "wallet_report":
-        result = createResponse(requestId, "wallet reported");
+        result = EthApiUtils.createResponse(requestId, "wallet reported");
         break;
       default:
-        result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
+        result = EthApiUtils.createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
         break;
     }
   }
 
   public String getResult() {
     return result;
-  }
-
-  private String createResponse(String requestId, String result) {
-    String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
-    String response = new StringBuilder()
-        .append("{\n")
-        .append("  \"id\": ").append(requestId).append(",\n")
-        .append("  \"jsonrpc\": \"2.0\",\n")
-        .append("  \"result\": ").append(String.format(resultFormat, result)).append("\n")
-        .append("}").toString();
-    LOG.debug("response: {}", response);
-    return response;
-  }
-
-  private String createErrorResponse(String requestId, String errorCode, String message) {
-    return new StringBuilder()
-        .append("{\n")
-        .append("  \"id\": ").append(requestId).append(",\n")
-        .append("  \"jsonrpc\": \"2.0\",\n")
-        .append("  \"error\": {\n")
-        .append("    \"code\": ").append(errorCode).append(",\n")
-        .append("    \"message\": \"").append(message).append("\"\n")
-        .append("  }\n")
-        .append("}").toString();
-  }
-
-  private String normalizeHash(String hash) {
-    if (hash.startsWith("0x")) {
-      return hash.substring(2);
-    }
-    return hash;
-  }
-
-  private String retrieveHash(List<String> parameters, int parameterIndex) {
-    return normalizeHash(parameters.get(parameterIndex));
-  }
-
-  public static boolean isJSONValid(String jsonInString) {
-    try {
-      final ObjectMapper mapper = new ObjectMapper();
-      mapper.readTree(jsonInString);
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  public static String hex(byte[] bytes) {
-    StringBuilder hexValue = new StringBuilder();
-    for (byte aByte : bytes) {
-      hexValue.append(String.format("%02x", aByte));
-    }
-    return hexValue.toString().toLowerCase();
-  }
-
-  private String toBigHex(String value) {
-    String hexValue = "";
-    if (value != null) {
-      try {
-        hexValue = "0x" + new BigInteger(value).toString(16);
-      } catch (NumberFormatException e) {
-        LOG.error("Failed to convert to hex {}", value, e);
-      }
-    }
-    return hexValue;
   }
 
   public static boolean addTransactionHook(String regex, Script script) {
@@ -260,7 +195,7 @@ public class EthApiScript extends Script {
 
   private String getTransactionByHash(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
-    String hash = retrieveHash(params, 0);
+    String hash = EthApiUtils.retrieveHash(params, 0);
     LOG.info("lookup transaction hexHash={}", hash);
 
     try {
@@ -269,15 +204,15 @@ public class EthApiScript extends Script {
       String transactionDetails = "{\n";
       transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
       transactionDetails +=
-          "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
+          "\"blockNumber\": \"" + EthApiUtils.toBigHex(transaction.getBlockNumber()) + "\",\n";
       transactionDetails += "\"from\": \"0x" + transaction.getFromHexHash() + "\",\n";
-      transactionDetails += "\"gas\": \"" + toBigHex(transaction.getGasLimit()) + "\",\n";
-      transactionDetails += "\"gasPrice\": \"" + toBigHex(transaction.getGasPrice()) + "\",\n";
+      transactionDetails += "\"gas\": \"" + EthApiUtils.toBigHex(transaction.getGasLimit()) + "\",\n";
+      transactionDetails += "\"gasPrice\": \"" + EthApiUtils.toBigHex(transaction.getGasPrice()) + "\",\n";
       transactionDetails += "\"hash\": \"" + hash + "\",\n";
       transactionDetails += "\"input\": \"\",\n";
-      transactionDetails += "\"nonce\": \"" + toBigHex(transaction.getNonce()) + "\",\n";
+      transactionDetails += "\"nonce\": \"" + EthApiUtils.toBigHex(transaction.getNonce()) + "\",\n";
       if (transaction.getData() != null) {
-        if (isJSONValid(transaction.getData())) {
+        if (EthApiUtils.isJSONValid(transaction.getData())) {
           transactionDetails += "\"data\": " + transaction.getData() + ",\n";
         } else {
           transactionDetails += "\"data\": \"" + transaction.getData() + "\",\n";
@@ -287,22 +222,22 @@ public class EthApiScript extends Script {
       transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
       transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
       transactionDetails +=
-          "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
+          "\"transactionIndex\": \"0x" + EthApiUtils.toBigHex(transaction.getTransactionIndex() + "") + "\",";
       transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
-      transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
+      transactionDetails += "\"value\": \"" + EthApiUtils.toBigHex(transaction.getValue()) + "\"\n";
       transactionDetails += "}";
       LOG.info("res={}" + transactionDetails);
-      return createResponse(requestId, transactionDetails);
+      return EthApiUtils.createResponse(requestId, transactionDetails);
     } catch (Exception e) {
       e.printStackTrace();
-      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+      return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
     }
   }
 
   private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
     String transactionData = params.get(0);
-    String transactionHash = normalizeHash(Hash.sha3(transactionData));
+    String transactionHash = EthApiUtils.normalizeHash(Hash.sha3(transactionData));
     Transaction existingTransaction = null;
     result = "0x0";
     try {
@@ -312,7 +247,7 @@ public class EthApiScript extends Script {
       // do nothing, we want transaction to be unique
     }
     if (existingTransaction != null) {
-      return createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
     }
 
     RawTransaction rawTransaction = TransactionDecoder.decode(transactionData);
@@ -324,8 +259,8 @@ public class EthApiScript extends Script {
         LOG.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
         Transaction transaction = new Transaction();
         transaction.setHexHash(transactionHash);
-        transaction.setFromHexHash(normalizeHash(signedResult.getFrom()));
-        transaction.setToHexHash(normalizeHash(rawTransaction.getTo()));
+        transaction.setFromHexHash(EthApiUtils.normalizeHash(signedResult.getFrom()));
+        transaction.setToHexHash(EthApiUtils.normalizeHash(rawTransaction.getTo()));
         transaction.setNonce("" + rawTransaction.getNonce());
         transaction.setGasPrice("" + rawTransaction.getGasPrice());
         transaction.setGasLimit("" + rawTransaction.getGasLimit());
@@ -337,9 +272,9 @@ public class EthApiScript extends Script {
         }
         transaction.setSignedHash(transactionData);
         transaction.setCreationDate(java.time.Instant.now());
-        transaction.setV(hex(signatureData.getV()));
-        transaction.setS(hex(signatureData.getS()));
-        transaction.setR(hex(signatureData.getR()));
+        transaction.setV(EthApiUtils.toHex(signatureData.getV()));
+        transaction.setS(EthApiUtils.toHex(signatureData.getS()));
+        transaction.setR(EthApiUtils.toHex(signatureData.getR()));
         LOG.info("transaction:{}", transaction);
         String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
         transferValue(transaction, rawTransaction.getValue());
@@ -349,10 +284,10 @@ public class EthApiScript extends Script {
           processTransactionHooks(signedResult, transaction.getHexHash());
         }
       } catch (Exception e) {
-        return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+        return EthApiUtils.createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
       }
     }
-    return createResponse(requestId, result);
+    return EthApiUtils.createResponse(requestId, result);
   }
 
   private void transferValue(Transaction transaction, BigInteger value) throws BusinessException {
@@ -379,48 +314,48 @@ public class EthApiScript extends Script {
 
   private String getTransactionCount(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
-    String transactionHash = retrieveHash(params, 0);
+    String transactionHash = EthApiUtils.retrieveHash(params, 0);
     try {
       int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class)
           .by("fromHexHash", transactionHash)
           .getResults()).size();
-      return createResponse(requestId, toBigHex(nbTransaction + ""));
+      return EthApiUtils.createResponse(requestId, EthApiUtils.toBigHex(nbTransaction + ""));
     } catch (Exception e) {
-      return createResponse(requestId, "0x0");
+      return EthApiUtils.createResponse(requestId, "0x0");
     }
   }
 
   private String getCode(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
-    String address = retrieveHash(params, 0);
+    String address = EthApiUtils.retrieveHash(params, 0);
     try {
       Wallet wallet =
           crossStorageApi.find(defaultRepo, address, Wallet.class);
       LOG.info("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
-      return createResponse(requestId, "0x" + wallet.getApplication().getUuid());
+      return EthApiUtils.createResponse(requestId, "0x" + wallet.getApplication().getUuid());
     } catch (Exception e) {
       LOG.error("Wallet address {} not found", address, e);
-      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
+      return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
     }
   }
 
   private String getBalance(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
-    String address = retrieveHash(params, 0);
+    String address = EthApiUtils.retrieveHash(params, 0);
     try {
       Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
-      return createResponse(requestId, toBigHex(wallet.getBalance()));
+      return EthApiUtils.createResponse(requestId, EthApiUtils.toBigHex(wallet.getBalance()));
     } catch (Exception e) {
 
-      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+      return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
     }
   }
 
   public String createWallet(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
     String name = params.get(0);
-    String walletHash = retrieveHash(params, 1);
-    String accountHash = retrieveHash(params, 2);
+    String walletHash = EthApiUtils.retrieveHash(params, 1);
+    String accountHash = EthApiUtils.retrieveHash(params, 2);
     String publicInfo = params.get(3);
 
     Wallet wallet = null;
@@ -430,7 +365,7 @@ public class EthApiScript extends Script {
       // do nothing, we want wallet to be unique
     }
     if (wallet != null) {
-      return createErrorResponse(requestId, INVALID_REQUEST, WALLET_EXISTS_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, WALLET_EXISTS_ERROR);
     } else {
       wallet = new Wallet();
     }
@@ -440,7 +375,7 @@ public class EthApiScript extends Script {
           crossStorageApi.find(defaultRepo, LiquichainApp.class).by("name", APP_NAME).getResult();
     } catch (Exception e) {
       LOG.error(UNKNOWN_APPLICATION_ERROR, e);
-      return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_APPLICATION_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_APPLICATION_ERROR);
     }
     wallet.setUuid(walletHash);
     wallet.setName(name);
@@ -450,17 +385,17 @@ public class EthApiScript extends Script {
     wallet.setApplication(app);
     try {
       String savedHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
-      return createResponse(requestId, "0x" + savedHash);
+      return EthApiUtils.createResponse(requestId, "0x" + savedHash);
     } catch (Exception e) {
       LOG.error(CREATE_WALLET_ERROR, e);
-      return createErrorResponse(requestId, INTERNAL_ERROR, CREATE_WALLET_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, INTERNAL_ERROR, CREATE_WALLET_ERROR);
     }
   }
 
   public String updateWallet(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
     String name = params.get(0);
-    String walletHash = retrieveHash(params, 1);
+    String walletHash = EthApiUtils.retrieveHash(params, 1);
     String publicInfo = params.get(2);
 
     Wallet wallet = null;
@@ -471,22 +406,22 @@ public class EthApiScript extends Script {
       wallet = null;
     }
     if (wallet == null) {
-      return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_WALLET_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_WALLET_ERROR);
     }
     wallet.setName(name);
     wallet.setPublicInfo(publicInfo);
     try {
       crossStorageApi.createOrUpdate(defaultRepo, wallet);
-      return createResponse(requestId, name);
+      return EthApiUtils.createResponse(requestId, name);
     } catch (Exception e) {
       LOG.error(UPDATE_WALLET_ERROR, e);
-      return createErrorResponse(requestId, INTERNAL_ERROR, UPDATE_WALLET_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, INTERNAL_ERROR, UPDATE_WALLET_ERROR);
     }
   }
 
   public String getWalletInfo(String requestId, Map<String, Object> parameters) {
     List<String> params = (List<String>) parameters.get("params");
-    String walletHash = retrieveHash(params, 0);
+    String walletHash = EthApiUtils.retrieveHash(params, 0);
     Wallet wallet = null;
     try {
       wallet = crossStorageApi.find(defaultRepo, walletHash.toLowerCase(), Wallet.class);
@@ -495,7 +430,7 @@ public class EthApiScript extends Script {
       wallet = null;
     }
     if (wallet == null) {
-      return createErrorResponse(requestId, RESOURCE_NOT_FOUND, UNKNOWN_WALLET_ERROR);
+      return EthApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, UNKNOWN_WALLET_ERROR);
     }
     String response = "{\n";
     response += "\"name\":\"" + wallet.getName() + "\"";
@@ -503,6 +438,6 @@ public class EthApiScript extends Script {
       response += ",\n\"publicInfo\":" + wallet.getPublicInfo() + "";
     }
     response += "\n}";
-    return createResponse(requestId, response);
+    return EthApiUtils.createResponse(requestId, response);
   }
 }
