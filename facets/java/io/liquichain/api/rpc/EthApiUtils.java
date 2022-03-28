@@ -63,7 +63,7 @@ public class EthApiUtils extends Script {
     }
   }
 
-  public static String toHexByteArray(byte[] bytes) {
+  public static String toHex(byte[] bytes) {
     StringBuilder hexValue = new StringBuilder();
     for (byte aByte : bytes) {
       hexValue.append(String.format("%02x", aByte));
