@@ -3,14 +3,20 @@ package io.liquichain.api.rpc;
 import java.math.BigInteger;
 import java.util.List;
 
+import org.meveo.admin.exception.BusinessException;
+import org.meveo.service.script.Script;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.web3j.crypto.*;
 
-public class EthApiUtils {
+public class EthApiUtils extends Script {
   private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
+
+  @Override
+  public void execute(Map<String, Object> parameters) throws BusinessException {}
 
   public static String createResponse(String requestId, String result) {
     String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
