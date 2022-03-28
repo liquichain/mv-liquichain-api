@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 import org.web3j.crypto.*;
 
-public abstract class BlockchainProcessor extends Script {
+public class BlockchainProcessor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(BlockchainProcessor.class);
     private static final Map<String, Object[]> TRANSACTION_HOOKS = new HashMap<>();
 
@@ -27,7 +27,7 @@ public abstract class BlockchainProcessor extends Script {
         String key = regex + ":" + script.getClass().getName();
         LOG.info("addTransactionHook key: {}", key);
         isHookAdded = !TRANSACTION_HOOKS.containsKey(key);
-        if (isHookAdded == true) {
+        if (isHookAdded) {
             Pattern pattern = Pattern.compile(regex);
             TRANSACTION_HOOKS.put(key, new Object[]{pattern, script});
         }
