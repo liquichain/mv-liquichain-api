@@ -1,11 +1,10 @@
 package io.liquichain.api.rpc;
 
+import static io.liquichain.api.rpc.EthApiConstants.*;
+
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
@@ -26,14 +25,6 @@ import io.liquichain.core.BlockForgerScript;
 
 public class DatabaseProcessor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
-    private static final Map<String, Object[]> TRANSACTION_HOOKS = new HashMap<>();
-
-    private static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
-    private static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
-    private static final String INVALID_REQUEST = "-32600";
-    private static final String RESOURCE_NOT_FOUND = "-32001";
-    private static final String TRANSACTION_REJECTED = "-32003";
-    private static final String METHOD_NOT_FOUND = "-32601";
 
     private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
             + "\"extraData" +
@@ -62,8 +53,6 @@ public class DatabaseProcessor extends Script {
     private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private ParamBean config = paramBeanFactory.getInstance();
     private DatabaseWallet databaseWallet = new DatabaseWallet();
-
-    private String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
     private String result;
 
@@ -132,53 +121,6 @@ public class DatabaseProcessor extends Script {
 
     public String getResult() {
         return result;
-    }
-
-    public static boolean addTransactionHook(String regex, Script script) {
-        String key = regex + ":" + script.getClass().getName();
-        LOG.info("addTransactionHook key:{}", key);
-        boolean result = true;
-        result = !TRANSACTION_HOOKS.containsKey(key);
-        if (result == true) {
-            Pattern pattern = Pattern.compile(regex);
-            TRANSACTION_HOOKS.put(key, new Object[]{pattern, script});
-        }
-        return result;
-    }
-
-    private void processTransactionHooks(SignedRawTransaction transaction, String transactionHash) {
-        try {
-            String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
-            LOG.info("try matching {} hooks", TRANSACTION_HOOKS.size());
-            TRANSACTION_HOOKS.forEach((String key, Object[] tuple) -> {
-                LOG.info("try hook {} on {}", key, data);
-                Pattern pattern = (Pattern) tuple[0];
-                Script script = (Script) tuple[1];
-                Matcher matcher = pattern.matcher(data);
-                if (matcher.find()) {
-                    LOG.info(" hook {} matched", key);
-                    Map<String, Object> context = new HashMap<>();
-                    context.put("transaction", transaction);
-                    context.put("transactionHash", transactionHash);
-                    context.put("matcher", matcher);
-                    try {
-                        script.execute(context);
-                        if (context.containsKey("result")) {
-                            LOG.info(" hook result:{} ", context.get("result"));
-                        }
-                    } catch (Exception e) {
-                        LOG.error("error while invoking transaction hook {}", script, e);
-                    }
-                } else {
-                    LOG.info(" hook {} matched", key);
-                }
-            });
-            if (data.contains("orderId")) {
-                LOG.info("detected orderId:{}", data);
-            }
-        } catch (Exception ex) {
-            LOG.info("error while detecting order:{}", ex);
-        }
     }
 
     private String getTransactionByHash(String requestId, Map<String, Object> parameters) {

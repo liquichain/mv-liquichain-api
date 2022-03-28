@@ -1,9 +1,10 @@
 package io.liquichain.api.rpc;
 
+import static io.liquichain.api.rpc.EthApiConstants.*;
+
 import java.util.List;
 import java.util.Map;
 
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
@@ -21,25 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import org.web3j.crypto.*;
 
-import io.liquichain.api.rpc.EthApiUtils;
-
 public class DatabaseWallet extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseWallet.class);
-
-    private static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
-    private static final String CREATE_WALLET_ERROR = "Failed to create wallet";
-    private static final String UPDATE_WALLET_ERROR = "Failed to update wallet";
-    private static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
-    private static final String UNKNOWN_APPLICATION_ERROR = "Unknown application";
-    private static final String WALLET_EXISTS_ERROR = "Wallet already exists";
-    private static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
-    private static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
-    private static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
-    private static final String INVALID_REQUEST = "-32600";
-    private static final String INTERNAL_ERROR = "-32603";
-    private static final String RESOURCE_NOT_FOUND = "-32001";
-    private static final String TRANSACTION_REJECTED = "-32003";
-    private static final String METHOD_NOT_FOUND = "-32601";
 
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
@@ -48,11 +32,6 @@ public class DatabaseWallet extends Script {
     private ParamBean config = paramBeanFactory.getInstance();
 
     private String APP_NAME = config.getProperty("eth.api.appname", "licoin");
-
-    @Override
-    public void execute(Map<String, Object> parameters) throws BusinessException {
-        // TODO Auto-generated method stub
-    }
 
     public String createWallet(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");

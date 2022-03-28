@@ -22,7 +22,6 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
-import io.liquichain.api.rpc.EthApiUtils;
 import io.liquichain.core.BlockForgerScript;
 
 import org.slf4j.Logger;
@@ -75,6 +74,7 @@ public class EthApiScript extends Script {
   private ParamBean config = paramBeanFactory.getInstance();
 
   private String APP_NAME = config.getProperty("eth.api.appname", "licoin");
+  private String BLOCKCHAIN_TYPE = config.getProperty("txn.blockchain.type", "DATABASE");
 
   private String result;
 
