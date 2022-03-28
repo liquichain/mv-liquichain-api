@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
 import org.web3j.utils.*;
 
+import io.liquichain.api.rpc.BlockchainProcessor;
 import io.liquichain.core.BlockForgerScript;
 
 public class DatabaseProcessor extends BlockchainProcessor {
