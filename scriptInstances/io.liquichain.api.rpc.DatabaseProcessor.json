@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.rpc.DatabaseProcessor",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "script" : "package io.liquichain.api.rpc;\n\nimport java.util.Map;\n\nimport org.meveo.admin.exception.BusinessException;\nimport org.meveo.service.script.Script;\n\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\npublic class DatabaseProcessor extends Script {\n    private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);\n\n    @Override\n    public void execute(Map<String, Object> parameters) throws BusinessException {\n        // TODO Auto-generated method stub\n    }\n}\n",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
