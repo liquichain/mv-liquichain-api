@@ -1,0 +1,547 @@
+{
+	"info": {
+		"_postman_id": "3689b2c0-aeef-4110-9939-c0999e99f42c",
+		"name": "Eth API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "eth_chainId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_chainId\",\n    \"params\":[]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_getBalance",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_getBalance\",\n    \"params\":[\n        \"deE0d5bE78E1Db0B36d3C1F908f4165537217333\",\n        \"latest\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_estimateGas",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_estimateGas\",\n    \"params\":[\n        {\n            \"from\": \"0x687422eea2cb73b5d3e242ba5456b782919afc85\",\n            \"to\": \"0xdd37f65db31c107f773e82a4f85c693058fef7a9\",\n            \"value\": \"0x1\"\n        },\n        \"latest\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_call",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_call\",\n    \"params\":[{\"to\": \"0xcc91a26164dfbf3527ed02c61b66879849c17de1\", \"data\": \"0x95d89b41\"},\"latest\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_getTransactionCount",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_getTransactionCount\",\n    \"params\":[\n        \"0x9d8f8572f345e1ae53db1dFA4a7fce49B467bD7f\",\n        \"latest\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_getTransactionByHash",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_getTransactionByHash\",\n    \"params\":[\"0x9945f40ef0853ad315f42b289c52e26e9d26c2feefd60c69d5c5fc492fdb0151\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_getCode",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_getTransactionCount\",\n    \"params\":[\"testwallet\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_estimateGas",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 12,\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"eth_estimateGas\",\n    \"params\": [\n        {\n            \"from\": \"0x687422eea2cb73b5d3e242ba5456b782919afc85\",\n            \"to\": \"0xdd37f65db31c107f773e82a4f85c693058fef7a9\",\n            \"value\": \"0x1\"\n        },\n        \"latest\"\n    ]\n}\n    ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_gasPrice",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 12,\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"eth_gasPrice\",\n    \"params\": []\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_blockNumber",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_blockNumber\",\n    \"params\":[]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_getBlockByNumber",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_getBlockByNumber\",\n    \"params\":[]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_sendRawTransaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 12,\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"eth_sendRawTransaction\",\n    \"params\": [\n        \"0xf8690880825208947f199d803b2b2b8996110b927bd29739f7251d34880de0b6b3a764000080820d20a00bda57baf26e058e7a8d8e43dabee21bb08b4f578497f8568bbdc8c86298398ba05d85cf06f2b67410db86732780f02c38ca959c5fcbfde1e945e8d31b04e6c575\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth_getTransactionByHash",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\":12,\n    \"jsonrpc\":\"2.0\",\n    \"method\":\"eth_getTransactionByHash\",\n    \"params\":[\"0xBD87633fc353D768FE8fc93cB1F147fDAf5603e0\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{meveo.password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{meveo.user}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
