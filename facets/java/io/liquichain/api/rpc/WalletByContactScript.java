@@ -1,6 +1,5 @@
 package io.liquichain.api.rpc;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,7 +33,7 @@ public class WalletByContactScript extends Script {
                     .by("inList phoneNumber", this.contactHashes)
                     .getResults()
                     .stream()
-                    .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), wallet -> wallet.getUuid()));
+                    .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
 
             result = new Gson().toJson(walletHashes);
         }
