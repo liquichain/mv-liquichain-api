@@ -105,7 +105,7 @@ public class WalletProcessor extends BlockchainProcessor {
 
         try {
             // name = validateName(name);
-            emailAddress = validateEmail(emailAddress, walletHash);
+            // emailAddress = validateEmail(emailAddress, walletHash);
             phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
         } catch (BusinessException e) {
             LOG.error(INVALID_REQUEST, e);
@@ -124,13 +124,15 @@ public class WalletProcessor extends BlockchainProcessor {
             wallet.setApplication(app);
             wallet.setVerified(false);
 
-            VerifiedEmail verifiedEmail = new VerifiedEmail();
-            verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
-            verifiedEmail.setEmail(emailAddress);
-            verifiedEmail.setWalletId(walletHash);
-            verifiedEmail.setVerified(false);
-            crossStorageApi.createOrUpdate(defaultRepo, verifiedEmail);
-            wallet.setEmailAddress(verifiedEmail);
+            if (emailAddress != null) {
+                VerifiedEmail verifiedEmail = new VerifiedEmail();
+                verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
+                verifiedEmail.setEmail(emailAddress);
+                verifiedEmail.setWalletId(walletHash);
+                verifiedEmail.setVerified(false);
+                crossStorageApi.createOrUpdate(defaultRepo, verifiedEmail);
+                wallet.setEmailAddress(verifiedEmail);
+            }
 
             if (phoneNumber != null) {
                 VerifiedPhoneNumber verifiedPhoneNumber = new VerifiedPhoneNumber();
@@ -212,7 +214,7 @@ public class WalletProcessor extends BlockchainProcessor {
                 }
                 LOG.info("existing email: {}", existingEmail);
                 if (existingEmail != null && !existingEmail.equals(emailAddress)) {
-                    emailAddress = validateEmail(emailAddress, walletHash);
+                    // emailAddress = validateEmail(emailAddress, walletHash);
                     verifiedEmail = new VerifiedEmail();
                     verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
                     verifiedEmail.setEmail(emailAddress);
@@ -221,8 +223,8 @@ public class WalletProcessor extends BlockchainProcessor {
                     crossStorageApi.createOrUpdate(defaultRepo, verifiedEmail);
                     LOG.info("old email: {}, saved email: {}", existingEmail, emailAddress);
                 }
-            } else {
-                emailAddress = validateEmail(emailAddress, walletHash);
+            } else if (emailAddress != null) {
+                // emailAddress = validateEmail(emailAddress, walletHash);
                 verifiedEmail = new VerifiedEmail();
                 verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
                 verifiedEmail.setEmail(emailAddress);
