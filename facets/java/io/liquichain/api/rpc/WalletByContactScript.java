@@ -1,5 +1,6 @@
 package io.liquichain.api.rpc;
 
+import java.util.List;
 import java.util.Map;
 
 import org.meveo.api.persistence.CrossStorageApi;
@@ -18,7 +19,7 @@ public class WalletByContactScript extends Script {
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
 
     private String result;
-    private String[] contactHashes;
+    private List<String> contactHashes;
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
@@ -29,7 +30,7 @@ public class WalletByContactScript extends Script {
         return this.result;
     }
 
-    public void setContactHashes(String[] contactHashes){
+    public void setContactHashes(List<String> contactHashes){
         this.contactHashes = contactHashes;
     }
 }
