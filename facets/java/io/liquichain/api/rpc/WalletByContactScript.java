@@ -3,6 +3,7 @@ package io.liquichain.api.rpc;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import org.meveo.api.persistence.CrossStorageApi;
@@ -27,12 +28,15 @@ public class WalletByContactScript extends Script {
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         LOG.info("contactHashes: {}", this.contactHashes);
-        if(contactHashes != null && contactHashes.size() > 0){
-            List<Wallet> wallets = crossStorageApi
+        if (contactHashes != null && contactHashes.size() > 0) {
+            Map<String, String> walletHashes = crossStorageApi
                     .find(defaultRepo, Wallet.class)
                     .by("inList phoneNumber", this.contactHashes)
-                    .getResults();
-            result = new Gson().toJson(wallets);
+                    .getResults()
+                    .stream()
+                    .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), wallet -> wallet.getUuid()));
+
+            result = new Gson().toJson(walletHashes);
         }
     }
 
@@ -40,7 +44,7 @@ public class WalletByContactScript extends Script {
         return this.result;
     }
 
-    public void setContactHashes(List<String> contactHashes){
+    public void setContactHashes(List<String> contactHashes) {
         this.contactHashes = contactHashes;
     }
 }
