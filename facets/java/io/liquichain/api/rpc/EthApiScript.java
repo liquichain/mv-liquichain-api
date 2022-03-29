@@ -5,21 +5,15 @@ import static io.liquichain.api.rpc.EthApiConstants.*;
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
-import org.meveo.commons.utils.ParamBean;
-import org.meveo.commons.utils.ParamBeanFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EthApiScript extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
-    private ParamBean config = paramBeanFactory.getInstance();
-
     private String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
-
-    private String result;
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
@@ -51,9 +45,5 @@ public class EthApiScript extends BlockchainProcessor {
             String requestId = "" + parameters.get("id");
             result = EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
         }
-    }
-
-    public String getResult() {
-        return result;
     }
 }
