@@ -28,7 +28,6 @@ public class WalletProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(WalletProcessor.class);
     public static final List<String> WALLET_METHODS = Arrays.asList("wallet_creation", "wallet_update", "wallet_info",
                                                                     "wallet_report");
-
     private String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
     @Override
