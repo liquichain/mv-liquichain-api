@@ -1,0 +1,16 @@
+{
+  "code" : "io.liquichain.api.rpc.WalletByContactScript",
+  "inputs" : [ ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "script" : "package io.liquichain.api.rpc;\r\n\r\nimport java.util.Map;\r\nimport org.meveo.service.script.Script;\r\nimport org.meveo.admin.exception.BusinessException;\r\n\r\npublic class WalletByContactScript extends Script {\r\n\r\n    private String result;\r\n\r\n    @Override\r\n    public void execute(Map<String, Object> parameters) throws BusinessException {\r\n        super.execute(parameters);\r\n    }\r\n\r\n    public String getResult() {\r\n        return this.result;\r\n    }\r\n}\r\n",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
