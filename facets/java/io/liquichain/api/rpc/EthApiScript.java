@@ -7,12 +7,10 @@ import java.util.Map;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
-import org.meveo.service.script.Script;
-import org.meveo.service.storage.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EthApiScript extends Script {
+public class EthApiScript extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
     private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
