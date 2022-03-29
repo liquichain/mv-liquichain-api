@@ -6,7 +6,13 @@
   "serviceCode" : "io.liquichain.api.rpc.WalletByContactScript",
   "synchronous" : true,
   "method" : "POST",
-  "parameterMappings" : [ ],
+  "parameterMappings" : [ {
+    "serviceParameter" : "contactHashes",
+    "multivalued" : true,
+    "parameterName" : "contactHashes",
+    "defaultValue" : "0",
+    "valueRequired" : true
+  } ],
   "pathParameters" : [ ],
   "roles" : [ ],
   "returnedVariableName" : "result",
