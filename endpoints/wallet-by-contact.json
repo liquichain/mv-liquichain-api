@@ -8,7 +8,7 @@
   "method" : "POST",
   "parameterMappings" : [ {
     "serviceParameter" : "contactHashes",
-    "multivalued" : false,
+    "multivalued" : true,
     "parameterName" : "contactHashes",
     "defaultValue" : "0",
     "valueRequired" : true
