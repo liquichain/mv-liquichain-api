@@ -45,7 +45,7 @@ public class EthApiScript extends BlockchainProcessor {
         } else {
             LOG.info("json rpc: {}, parameters:{}", method, parameters);
             String requestId = "" + parameters.get("id");
-            result = EthApiUtils.createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
+            result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
         }
     }
 }
