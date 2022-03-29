@@ -1,6 +1,11 @@
 package io.liquichain.api.rpc;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.meveo.service.script.Script;
 
@@ -42,6 +47,10 @@ public class EthApiUtils extends Script {
       return hash.substring(2);
     }
     return hash;
+  }
+
+  public static String retrieveHash(List<String> parameters, int parameterIndex) {
+    return normalizeHash(parameters.get(parameterIndex));
   }
 
   public static boolean isJSONValid(String jsonInString) {
