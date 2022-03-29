@@ -1,0 +1,17 @@
+{
+  "code" : "wallet-by-contact",
+  "description" : "Returns associated wallets based on a list of phone number hashes",
+  "secured" : true,
+  "checkPathParams" : false,
+  "serviceCode" : "io.liquichain.api.rpc.WalletByContactScript",
+  "synchronous" : true,
+  "method" : "POST",
+  "parameterMappings" : [ ],
+  "pathParameters" : [ ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : false,
+  "contentType" : "application/json",
+  "basePath" : "wallet-by-contact",
+  "path" : "/"
+}
