@@ -2,7 +2,7 @@
   "code" : "io.liquichain.api.rpc.WalletByContactScript",
   "inputs" : [ {
     "name" : "contactHashes",
-    "type" : "String[]"
+    "type" : "List<String>"
   } ],
   "outputs" : [ {
     "name" : "result",
@@ -11,7 +11,7 @@
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
-  "script" : "package io.liquichain.api.rpc;\n\nimport java.util.Map;\n\nimport org.meveo.api.persistence.CrossStorageApi;\nimport org.meveo.model.storage.Repository;\nimport org.meveo.service.script.Script;\nimport org.meveo.admin.exception.BusinessException;\nimport org.meveo.service.storage.RepositoryService;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\npublic class WalletByContactScript extends Script {\n    private static final Logger LOG = LoggerFactory.getLogger(WalletByContactScript.class);\n\n    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);\n    protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);\n    protected final Repository defaultRepo = repositoryService.findDefaultRepository();\n\n    private String result;\n    private String[] contactHashes;\n\n    @Override\n    public void execute(Map<String, Object> parameters) throws BusinessException {\n        LOG.info(\"contactHashes: {}\", this.contactHashes);\n    }\n\n    public String getResult() {\n        return this.result;\n    }\n\n    public void setContactHashes(String[] contactHashes){\n        this.contactHashes = contactHashes;\n    }\n}\n",
+  "script" : "package io.liquichain.api.rpc;\n\nimport java.util.List;\nimport java.util.Map;\n\nimport org.meveo.api.persistence.CrossStorageApi;\nimport org.meveo.model.storage.Repository;\nimport org.meveo.service.script.Script;\nimport org.meveo.admin.exception.BusinessException;\nimport org.meveo.service.storage.RepositoryService;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\npublic class WalletByContactScript extends Script {\n    private static final Logger LOG = LoggerFactory.getLogger(WalletByContactScript.class);\n\n    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);\n    protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);\n    protected final Repository defaultRepo = repositoryService.findDefaultRepository();\n\n    private String result;\n    private List<String> contactHashes;\n\n    @Override\n    public void execute(Map<String, Object> parameters) throws BusinessException {\n        LOG.info(\"contactHashes: {}\", this.contactHashes);\n    }\n\n    public String getResult() {\n        return this.result;\n    }\n\n    public void setContactHashes(List<String> contactHashes){\n        this.contactHashes = contactHashes;\n    }\n}\n",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
