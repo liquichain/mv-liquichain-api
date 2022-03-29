@@ -9,6 +9,8 @@ import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.liquichain.api.rpc.BlockchainProcessor;
+
 public class EthApiScript extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
