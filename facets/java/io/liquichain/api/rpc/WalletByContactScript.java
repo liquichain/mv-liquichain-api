@@ -30,7 +30,7 @@ public class WalletByContactScript extends Script {
         if(contactHashes != null && contactHashes.size() > 0){
             List<Wallet> wallets = crossStorageApi
                     .find(defaultRepo, Wallet.class)
-                    .by("inList phoneNumber.uuid", this.contactHashes)
+                    .by("inList phoneNumber", this.contactHashes)
                     .getResults();
             result = new Gson().toJson(wallets);
         }
