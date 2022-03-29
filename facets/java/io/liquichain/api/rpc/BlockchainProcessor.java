@@ -1,6 +1,5 @@
 package io.liquichain.api.rpc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
