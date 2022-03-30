@@ -163,7 +163,7 @@ public class WalletProcessor extends BlockchainProcessor {
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
         String walletHash = retrieveHash(params, 1);
-        String signature = retrieveHash(params, 2);
+        String signature = params.get(2);
         String publicInfo = params.get(3);
         String privateInfo = null;
         if (params.size() > 4) {
