@@ -163,11 +163,23 @@ public class WalletProcessor extends BlockchainProcessor {
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
         String walletHash = retrieveHash(params, 1);
-        String publicInfo = params.get(2);
+        String signature = retrieveHash(params, 2);
+        String publicInfo = params.get(3);
         String privateInfo = null;
-        if (params.size() > 3) {
-            privateInfo = params.get(3);
+        if (params.size() > 4) {
+            privateInfo = params.get(4);
         }
+
+        String validatedAddress = "";
+        try {
+            validatedAddress = parseAddress(signature, message);
+        } catch (Exception e) {
+            LOG.error(INVALID_REQUEST, e);
+            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+        }
+        boolean sameAddress = walletHash.toLowerCase().equals(validatedAddress);
+        LOG.info("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
+                 walletHash.toLowerCase(), sameAddress);
 
         Wallet wallet = null;
 
@@ -398,7 +410,7 @@ public class WalletProcessor extends BlockchainProcessor {
                     }
                     privateInfo
                             .append(String.format(
-                                    ",\"phoneNumber\": {\"value\": \"%s\", \"verified\": \"%s\", \"hash\": \"%s\"}",
+                                    "\"phoneNumber\": {\"value\": \"%s\", \"verified\": \"%s\", \"hash\": \"%s\"}",
                                     phoneNumber, verifiedPhoneNumber.getVerified(), verifiedPhoneNumber.getUuid()));
                 }
             }
