@@ -182,7 +182,7 @@ public class WalletProcessor extends BlockchainProcessor {
         LOG.info("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
                  walletHash.toLowerCase(), sameAddress);
 
-        if(!sameAddress) {
+        if (!sameAddress) {
             return createErrorResponse(requestId, INVALID_REQUEST, INVALID_SIGNATURE_ERROR);
         }
 
@@ -259,7 +259,7 @@ public class WalletProcessor extends BlockchainProcessor {
                     existingPhoneNumber = null;
                 }
                 LOG.info("existing phoneNumber: {}", existingPhoneNumber);
-                if (existingPhoneNumber != null && !existingPhoneNumber.equals(phoneNumber)) {
+                if (phoneNumber != null && existingPhoneNumber != null && !existingPhoneNumber.equals(phoneNumber)) {
                     phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
                     verifiedPhoneNumber = new VerifiedPhoneNumber();
                     verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
