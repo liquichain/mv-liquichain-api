@@ -172,7 +172,7 @@ public class WalletProcessor extends BlockchainProcessor {
 
         String validatedAddress = "";
         try {
-            validatedAddress = parseAddress(signature, message);
+            validatedAddress = parseAddress(signature, publicInfo);
         } catch (Exception e) {
             LOG.error(INVALID_REQUEST, e);
             return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
