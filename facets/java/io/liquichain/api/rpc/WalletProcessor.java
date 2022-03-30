@@ -182,6 +182,10 @@ public class WalletProcessor extends BlockchainProcessor {
         LOG.info("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
                  walletHash.toLowerCase(), sameAddress);
 
+        if(!sameAddress) {
+            return createErrorResponse(requestId, INVALID_REQUEST, INVALID_SIGNATURE_ERROR);
+        }
+
         Wallet wallet = null;
 
         try {

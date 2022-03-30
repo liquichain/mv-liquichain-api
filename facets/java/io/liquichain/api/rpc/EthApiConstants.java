@@ -15,6 +15,7 @@ public class EthApiConstants extends Script {
     public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
     public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
     public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
+    public static final String INVALID_SIGNATURE_ERROR = "Invalid signature";
     public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
     public static final String INVALID_REQUEST = "-32600";
     public static final String INTERNAL_ERROR = "-32603";
