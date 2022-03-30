@@ -223,7 +223,7 @@ public class WalletProcessor extends BlockchainProcessor {
                     existingEmail = null;
                 }
                 LOG.info("existing email: {}", existingEmail);
-                if (emailAddress != null && existingEmail != null && !existingEmail.equals(emailAddress)) {
+                if (existingEmail != null && emailAddress != null && !existingEmail.equals(emailAddress)) {
                     // emailAddress = validateEmail(emailAddress, walletHash);
                     verifiedEmail = new VerifiedEmail();
                     verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
