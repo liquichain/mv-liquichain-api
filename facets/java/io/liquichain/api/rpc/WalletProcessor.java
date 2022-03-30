@@ -209,7 +209,6 @@ public class WalletProcessor extends BlockchainProcessor {
         VerifiedPhoneNumber verifiedPhoneNumber = wallet.getPhoneNumber();
         String existingEmail;
         String existingPhoneNumber;
-
         try {
             // if (!wallet.getName().equals(name)) {
             // name = validateName(name);
