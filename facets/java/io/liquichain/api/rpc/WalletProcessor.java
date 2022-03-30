@@ -171,6 +171,7 @@ public class WalletProcessor extends BlockchainProcessor {
         }
 
         String validatedAddress = "";
+
         try {
             validatedAddress = parseAddress(signature, new Gson().toJson(publicInfo));
         } catch (Exception e) {
