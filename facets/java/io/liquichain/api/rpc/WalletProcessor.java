@@ -54,10 +54,10 @@ public class WalletProcessor extends BlockchainProcessor {
         }
     }
 
-    private void validateSignature(String walletHash, String signature, String publicInfo ) throws BusinessException {
+    private void validateSignature(String walletHash, String signature, String message ) throws BusinessException {
         String validatedAddress = "";
         try {
-            validatedAddress = parseAddress(signature, new Gson().toJson(publicInfo));
+            validatedAddress = parseAddress(signature, new Gson().toJson(message));
         } catch (Exception e) {
             LOG.error(INVALID_REQUEST, e);
             throw new BusinessException(e.getMessage());
@@ -84,7 +84,7 @@ public class WalletProcessor extends BlockchainProcessor {
         }
 
         try{
-            validateSignature(walletHash, signature, publicInfo);
+            validateSignature(walletHash, signature, privateInfo);
         } catch (BusinessException e){
             return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
         }

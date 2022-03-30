@@ -18,9 +18,9 @@ This request is made via POST method to json rpc method **wallet_creation** with
 - **address** (required): is the wallet's hash (not lowercase)
     - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
 - **accountHash** (required): the account hash
-- **signature** (required): the signature generated from the **publicInfo** details  
+- **signature** (required): the signature generated from the **privateInfo** details  
 - **publicInfo** (required): string escaped json data containing public profile and other information
-- **privateInfo** (optional): string escaped json data containing emailAddress(optional), and phoneNumber(required)
+- **privateInfo** (required): string escaped json data containing emailAddress(optional), and phoneNumber(required)
     - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
 
 ### Wallet Update
