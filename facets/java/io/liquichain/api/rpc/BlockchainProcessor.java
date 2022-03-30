@@ -1,5 +1,7 @@
 package io.liquichain.api.rpc;
 
+import static io.liquichain.api.rpc.EthApiConstants.*;
+
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
@@ -25,8 +27,6 @@ import java.util.regex.Pattern;
 
 import org.web3j.crypto.*;
 import org.web3j.utils.*;
-
-import static io.liquichain.api.rpc.EthApiConstants.*;
 
 public class BlockchainProcessor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(BlockchainProcessor.class);
