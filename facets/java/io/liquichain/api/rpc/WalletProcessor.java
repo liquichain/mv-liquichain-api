@@ -102,14 +102,14 @@ public class WalletProcessor extends BlockchainProcessor {
         }
 
 
-        try {
-            // name = validateName(name);
-            // emailAddress = validateEmail(emailAddress, walletHash);
-            phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
-        } catch (BusinessException e) {
-            LOG.error(INVALID_REQUEST, e);
-            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
-        }
+//        try {
+//            // name = validateName(name);
+//            // emailAddress = validateEmail(emailAddress, walletHash);
+//            phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
+//        } catch (BusinessException e) {
+//            LOG.error(INVALID_REQUEST, e);
+//            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+//        }
 
         try {
             LOG.info(
@@ -260,7 +260,7 @@ public class WalletProcessor extends BlockchainProcessor {
                 }
                 LOG.info("existing phoneNumber: {}", existingPhoneNumber);
                 if (phoneNumber != null && existingPhoneNumber != null && !existingPhoneNumber.equals(phoneNumber)) {
-                    phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
+                    // phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
                     verifiedPhoneNumber = new VerifiedPhoneNumber();
                     verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
                     verifiedPhoneNumber.setPhoneNumber(phoneNumber);
@@ -269,7 +269,7 @@ public class WalletProcessor extends BlockchainProcessor {
                     crossStorageApi.createOrUpdate(defaultRepo, verifiedPhoneNumber);
                 }
             } else if (phoneNumber != null) {
-                phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
+                // phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
                 verifiedPhoneNumber = new VerifiedPhoneNumber();
                 verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
                 verifiedPhoneNumber.setPhoneNumber(phoneNumber);
