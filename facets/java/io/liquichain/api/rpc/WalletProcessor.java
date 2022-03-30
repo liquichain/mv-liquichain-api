@@ -54,16 +54,41 @@ public class WalletProcessor extends BlockchainProcessor {
         }
     }
 
+    private void validateSignature(String walletHash, String signature, String publicInfo ) throws BusinessException {
+        String validatedAddress = "";
+        try {
+            validatedAddress = parseAddress(signature, new Gson().toJson(publicInfo));
+        } catch (Exception e) {
+            LOG.error(INVALID_REQUEST, e);
+            throw new BusinessException(e.getMessage());
+        }
+        boolean sameAddress = walletHash.toLowerCase().equals(validatedAddress);
+        LOG.info("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
+                 walletHash.toLowerCase(), sameAddress);
+
+        if (!sameAddress) {
+            throw new BusinessException(INVALID_SIGNATURE_ERROR);
+        }
+    }
+
     private String createWallet(String requestId, Map<String, Object> parameters) {
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
         String walletHash = retrieveHash(params, 1);
         String accountHash = retrieveHash(params, 2);
-        String publicInfo = params.get(3);
+        String signature = params.get(3);
+        String publicInfo = params.get(4);
         String privateInfo = null;
-        if (params.size() > 4) {
-            privateInfo = params.get(4);
+        if (params.size() > 5) {
+            privateInfo = params.get(5);
         }
+
+        try{
+            validateSignature(walletHash, signature, publicInfo);
+        } catch (BusinessException e){
+            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+        }
+
         Wallet wallet = null;
         LiquichainApp app = null;
 
@@ -170,20 +195,10 @@ public class WalletProcessor extends BlockchainProcessor {
             privateInfo = params.get(4);
         }
 
-        String validatedAddress = "";
-
-        try {
-            validatedAddress = parseAddress(signature, new Gson().toJson(publicInfo));
-        } catch (Exception e) {
-            LOG.error(INVALID_REQUEST, e);
+        try{
+            validateSignature(walletHash, signature, publicInfo);
+        } catch (BusinessException e){
             return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
-        }
-        boolean sameAddress = walletHash.toLowerCase().equals(validatedAddress);
-        LOG.info("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
-                 walletHash.toLowerCase(), sameAddress);
-
-        if (!sameAddress) {
-            return createErrorResponse(requestId, INVALID_REQUEST, INVALID_SIGNATURE_ERROR);
         }
 
         Wallet wallet = null;

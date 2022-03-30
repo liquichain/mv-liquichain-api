@@ -39,7 +39,6 @@ public class BlockchainProcessor extends Script {
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
     protected ParamBean config = paramBeanFactory.getInstance();
     protected String result;
-
     public String getResult() {
         return this.result;
     }

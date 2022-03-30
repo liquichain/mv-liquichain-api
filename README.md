@@ -13,14 +13,12 @@ There are currently two possible backends we can use with this API.  To select t
 The wallet endpoints are also served through the ETH API endpoint.  It has thee methods currently implemented: **wallet_creation, wallet_update, and wallet_info**.  Wallet data are saved to the database regardless of the backend chosen.
 
 ### Wallet Creation
-This request is made via POST method to json rpc method **wallet_creation** with the following parameters in this order **[name, address, signature, publicInfo, privateInfo]** where:
+This request is made via POST method to json rpc method **wallet_creation** with the following parameters in this order **[name, address, accountHash, signature, publicInfo, privateInfo]** where:
 - **name** (required): is combination of firstname and lastname OR username only
 - **address** (required): is the wallet's hash (not lowercase)
     - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
-- **signature** (required): is the signed signature of the comma separated name and address(wallet hash in hex, lowercase)
-    - **e.g.** 
-      - data: wallet123,0x307e27aa863e5dccdf8979fb9f5af32539101421
-      - signature: 0xfd34ab4ca7f40e325eaeba6d57f994b893ba515a2492f5329c93970a9edcf0570f578d02c6c0951b04ee0796e4877844488d64322005a159b66bca6dee712ce81b
+- **accountHash** (required): the account hash
+- **signature** (required): the signature generated from the **publicInfo** details  
 - **publicInfo** (required): string escaped json data containing public profile and other information
 - **privateInfo** (optional): string escaped json data containing emailAddress(optional), and phoneNumber(required)
     - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
@@ -30,6 +28,7 @@ This request is made via POST method to json rpc method **wallet_creation** with
 - **name** (required): is combination of firstname and lastname OR username only
 - **address** (required): is the wallet's hash (not lowercase)
     - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **signature** (required): the signature generated from the **publicInfo**
 - **publicInfo** (required): string escaped json data containing public profile and other information
 - **privateInfo** (optional): string escaped json data containing emailAddress(optional), and phoneNumber(required)
     - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
