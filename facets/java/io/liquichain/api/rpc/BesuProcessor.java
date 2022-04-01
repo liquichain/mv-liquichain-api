@@ -39,8 +39,12 @@ public class BesuProcessor extends BlockchainProcessor {
             case "get_chainId":
                 result = createResponse(requestId, "0x4c");
                 break;
+            case "eth_sendSignedTransaction":
             case "eth_sendRawTransaction":
                 result = sendRawTransaction(requestId, parameters);
+                break;
+            case "eea_sendRawTransaction":
+                result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
                 break;
             default:
                 result = callEthJsonRpc(requestId, parameters);
@@ -101,6 +105,12 @@ public class BesuProcessor extends BlockchainProcessor {
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
         LOG.info("to:{} , value:{}", rawTransaction.getTo(), rawTransaction.getValue());
+
+        // as per besu documentation (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
+        // to - address of the receiver. To deploy a contract, set to null.
+        if(rawTransaction.getTo() == null) {
+            return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
+        }
 
         if (rawTransaction instanceof SignedRawTransaction) {
             SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;

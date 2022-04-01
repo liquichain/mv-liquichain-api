@@ -4,6 +4,7 @@ import org.meveo.service.script.Script;
 
 public class EthApiConstants extends Script {
     public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
+    public static final String CONTRACT_NOT_ALLOWED_ERROR = "Contract deployment not allowed";
     public static final String CREATE_WALLET_ERROR = "Failed to create wallet";
     public static final String UPDATE_WALLET_ERROR = "Failed to update wallet";
     public static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
