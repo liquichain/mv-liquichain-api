@@ -424,8 +424,8 @@ public class WalletProcessor extends BlockchainProcessor {
                 }
                 LOG.info("phoneNumber={}", phoneNumber);
                 if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
-                    if (response.indexOf("emailAddress") > 0) {
-                        response.append(",");
+                    if (privateInfo.indexOf("emailAddress") > 0) {
+                        privateInfo.append(",");
                     }
                     privateInfo
                             .append(String.format(

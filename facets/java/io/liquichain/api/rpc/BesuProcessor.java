@@ -62,7 +62,7 @@ public class BesuProcessor extends BlockchainProcessor {
     private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         String requestBody = new StringBuilder()
                 .append("{")
-                .append(String.format("\"id\":%s,", parameters.get("id") + ""))
+                .append(String.format("\"id\":%s,", parameters.get("id")))
                 .append(String.format("\"jsonrpc\":\"%s\",", (String) parameters.get("jsonrpc")))
                 .append(String.format("\"method\":\"%s\",", (String) parameters.get("method")))
                 .append(String.format("\"params\":%s", new Gson().toJson(parameters.get("params"))))
