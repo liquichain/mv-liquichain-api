@@ -40,7 +40,7 @@ public class BlockchainProcessor extends Script {
     protected ParamBean config = paramBeanFactory.getInstance();
 
     protected String result;
-    
+
     public String getResult() {
         return this.result;
     }

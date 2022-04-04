@@ -106,9 +106,13 @@ public class BesuProcessor extends BlockchainProcessor {
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
         LOG.info("to:{} , value:{}", rawTransaction.getTo(), rawTransaction.getValue());
 
-        // as per besu documentation (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
+        // as per besu documentation
+        // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
         // to - address of the receiver. To deploy a contract, set to null.
-        if(rawTransaction.getTo() == null) {
+        // or it can also be set to 0x0 or 0x80 as per:
+        // (https://stackoverflow.com/questions/48219716/what-is-address0-in-solidity)
+        String recipient = rawTransaction.getTo();
+        if (recipient == null || "0x0".equals(recipient) || "0x80".equals(recipient)) {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
