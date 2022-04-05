@@ -38,7 +38,7 @@ public class BlockchainProcessor extends Script {
     protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
     protected ParamBean config = paramBeanFactory.getInstance();
-
+    
     protected String result;
 
     public String getResult() {

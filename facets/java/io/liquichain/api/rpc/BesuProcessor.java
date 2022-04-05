@@ -9,10 +9,11 @@ import java.util.Map;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.ext.*;
-import javax.enterprise.context.ApplicationScoped;
 
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.model.customEntities.Transaction;
+
+import org.apache.commons.lang3.math.NumberUtils;
 
 import com.google.gson.Gson;
 
@@ -24,7 +25,6 @@ import org.web3j.utils.*;
 
 import io.liquichain.api.rpc.BlockchainProcessor;
 
-@ApplicationScoped
 public class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
@@ -64,11 +64,13 @@ public class BesuProcessor extends BlockchainProcessor {
     }
 
     private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+        Object id = parameters.get("id");
+        String idFormat = id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
         String requestBody = new StringBuilder()
                 .append("{")
-                .append(String.format("\"id\":%s,", parameters.get("id")))
-                .append(String.format("\"jsonrpc\":\"%s\",", (String) parameters.get("jsonrpc")))
-                .append(String.format("\"method\":\"%s\",", (String) parameters.get("method")))
+                .append(String.format(idFormat, id))
+                .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
+                .append(String.format("\"method\":\"%s\",", parameters.get("method")))
                 .append(String.format("\"params\":%s", new Gson().toJson(parameters.get("params"))))
                 .append("}")
                 .toString();
