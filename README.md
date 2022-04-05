@@ -2,7 +2,7 @@
 The ETH API endpoint is at: **/meveo/rest/jsonrpc** and it is compatible with Ethereum API methods
 
 Supported methods:
-- **POST** eth_accounts
+- **POST** [eth_accounts](#ethaccounts)
 - **POST** eth_blockNumber
 - **POST** eth_call
 - **POST** eth_chainId
@@ -44,5 +44,7 @@ Supported methods:
 - **POST** eth_syncing
 - **POST** eth_uninstallFilter
 
+##### eth_accounts
+
 ## Postman Collections
-[Postman](https://www.postman.com/) collections with sample requests are available in the **/facets/postman** folder. 
+[Postman](https://www.postman.com/) collections with sample requests are available in the [**/facets/postman**](https://github.com/telecelplay/mv-liquichain-api/tree/master/facets/postman) folder. 
