@@ -5,18 +5,23 @@ import java.util.List;
 
 import org.meveo.service.script.Script;
 
+import org.apache.commons.lang3.math.NumberUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class EthApiUtils extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
 
     public static String createResponse(String requestId, String result) {
+        String idFormat = requestId == null || NumberUtils.isParsable(requestId)
+                          ? "  \"id\": %s,"
+                          : "  \"id\": \"%s\",";
         String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
         String response = new StringBuilder()
                 .append("{\n")
-                .append("  \"id\": ").append(requestId).append(",\n")
+                .append(String.format(idFormat, requestId)).append("\n")
                 .append("  \"jsonrpc\": \"2.0\",\n")
                 .append("  \"result\": ").append(String.format(resultFormat, result)).append("\n")
                 .append("}").toString();
@@ -25,9 +30,12 @@ public class EthApiUtils extends Script {
     }
 
     public static String createErrorResponse(String requestId, String errorCode, String message) {
+        String idFormat = requestId == null || NumberUtils.isParsable(requestId)
+                          ? "  \"id\": %s,"
+                          : "  \"id\": \"%s\",";
         String response = new StringBuilder()
                 .append("{\n")
-                .append("  \"id\": ").append(requestId).append(",\n")
+                .append(String.format(idFormat, requestId)).append("\n")
                 .append("  \"jsonrpc\": \"2.0\",\n")
                 .append("  \"error\": {\n")
                 .append("    \"code\": ").append(errorCode).append(",\n")
