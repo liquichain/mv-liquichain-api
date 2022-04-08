@@ -63,7 +63,7 @@ public class BesuProcessor extends BlockchainProcessor {
         return response;
     }
 
-    private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+    private synchronized String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         Object id = parameters.get("id");
         String idFormat = id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
         String requestBody = new StringBuilder()
