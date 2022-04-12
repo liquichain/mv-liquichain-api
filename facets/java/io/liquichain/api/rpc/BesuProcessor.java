@@ -43,6 +43,8 @@ public class BesuProcessor extends BlockchainProcessor {
             case "eth_sendRawTransaction":
                 result = sendRawTransaction(requestId, parameters);
                 break;
+            case "eth_getProof":
+            case "eth_submitWork":
             case "eea_sendRawTransaction":
                 result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
                 break;
