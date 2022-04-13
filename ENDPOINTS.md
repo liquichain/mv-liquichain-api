@@ -53,14 +53,14 @@ e.g.
     ]
 }
 ```
-The **response** will be in the format: `{"phoneHash": "wallet address/hash"}`
+The **response** will be an array of **wallet** hashes
 
 e.g.
 ```json
-{
-    "1b087d5293780b059da57ada26d51e79aa33b2c1": "cfoEb1bE78E1Db0B36d3C1F908f4165537217321",
-    "eda1d32b8cd98fca5d205a64cd3248b55a76d987": "deE0d5bE78E1Db0B36d3C1F908f4165537217333"
-}
+[
+    "cfoEb1bE78E1Db0B36d3C1F908f4165537217321",
+    "deE0d5bE78E1Db0B36d3C1F908f4165537217333"
+]
 ``` 
 
 ## Postman Collections
