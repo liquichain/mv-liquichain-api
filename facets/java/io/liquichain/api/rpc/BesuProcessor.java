@@ -128,13 +128,16 @@ public class BesuProcessor extends BlockchainProcessor {
                 LOG.info("from:{} chainId:{} , v:{} , r:{} , s:{}",
                          signedTransaction.getFrom(), signedTransaction.getChainId(), v, r, s);
                 String extraData = rawTransaction.getData();
+                String to = normalizeHash(rawTransaction.getTo());
                 if (extraData == null || extraData.isEmpty()) {
                     extraData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
+                } else if (extraData.startsWith("0xa9059cbb")) {
+                  to = extraData.substring(34,73);
                 }
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
                 transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
-                transaction.setToHexHash(normalizeHash(rawTransaction.getTo()));
+                transaction.setToHexHash(to);
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
