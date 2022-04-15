@@ -74,8 +74,8 @@ public class WalletProcessor extends BlockchainProcessor {
     private String createWallet(String requestId, Map<String, Object> parameters) {
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
-        String walletHash = retrieveHash(params, 1);
-        String accountHash = retrieveHash(params, 2);
+        String walletHash = retrieveHash(params, 1).toLowerCase();
+        String accountHash = retrieveHash(params, 2).toLowerCase();
         String signature = params.get(3);
         String publicInfo = params.get(4);
         String privateInfo = null;
@@ -187,7 +187,7 @@ public class WalletProcessor extends BlockchainProcessor {
         LOG.info("PARAMETERS: {}", parameters);
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
-        String walletHash = retrieveHash(params, 1);
+        String walletHash = retrieveHash(params, 1).toLowerCase();
         String signature = params.get(2);
         String publicInfo = params.get(3);
         String privateInfo = null;
@@ -331,7 +331,7 @@ public class WalletProcessor extends BlockchainProcessor {
         Wallet wallet = null;
 
         try {
-            wallet = crossStorageApi.find(defaultRepo, walletHash, Wallet.class);
+            wallet = crossStorageApi.find(defaultRepo, walletHash.toLowerCase(), Wallet.class);
             if (wallet == null) {
                 return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_WALLET_ERROR);
             }

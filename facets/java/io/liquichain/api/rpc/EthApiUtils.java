@@ -50,7 +50,7 @@ public class EthApiUtils extends Script {
         if (hash.startsWith("0x")) {
             return hash.substring(2);
         }
-        return hash;
+        return hash.toLowerCase();
     }
 
     public static String retrieveHash(List<String> parameters, int parameterIndex) {

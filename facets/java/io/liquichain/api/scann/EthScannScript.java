@@ -36,7 +36,7 @@ public class EthScannScript extends Script {
     private String action;
     private String address;
     private int offset;
-    private int limit = 10;
+    private int limit = 100;
 
     public String getResult() {
         return result;
@@ -106,7 +106,7 @@ public class EthScannScript extends Script {
 
     private String getBalance(String hash) {
         try {
-            Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class).by("hexHash", hash).getResult();
+            Wallet wallet = crossStorageApi.find(defaultRepo,hash.toLowerCase(), Wallet.class);
             return createResponse("1", "OK-Missing/Invalid API Key, rate limit of 1/5sec applied",
                                   "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
         } catch (Exception e) {
@@ -117,11 +117,11 @@ public class EthScannScript extends Script {
     public String getTransactionList(String hash) {
         ObjectMapper mapper = new ObjectMapper();
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                        .by("fromHexHash", hash)
+                                                        .by("fromHexHash", hash.toLowerCase())
                                                         .limit(offset + limit)
                                                         .getResults();
         List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                          .by("toHexHash", hash)
+                                                          .by("toHexHash", hash.toLowerCase())
                                                           .limit(offset + limit)
                                                           .getResults();
         for (Transaction transac : transactionsTo) {
