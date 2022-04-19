@@ -1,0 +1,19 @@
+{
+  "code" : "io.liquichain.api.rpc.DatabaseProcessor",
+  "inputs" : [ ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [
+    "io.liquichain.core.BlockForgerScript",
+    "io.liquichain.api.rpc.BlockchainProcessor",
+    "io.liquichain.api.rpc.EthApiConstants"
+  ]
+}

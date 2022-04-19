@@ -1,0 +1,81 @@
+{
+	"info": {
+		"_postman_id": "0d526c07-b84d-41f4-bddc-7d5b08d4c4ca",
+		"name": "Wallet By Contact",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "wallet-by-contact",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"contactHashes\": [\"eda1d32b8cd98fca5d205a64cd3248b55a76d987\", \"1b087d5293780b059da57ada26d51e79aa33b2c1\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/wallet-by-contact/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"wallet-by-contact",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{meveo.password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{meveo.user}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

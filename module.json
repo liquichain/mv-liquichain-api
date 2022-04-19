@@ -1,8 +1,8 @@
 {
-  "code" : "LIQUICHAIN_API",
+  "code" : "mv-liquichain-api",
   "description" : "Liquichain json-rpc API",
   "license" : "GPL",
-  "currentVersion" : "0.18",
+  "currentVersion" : "0.20",
   "isInDraft" : true,
   "moduleDependencies" : [ ],
   "moduleFiles" : [ ]

@@ -1,6 +1,5 @@
 {
-  "code" : "io.liquichain.api.rpc.EthApiScript",
-  "description" : "eth rpc api",
+  "code" : "io.liquichain.api.rpc.BlockchainProcessor",
   "inputs" : [ ],
   "outputs" : [ {
     "name" : "result",
@@ -11,14 +10,8 @@
   "transactionType" : "SAME",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
-  "mavenDependencies" : [ {
-    "groupId" : "org.web3j",
-    "artifactId" : "core",
-    "version" : "4.8.9",
-    "coordinates" : "org.web3j:core:4.8.9"
-  } ],
+  "mavenDependencies" : [ ],
   "importScriptInstances" : [
-    "io.liquichain.api.rpc.BlockchainProcessor",
     "io.liquichain.api.rpc.EthApiConstants",
     "io.liquichain.api.rpc.EthApiUtils"
   ]

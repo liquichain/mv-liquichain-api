@@ -1,0 +1,192 @@
+{
+	"info": {
+		"_postman_id": "70eb766c-32ff-46fb-a268-2f6d7bb569f4",
+		"name": "Wallet API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "createwallet",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 12,\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"wallet_creation\",\n  \"params\": [\n      \"wallet 1112\",\n      \"0xdeE0d5bE78E1Db0B36d3C1F908f4165537217333\",\n      \"0xdeE0d5bE78E1Db0B36d3C1F908f4165537217333\",\n      \"{\\\"shippingAddress\\\":{\\\"street\\\":\\\"2 rue de l'etang du moulin\\\",\\\"zipCode\\\":\\\"21250\\\",\\\"city\\\":\\\"Glanon\\\",\\\"country\\\":\\\"FR\\\"}}\",\n      \"{\\\"emailAddress\\\":\\\"account1@gmail.com\\\", \\\"phoneNumber\\\":\\\"+639991234567\\\"}\"\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update wallet",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 12,\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"wallet_update\",\n    \"params\": [\n        \"wallet 1112\",\n        \"0xdeE0d5bE78E1Db0B36d3C1F908f4165537217333\",\n        \"{\\\"shippingAddress\\\":{\\\"street\\\":\\\"2 rue de l'etang du moulin\\\",\\\"zipCode\\\":\\\"21250\\\",\\\"city\\\":\\\"abc\\\",\\\"country\\\":\\\"PH\\\"}}\",\n        \"{\\\"emailAddress\\\":\\\"account1@outlook.com\\\", \\\"phoneNumber\\\":\\\"+639998765432\\\"}\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Wallet Info",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 12,\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"wallet_info\",\n    \"params\": [\n        \"0xdeE0d5bE78E1Db0B36d3C1F908f4165537217333\",\n        \"0x2b2b9689a693515517c7b71658891c9636a085c328cf191a94b2f41d0ace016c10d4ea2c89026f8ecde1714dce8b5005be3ef97d7f3723b01038fe560bfcc1921c\",\n        \"walletInfo,0xdee0d5be78e1db0b36d3c1f908f4165537217333,1648456123780\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Wallet Info (no privateInfo)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 12,\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"wallet_info\",\n    \"params\": [\n        \"0xdeE0d5bE78E1Db0B36d3C1F908f4165537217333\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{meveo.password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{meveo.user}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+  "code" : "io.liquichain.api.rpc.WalletProcessor",
+  "inputs" : [ ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [
+    "io.liquichain.api.rpc.BlockchainProcessor",
+    "io.liquichain.api.rpc.EthApiConstants"
+  ]
+}
