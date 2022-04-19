@@ -11,5 +11,8 @@
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ ]
+  "importScriptInstances" : [
+    "io.liquichain.api.rpc.EthApiConstants",
+    "io.liquichain.api.rpc.EthApiUtils"
+  ]
 }
