@@ -106,9 +106,9 @@ public class EthScannScript extends Script {
 
     private String getBalance(String hash) {
         try {
-            Wallet wallet = crossStorageApi.find(defaultRepo,hash.toLowerCase(), Wallet.class);
+            Wallet wallet = crossStorageApi.find(defaultRepo, hash.toLowerCase(), Wallet.class);
             return createResponse("1", "OK-Missing/Invalid API Key, rate limit of 1/5sec applied",
-                                  "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
+                    "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
         } catch (Exception e) {
             return createResponse("0", "Resource not found", e.getMessage());
         }
@@ -117,28 +117,24 @@ public class EthScannScript extends Script {
     public String getTransactionList(String hash) {
         ObjectMapper mapper = new ObjectMapper();
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                        .by("fromHexHash", hash.toLowerCase())
-                                                        .limit(offset + limit)
-                                                        .getResults();
+                .by("fromHexHash", hash.toLowerCase())
+                .limit(offset + limit)
+                .getResults();
         List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                          .by("toHexHash", hash.toLowerCase())
-                                                          .limit(offset + limit)
-                                                          .getResults();
-        for (Transaction transac : transactionsTo) {
-            //we reverse the amount for transfer received
-            BigInteger amount = new BigInteger(transac.getValue()).negate();
-            transac.setValue(amount.toString());
-        }
+                .by("toHexHash", hash.toLowerCase())
+                .limit(offset + limit)
+                .getResults();
         transactions.addAll(transactionsTo);
-        //we order by date descending
+        // we order by date descending
         transactions = transactions.stream()
-                                   .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
-                                   .collect(Collectors.toList());
-        //check offset and limit
+                .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
+                .collect(Collectors.toList());
+        // check offset and limit
         if (transactions.size() <= offset) {
             transactions = new ArrayList<>();
         } else {
-            transactions = transactions.subList(offset, Math.min(offset + limit, transactions.size()));
+            transactions =
+                    transactions.subList(offset, Math.min(offset + limit, transactions.size()));
         }
         String result = "[";
         String sep = "";
