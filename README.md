@@ -20,7 +20,6 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_getLogs](#eth_getlogs)
 - [eth_getMinerDataByBlockHash](#eth_getminerdatabyblockhash)
 - [eth_getMinerDataByBlockNumber](#eth_getminerdatabyblocknumber)
-- [eth_getProof](#eth_getproof)
 - [eth_getStorageAt](#eth_getstorageat)
 - [eth_getTransactionByBlockHashAndIndex](#eth_gettransactionbyblockhashandindex)
 - [eth_getTransactionByBlockNumberAndIndex](#eth_gettransactionbyblocknumberandindex)
@@ -31,7 +30,6 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_getUncleByBlockNumberAndIndex](#eth_getunclebyblocknumberandindex)
 - [eth_getUncleCountByBlockHash](#eth_getunclecountbyblockhash)
 - [eth_getUncleCountByBlockNumber](#eth_getunclecountbyblocknumber)
-- [eth_getWork](#eth_getwork)
 - [eth_hashrate](#eth_hashrate)
 - [eth_mining](#eth_mining)
 - [eth_newBlockFilter](#eth_newblockfilter)
@@ -40,12 +38,14 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_protocolVersion](#eth_protocolversion)
 - [eth_sendRawTransaction](#eth_sendrawtransaction)
 - [eth_submitHashrate](#eth_hashrate)
-- [eth_submitWork](#eth_submitwork)
 - [eth_syncing](#eth_syncing)
 - [eth_uninstallFilter](#eth_uninstallfilter)
 
 ## Not supported:
+- eth_getProof
+- eth_getWork
 - eth_sendTransaction
+- eth_submitWork
 
 ### eth_accounts
 Returns a list of account addresses a client owns.
@@ -753,82 +753,6 @@ Returns miner data for the specified block.
 }
 ```
 
-### eth_getProof
-
-Returns the account and storage values of the specified account, including the Merkle proof.
-
-The API allows IoT devices or mobile apps which are unable to run light clients to verify responses from untrusted sources, by using a trusted block hash.
-> **Note** - This is not implemented when using database backend
-
-**Parameters**
-
-`DATA` - 20-byte address of the account or contract.
-
-`ARRAY` - Array of 32-byte storage keys to generate proofs for.
-
-`QUANTITY`|`TAG` - Integer representing a block number or one of the string tags `latest`, `earliest`, or `pending`, as described in [Block Parameter](#block-parameter).
-
-**Returns**
-
-`result`: Object - Account details:
-
-- `balance` : Quantity - Account balance.
-- `codeHash` : Data, 32-byte - Hash of the account code.
-- `nonce` : Quantity - Number of transactions sent from the account.
-- `storageHash` : Data, 32-byte - SHA3 of the storageRoot.
-- `accountProof` : Array - RLP-encoded Merkle tree nodes, starting with the stateRoot.
-- `storageProof` : Array- Storage entries. Each entry is an object that displays:
-  - `key` : Quantity - Storage key.
-  - `value` : Quantity - Storage value.
-  - `proof` : Array - RLP-encoded Merkle tree nodes, starting with the storageHash.
-
-**Sample Request**
-```json
-{
-  "id": 1,
-  "jsonrpc": "2.0",
-  "method": "eth_getProof",
-  "params": [
-    "0a8156e7ee392d885d10eaa86afd0e323afdcd95",
-    [
-      "0x0000000000000000000000000000000000000000000000000000000000000347"
-    ],
-    "latest"
-  ]
-}
-```
-**Sample Response**
-```json
-{
-  "id": 1,
-  "jsonrpc": "2.0",
-  "result": {
-    "accountProof": [
-      "0xf90211a0...608d898380",
-      "0xf90211a0...ec33f19580",
-      "0xf901d1a0...9e55584480",
-      "0xf8718080...18e5777142"
-    ],
-    "address": "0x0a8156e7ee392d885d10eaa86afd0e323afdcd95",
-    "balance": "0x0",
-    "codeHash": "0x2b6975dcaf69f9bb9a3b30bb6a37b305ce440250bf0dd2f23338cb18e5777142",
-    "nonce": "0x5f",
-    "storageHash": "0x917688de43091589aa58c1dfd315105bc9de4478b9ba7471616a4d8a43d46203",
-    "storageProof": [
-      {
-        "key": "0x0000000000000000000000000000000000000000000000000000000000000347",
-        "value": "0x0",
-        "proof": [
-          "0xf90211a0...5176779280",
-          "0xf901f1a0...c208d86580",
-          "0xf8d180a0...1ce6808080"
-        ]
-      }
-    ]
-  }
-}
-```
-
 ### eth_getStorageAt
 
 Returns the value of a storage position at a specified address.
@@ -1281,47 +1205,6 @@ Returns the number of uncles in a block matching the specified block number.
 }
 ```
 
-### eth_getWork
-
-Returns the hash of the current block, the seed hash, and the required target boundary condition.
-> **Note** - This is not implemented when using database backend
-
-**Parameters**
-
-None
-
-**Returns**
-
-`result` : Array with the following fields:
-
-- `DATA`, 32 Bytes - Hash of the current block header (pow-hash).
-- `DATA`, 32 Bytes - The seed hash used for the DAG.
-- `DATA`, 32 Bytes - The required target boundary condition: 2^256 / difficulty.
-- `QUANTITY` - Hexadecimal integer representing the current block number.
-
-**Sample Request**
-```json
-{
-  "id": 1,
-  "jsonrpc": "2.0",
-  "method": "eth_getWork",
-  "params": []
-}
-```
-**Sample Response**
-```json
-{
-  "id": 1,
-  "jsonrpc": "2.0",
-  "result": [
-    "0xce5e32ca59cb86799a1879e90150b2c3b882852173e59865e9e79abb67a9d636",
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "0x00a3d70a3d70a3d70a3d70a3d70a3d70a3d70a3d70a3d70a3d70a3d70a3d70a3",
-    "0x42"
-  ]
-}
-```
-
 ### eth_hashrate
 
 Returns the number of hashes per second with which the node is mining.
@@ -1577,43 +1460,6 @@ Submits the mining hashrate.
   "params": [
     "0x0000000000000000000000000000000000000000000000000000000000500000",
     "0x59daa26581d0acd1fce254fb7e85952f4c09d0915afd33d3886cd914bc7d283c"
-  ]
-}
-```
-**Sample Response**
-```json
-{
-  "id": 1,
-  "jsonrpc": "2.0",
-  "result": true
-}
-```
-
-### eth_submitWork
-
-Submits a Proof of Work (Ethash) solution.
-> **Note** - This is not implemented when using database backend
-
-**Parameters**
-
-`DATA` - 8 Bytes - Retrieved nonce.
-`DATA` - 32 Bytes - Hash of the block header (PoW-hash).
-`DATA` - 32 Bytes - Mix digest.
-
-**Returns**
-
-`result`: Boolean, `true` if the provided solution is valid, otherwise `false`.
-
-**Sample Request**
-```json
-{
-  "id": 1,
-  "jsonrpc": "2.0",
-  "method": "eth_submitWork",
-  "params": [
-    "0x0000000000000001",
-    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    "0xD1GE5700000000000000000000000000D1GE5700000000000000000000000000"
   ]
 }
 ```
