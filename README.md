@@ -394,7 +394,7 @@ Returns information about a block by block number.
 
 **Parameters**
 
-`QUANTITY|TAG` - Integer representing a block number or one of the string tags latest, earliest, or pending, as described in Block Parameter.
+`QUANTITY|TAG` - Integer representing a block number or one of the string tags `latest`, `earliest`, or `pending`, as described in [Block Parameter](#block-parameter).
 
 `Boolean` - If `true`, returns the full transaction objects; if false, returns only the hashes of the transactions.
 
