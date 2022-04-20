@@ -118,11 +118,11 @@ public class EthScannScript extends Script {
         ObjectMapper mapper = new ObjectMapper();
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
                 .by("fromHexHash", hash.toLowerCase())
-                .limit(offset + limit)
+                // .limit(offset + limit)
                 .getResults();
         List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class)
                 .by("toHexHash", hash.toLowerCase())
-                .limit(offset + limit)
+                // .limit(offset + limit)
                 .getResults();
         transactions.addAll(transactionsTo);
         // we order by date descending
