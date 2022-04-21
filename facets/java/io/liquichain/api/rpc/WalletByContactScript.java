@@ -28,12 +28,13 @@ public class WalletByContactScript extends Script {
     public void execute(Map<String, Object> parameters) throws BusinessException {
         LOG.info("contactHashes: {}", this.contactHashes);
         if (contactHashes != null && contactHashes.size() > 0) {
-            Map<String, String> walletHashes = crossStorageApi
+            List<String> walletHashes = crossStorageApi
                     .find(defaultRepo, Wallet.class)
                     .by("inList phoneNumber", this.contactHashes)
                     .getResults()
                     .stream()
-                    .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
+                    .map(wallet -> wallet.getUuid())
+                    .collect(Collectors.toList());
 
             result = new Gson().toJson(walletHashes);
         }
