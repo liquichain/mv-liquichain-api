@@ -11,8 +11,5 @@
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [
-    "io.liquichain.api.rpc.BlockchainProcessor",
-    "io.liquichain.api.rpc.EthApiConstants"
-  ]
+  "importScriptInstances" : [ "io.liquichain.api.rpc.BlockchainProcessor" ]
 }
