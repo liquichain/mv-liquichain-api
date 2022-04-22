@@ -64,18 +64,19 @@ public class BesuProcessor extends BlockchainProcessor {
         LOG.info("callProxy body={}", body);
         // LOG.info("BESU_API_URL={}", BESU_API_URL);
         Response response = null;
+        String responseBody = null;
         try {
             response = client.target(BESU_API_URL)
                     .request(MediaType.APPLICATION_JSON)
                     .post(Entity.json(body));
-            String result = response.readEntity(String.class);
+            responseBody = response.readEntity(String.class);
         } finally {
             if (response != null) {
                 response.close();
             }
         }
-        // LOG.info("callProxy response={}", response);
-        return result;
+        // LOG.info("callProxy responseBody={}", responseBody);
+        return responseBody;
     }
 
     private synchronized String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
