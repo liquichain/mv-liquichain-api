@@ -28,6 +28,7 @@ import io.liquichain.api.rpc.BlockchainProcessor;
 
 public class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
+    private static final Client client = ClientBuilder.newClient();
 
     private String BESU_API_URL =
             config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
@@ -62,12 +63,19 @@ public class BesuProcessor extends BlockchainProcessor {
     private String callProxy(String body) throws IOException, InterruptedException {
         LOG.info("callProxy body={}", body);
         // LOG.info("BESU_API_URL={}", BESU_API_URL);
-        Client client = ClientBuilder.newClient();
-        String response = client.target(BESU_API_URL)
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(body), String.class);
+        Response response = null;
+        try {
+            response = client.target(BESU_API_URL)
+                    .request(MediaType.APPLICATION_JSON)
+                    .post(Entity.json(body));
+            String result = response.readEntity(String.class);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
         // LOG.info("callProxy response={}", response);
-        return response;
+        return result;
     }
 
     private synchronized String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
