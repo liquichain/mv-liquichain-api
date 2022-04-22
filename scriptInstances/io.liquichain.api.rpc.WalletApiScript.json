@@ -1,5 +1,6 @@
 {
-  "code" : "io.liquichain.api.rpc.BlockchainProcessor",
+  "code" : "io.liquichain.api.rpc.WalletApiScript",
+  "description" : "json rpc for wallet ops",
   "inputs" : [ ],
   "outputs" : [ {
     "name" : "result",
@@ -7,7 +8,7 @@
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
-  "transactionType" : "NONE",
+  "transactionType" : "SAME",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],

@@ -27,12 +27,20 @@ import org.web3j.utils.*;
 import io.liquichain.api.rpc.BlockchainProcessor;
 
 public class BesuProcessor extends BlockchainProcessor {
+    private int nbInstances=0;
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
     private String BESU_API_URL =
             config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
     public final String ORIGIN_WALLET = "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623".toLowerCase();
     // config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
+    private static Client client = ClientBuilder.newClient();
+  
+    public BesuProcessor() {
+      super();
+      nbInstances++;
+      //LOG.warn("creating new jaxrs client: {}",nbInstances);
+    }
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
@@ -61,16 +69,23 @@ public class BesuProcessor extends BlockchainProcessor {
 
     private String callProxy(String body) throws IOException, InterruptedException {
         LOG.info("callProxy body={}", body);
-        // LOG.info("BESU_API_URL={}", BESU_API_URL);
-        Client client = ClientBuilder.newClient();
-        String response = client.target(BESU_API_URL)
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(body), String.class);
-        // LOG.info("callProxy response={}", response);
-        return response;
+        String result = null;
+      	Response response = null;
+		 try {
+				 
+			 response = client.target(BESU_API_URL)
+	                .request(MediaType.APPLICATION_JSON)
+	                .post(Entity.json(body));
+			result = response.readEntity(String.class);
+		 }finally {
+			 if(response!=null)
+				 response.close();
+		}
+        LOG.info("callProxy result={}", result);
+        return result;
     }
 
-    private synchronized String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+    private  String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         Object id = parameters.get("id");
         String idFormat =
                 id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";

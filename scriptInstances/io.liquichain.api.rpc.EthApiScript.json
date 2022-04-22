@@ -8,7 +8,7 @@
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
-  "transactionType" : "SAME",
+  "transactionType" : "NONE",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ {
@@ -17,9 +17,5 @@
     "version" : "4.8.9",
     "coordinates" : "org.web3j:core:4.8.9"
   } ],
-  "importScriptInstances" : [
-    "io.liquichain.api.rpc.BlockchainProcessor",
-    "io.liquichain.api.rpc.EthApiConstants",
-    "io.liquichain.api.rpc.EthApiUtils"
-  ]
+  "importScriptInstances" : [ "io.liquichain.api.rpc.BlockchainProcessor" ]
 }

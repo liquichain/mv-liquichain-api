@@ -100,7 +100,7 @@ public class EthScannScript extends Script {
         res += " \"message\" : \"" + message + "\",\n";
         res += " \"result\" : " + result + "\n";
         res += "}";
-        LOG.info("response:{}", res);
+        // LOG.info("response:{}", res);
         return res;
     }
 
@@ -125,7 +125,7 @@ public class EthScannScript extends Script {
                 // .limit(offset + limit)
                 .getResults();
         transactions.addAll(transactionsTo);
-        // we order by date descending
+      	// we order by date descending
         transactions = transactions.stream()
                 .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
                 .collect(Collectors.toList());
@@ -133,8 +133,7 @@ public class EthScannScript extends Script {
         if (transactions.size() <= offset) {
             transactions = new ArrayList<>();
         } else {
-            transactions =
-                    transactions.subList(offset, Math.min(offset + limit, transactions.size()));
+            transactions = transactions.subList(offset, Math.min(offset + limit, transactions.size()));
         }
         String result = "[";
         String sep = "";

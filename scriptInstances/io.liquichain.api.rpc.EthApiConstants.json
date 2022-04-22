@@ -4,7 +4,7 @@
   "outputs" : [ ],
   "generateOutputs" : false,
   "type" : "JAVA",
-  "transactionType" : "SAME",
+  "transactionType" : "NONE",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
