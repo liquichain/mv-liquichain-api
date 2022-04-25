@@ -29,7 +29,7 @@ import org.web3j.crypto.*;
 import org.web3j.utils.*;
 
 public class WalletApiScript extends Script {
-    private static final Logger LOG = LoggerFactory.getLogger(WalletProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WalletApiScript.class);
     public static final List<String> WALLET_METHODS = Arrays
             .asList("wallet_creation", "wallet_update", "wallet_info", "wallet_report");
 
