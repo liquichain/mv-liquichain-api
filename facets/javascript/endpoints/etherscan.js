@@ -1,97 +1,97 @@
-const etherscan = async (parameters) =>  {
-	const baseUrl = window.location.origin;
-	const url = new URL(`${window.location.pathname.split('/')[1]}/rest/etherscan/`, baseUrl);
-	if (parameters.module !== undefined) {
-		url.searchParams.append('module', parameters.module);
-	}
+import EndpointInterface from "#{API_BASE_URL}/api/rest/endpoint/EndpointInterface.js";
 
-	if (parameters.action !== undefined) {
-		url.searchParams.append('action', parameters.action);
-	}
-
-	if (parameters.address !== undefined) {
-		url.searchParams.append('address', parameters.address);
-	}
-
-	if (parameters.tag !== undefined) {
-		url.searchParams.append('tag', parameters.tag);
-	}
-
-	if (parameters.apikey !== undefined) {
-		url.searchParams.append('apikey', parameters.apikey);
-	}
-
-	if (parameters.offset !== undefined) {
-		url.searchParams.append('offset', parameters.offset);
-	}
-
-	if (parameters.limit !== undefined) {
-		url.searchParams.append('limit', parameters.limit);
-	}
-
-	return fetch(url.toString(), {
-		method: 'GET'
-	});
+// the request schema, this should be updated
+// whenever changes to the endpoint parameters are made
+// this is important because this is used to validate and parse the request parameters
+const requestSchema = {
+  "title" : "etherscanRequest",
+  "id" : "etherscanRequest",
+  "default" : "Schema definition for etherscan",
+  "$schema" : "http://json-schema.org/draft-07/schema",
+  "type" : "object",
+  "properties" : {
+    "address" : {
+      "title" : "address",
+      "id" : "etherscan_address",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "apikey" : {
+      "title" : "apikey",
+      "id" : "etherscan_apikey",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "offset" : {
+      "title" : "offset",
+      "id" : "etherscan_offset",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "module" : {
+      "title" : "module",
+      "id" : "etherscan_module",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "limit" : {
+      "title" : "limit",
+      "id" : "etherscan_limit",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "action" : {
+      "title" : "action",
+      "id" : "etherscan_action",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "tag" : {
+      "title" : "tag",
+      "id" : "etherscan_tag",
+      "type" : "string",
+      "minLength" : 1
+    }
+  }
 }
 
-const etherscanForm = (container) => {
-	const html = `<form id='etherscan-form'>
-		<div id='etherscan-module-form-field'>
-			<label for='module'>module</label>
-			<input type='text' id='etherscan-module-param' name='module'/>
-		</div>
-		<div id='etherscan-action-form-field'>
-			<label for='action'>action</label>
-			<input type='text' id='etherscan-action-param' name='action'/>
-		</div>
-		<div id='etherscan-address-form-field'>
-			<label for='address'>address</label>
-			<input type='text' id='etherscan-address-param' name='address'/>
-		</div>
-		<div id='etherscan-tag-form-field'>
-			<label for='tag'>tag</label>
-			<input type='text' id='etherscan-tag-param' name='tag'/>
-		</div>
-		<div id='etherscan-apikey-form-field'>
-			<label for='apikey'>apikey</label>
-			<input type='text' id='etherscan-apikey-param' name='apikey'/>
-		</div>
-		<div id='etherscan-offset-form-field'>
-			<label for='offset'>offset</label>
-			<input type='text' id='etherscan-offset-param' name='offset'/>
-		</div>
-		<div id='etherscan-limit-form-field'>
-			<label for='limit'>limit</label>
-			<input type='text' id='etherscan-limit-param' name='limit'/>
-		</div>
-		<button type='button'>Test</button>
-	</form>`;
-
-	container.insertAdjacentHTML('beforeend', html)
-
-	const module = container.querySelector('#etherscan-module-param');
-	const action = container.querySelector('#etherscan-action-param');
-	const address = container.querySelector('#etherscan-address-param');
-	const tag = container.querySelector('#etherscan-tag-param');
-	const apikey = container.querySelector('#etherscan-apikey-param');
-	const offset = container.querySelector('#etherscan-offset-param');
-	const limit = container.querySelector('#etherscan-limit-param');
-
-	container.querySelector('#etherscan-form button').onclick = () => {
-		const params = {
-			module : module.value !== "" ? module.value : undefined,
-			action : action.value !== "" ? action.value : undefined,
-			address : address.value !== "" ? address.value : undefined,
-			tag : tag.value !== "" ? tag.value : undefined,
-			apikey : apikey.value !== "" ? apikey.value : undefined,
-			offset : offset.value !== "" ? offset.value : undefined,
-			limit : limit.value !== "" ? limit.value : undefined
-		};
-
-		etherscan(params).then(r => r.text().then(
-				t => alert(t)
-			));
-	};
+// the response schema, this should be updated
+// whenever changes to the endpoint parameters are made
+// this is important because this could be used to parse the result
+const responseSchema = {
+  "title" : "etherscanResponse",
+  "id" : "etherscanResponse",
+  "default" : "Schema definition for etherscan",
+  "$schema" : "http://json-schema.org/draft-07/schema",
+  "type" : "object",
+  "properties" : {
+    "result" : {
+      "title" : "result",
+      "type" : "string",
+      "minLength" : 1
+    }
+  }
 }
 
-export { etherscan, etherscanForm };
+// should contain offline mock data, make sure it adheres to the response schema
+const mockResult = {};
+
+class etherscan extends EndpointInterface {
+	constructor() {
+		// name and http method, these are inserted when code is generated
+		super("etherscan", "GET");
+		this.requestSchema = requestSchema;
+		this.responseSchema = responseSchema;
+		this.mockResult = mockResult;
+	}
+
+	getRequestSchema() {
+		return this.requestSchema;
+	}
+
+	getResponseSchema() {
+		return this.responseSchema;
+	}
+}
+
+export default new etherscan();
