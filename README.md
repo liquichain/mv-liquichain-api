@@ -41,6 +41,11 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_syncing](#eth_syncing)
 - [eth_uninstallFilter](#eth_uninstallfilter)
 
+## Wallet operations (not part of Ethereum API)
+- [wallet_creation](#wallet_creation)
+- [wallet_update](#wallet_update)
+- [wallet_info](#wallet_info)
+
 ## Not supported:
 - eth_getProof
 - eth_getWork
@@ -1606,6 +1611,106 @@ Filters time out when not requested by [`eth_getFilterChanges`](#eth_getfilterch
   "id": 1,
   "jsonrpc": "2.0",
   "result": true
+}
+```
+
+## wallet_creation
+This request is made via POST method to json rpc method **wallet_creation** with the following parameters in this order **[name, address, accountHash, signature, publicInfo, privateInfo]** where:
+- **name** (required): is combination of firstname and lastname OR username only
+- **address** (required): is the wallet's hash (not lowercase)
+    - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **accountHash** (required): the account hash
+- **signature** (required): the signature generated from the **privateInfo** details
+- **publicInfo** (required): string escaped json data containing public profile and other information
+- **privateInfo** (required): string escaped json data containing emailAddress(required), and phoneNumber(optional)
+    - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
+
+**Sample Request**
+```json
+{
+	"jsonrpc": "2.0",
+	"method": "wallet_creation",
+	"params": [
+		"Test Wallet",
+		"0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+		"f607657cca596c50e78d9995202df3ad22e4c117a35cc21667f6ea2170570c5d",
+		"0x13af7bd41b14d03193147fa01859a7c71b92c697b3687ec9a4a2a7b57a311f7013539874f5f933da82f0337a7a4eaeb9348db2442d57e7ab0edf965019f59f151b",
+		"{\"shippingAddress\":{\"email\":\"account1@telecelplay.io\",\"phone\":\"+639991234567\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+		"{\"emailAddress\":\"account1@telecelplay.io\", \"phoneNumber\":\"+639991234567\"}"
+	]
+}
+```
+**Sample Response**
+```json
+{
+    "id": "null",
+    "jsonrpc": "2.0",
+    "result": "ac08e612d1318bc9c0aa671a1b90199bb12bd876"
+}
+```
+
+## wallet_update
+This request is made via POST method to json rpc method **wallet_update** with the following parameters in this order **[name, address, signature, publicInfo, privateInfo]** where:
+- **name** (required): is combination of firstname and lastname OR username only
+- **address** (required): is the wallet's hash (not lowercase)
+    - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **signature** (required): the signature generated from the **publicInfo**
+- **publicInfo** (required): string escaped json data containing public profile and other information
+- **privateInfo** (optional): string escaped json data containing emailAddress(required), and phoneNumber(optional)
+    - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
+
+**Sample Request**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "wallet_update",
+  "params": [
+    "Test Wallet",
+    "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+    "0x80682b0d9f06cec1797c8d303eb0ee5b42129eed9d5d3aa7118c3b924cd23cf5539831ad585e90db545356c7db3ee18461aff0301ca2d64c922f685fc664b6be1c",
+    "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+    "{\"emailAddress\":\"account2@telecelplay.io\", \"phoneNumber\":\"+639997654321\"}"
+  ]
+}
+```
+**Sample Response**
+```json
+{
+  "id": "null",
+  "jsonrpc": "2.0",
+  "result": "Test Wallet"
+}
+```
+
+## wallet_info
+This request is made via POST method to json rpc method **wallet_info** with the following parameters in this order **[address, signature, message]** where:
+- **address** (required): is the wallet's hash (not lowercase)
+    - **e.g** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **signature** (optional, required only when retrieving privateInfo): is signed signature of the message
+- **message** (optional, required only when retrieving privateInfo): is a comma separated value string containing the string **"walletInfo"**, the **address** (wallet hash in hex), and the **timestamp** (in millis) of the request
+    - **e.g.**  walletInfo,0x307e27aa863e5dccdf8979fb9f5af32539101421,1648456123780
+
+**Sample Request**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "wallet_info",
+  "params": [
+    "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+    "0x42f51a46f6d6b0e2d43d47411d901c1798242f57483c5d7271929cb1ce9dfe6c259390fbce3c0ac36a32fa3b25fd6b1213da659f41db8ed817fd5e5ad67215161c",
+    "walletInfo,0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876,1651827972502"
+  ]
+}
+```
+**Sample Response**
+```json
+{
+  "id": "null",
+  "jsonrpc": "2.0",
+  "result": {
+    "name": "Test Wallet",
+    "publicInfo": "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}"
+  }
 }
 ```
 
