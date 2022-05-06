@@ -417,7 +417,7 @@ public class WalletApiScript extends Script {
         Wallet wallet = null;
 
         try {
-            wallet = crossStorageApi.find(defaultRepo, walletHash.toLowerCase(), Wallet.class);
+            wallet = crossStorageApi.find(defaultRepo, walletHash, Wallet.class);
             if (wallet == null) {
                 return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_WALLET_ERROR);
             }
