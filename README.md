@@ -42,6 +42,7 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_uninstallFilter](#eth_uninstallfilter)
 
 ## Wallet operations (not part of Ethereum API)
+The wallet API endpoint is at: **POST /meveo/rest/wallet_jsonrpc** and it has the following methods.
 - [wallet_creation](#wallet_creation)
 - [wallet_update](#wallet_update)
 - [wallet_info](#wallet_info)
@@ -1627,6 +1628,8 @@ This request is made via POST method to json rpc method **wallet_creation** with
 
 **Sample Request**
 ```json
+POST /rest/
+
 {
 	"jsonrpc": "2.0",
 	"method": "wallet_creation",
