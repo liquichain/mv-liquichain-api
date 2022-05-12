@@ -155,7 +155,7 @@ public class WalletApiScript extends Script {
         throws BusinessException {
         String validatedAddress;
         try {
-            validatedAddress = parseAddress(signature, new Gson().toJson(message));
+            validatedAddress = parseAddress(signature, message);
         } catch (Exception e) {
             LOG.error(INVALID_REQUEST, e);
             throw new BusinessException(e.getMessage());
