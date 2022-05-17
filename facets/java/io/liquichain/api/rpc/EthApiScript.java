@@ -107,7 +107,7 @@ class EthApiConstants {
     public static enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
 }
 
-class EthApiUtils extends Script {
+class EthApiUtils {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
 
     public static String createResponse(String requestId, String result) {
@@ -404,8 +404,9 @@ class BesuProcessor extends BlockchainProcessor {
                     .post(Entity.json(body));
             result = response.readEntity(String.class);
         } finally {
-            if (response != null)
+            if (response != null){
                 response.close();
+            }
         }
         LOG.info("callProxy result={}", result);
         return result;
