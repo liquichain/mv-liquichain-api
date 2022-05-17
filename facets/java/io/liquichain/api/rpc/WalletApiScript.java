@@ -30,17 +30,19 @@ public class WalletApiScript extends Script {
     public static final List<String> WALLET_METHODS = Arrays
         .asList("wallet_creation", "wallet_update", "wallet_info", "wallet_report");
 
-    public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
-    public static final String CREATE_WALLET_ERROR = "Failed to create wallet";
-    public static final String UPDATE_WALLET_ERROR = "Failed to update wallet";
-    public static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
-    public static final String UNKNOWN_APPLICATION_ERROR = "Unknown application";
-    public static final String WALLET_EXISTS_ERROR = "Wallet already exists";
-    public static final String INVALID_SIGNATURE_ERROR = "Invalid signature";
-    public static final String INVALID_REQUEST = "-32600";
-    public static final String INTERNAL_ERROR = "-32603";
-    public static final String TRANSACTION_REJECTED = "-32003";
-    public static final String METHOD_NOT_FOUND = "-32601";
+    private static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
+    private static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
+    private static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
+    private static final String CREATE_WALLET_ERROR = "Failed to create wallet";
+    private static final String UPDATE_WALLET_ERROR = "Failed to update wallet";
+    private static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
+    private static final String UNKNOWN_APPLICATION_ERROR = "Unknown application";
+    private static final String WALLET_EXISTS_ERROR = "Wallet already exists";
+    private static final String INVALID_SIGNATURE_ERROR = "Invalid signature";
+    private static final String INVALID_REQUEST = "-32600";
+    private static final String INTERNAL_ERROR = "-32603";
+    private static final String TRANSACTION_REJECTED = "-32003";
+    private static final String METHOD_NOT_FOUND = "-32601";
 
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
@@ -169,6 +171,29 @@ public class WalletApiScript extends Script {
         }
     }
 
+    private String validatePhoneNumber(String phoneNumber, String walletId)
+        throws BusinessException {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
+        }
+        VerifiedPhoneNumber existingPhoneNumber = null;
+        try {
+            existingPhoneNumber = crossStorageApi
+                .find(defaultRepo, VerifiedPhoneNumber.class)
+                .by("phoneNumber", phoneNumber)
+                .by("not-inList walletId", Arrays.asList(walletId))
+                .getResult();
+        } catch (Exception e) {
+            // do nothing, we want wallet phoneNumber to be unique
+        }
+        if (existingPhoneNumber != null) {
+            String error = String.format(PHONE_NUMBER_EXISTS_ERROR, phoneNumber);
+            LOG.error(error);
+            throw new BusinessException(error);
+        }
+        return phoneNumber;
+    }
+
     private String createWallet(String requestId, Map<String, Object> parameters) {
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
@@ -223,6 +248,15 @@ public class WalletApiScript extends Script {
                 }.getType());
             emailAddress = privateInfoMap.get("emailAddress");
             phoneNumber = privateInfoMap.get("phoneNumber");
+        }
+
+        if (phoneNumber != null) {
+            try {
+                phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
+            } catch (BusinessException e) {
+                LOG.error(INVALID_REQUEST, e);
+                return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+            }
         }
 
         try {
@@ -368,6 +402,7 @@ public class WalletApiScript extends Script {
                     crossStorageApi.createOrUpdate(defaultRepo, verifiedPhoneNumber);
                 }
             } else if (phoneNumber != null) {
+                phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
                 verifiedPhoneNumber = new VerifiedPhoneNumber();
                 verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
                 verifiedPhoneNumber.setPhoneNumber(phoneNumber);
