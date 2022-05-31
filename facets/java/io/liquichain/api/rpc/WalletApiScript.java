@@ -597,7 +597,7 @@ class KeycloakUserService {
     private String AUTH_URL;
     private String CLIENT_ID;
     private String CLIENT_SECRET;
-    private String WEB_CONTEXT;
+    private String REALM;
     private String LOGIN_URL;
     private String USERS_URL;
 
@@ -606,12 +606,12 @@ class KeycloakUserService {
         this.defaultRepo = defaultRepo;
         this.config = config;
 
-        AUTH_URL = config.getProperty("keycloak.auth.url", "http://localhost:8081/auth");
+        AUTH_URL = System.getProperty("meveo.keycloak.url");
+        REALM = System.getProperty("meveo.keycloak.realm");
         CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
         CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
-        WEB_CONTEXT = config.getProperty("meveo.admin.webContext", "meveo");
         LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
-        USERS_URL = AUTH_URL + "/admin/realms/" + WEB_CONTEXT + "/users";
+        USERS_URL = AUTH_URL + "/admin/realms/" + REALM + "/users";
     }
 
     public String login() {
