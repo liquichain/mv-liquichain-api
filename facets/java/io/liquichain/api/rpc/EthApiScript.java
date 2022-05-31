@@ -442,11 +442,6 @@ class BesuProcessor extends BlockchainProcessor {
     }
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
-        result = callEthJsonRpc(requestId, parameters);
-        boolean hasError = result.contains("\"error\"");
-        if (hasError) {
-            return result;
-        }
         List<String> params = (List<String>) parameters.get("params");
         String data = (String) params.get(0);
         String transactionHash = normalizeHash(Hash.sha3(data));
@@ -475,6 +470,12 @@ class BesuProcessor extends BlockchainProcessor {
         String recipient = rawTransaction.getTo();
         if (recipient == null || "0x0".equals(recipient) || "0x80".equals(recipient)) {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
+        }
+
+        result = callEthJsonRpc(requestId, parameters);
+        boolean hasError = result.contains("\"error\"");
+        if (hasError) {
+            return result;
         }
 
         if (rawTransaction instanceof SignedRawTransaction) {
