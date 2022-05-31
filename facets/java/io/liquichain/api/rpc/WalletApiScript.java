@@ -203,6 +203,8 @@ public class WalletApiScript extends Script {
     }
 
     private String createWallet(String requestId, Map<String, Object> parameters) {
+        KeycloakUserService keycloakUserService = new KeycloakUserService(crossStorageApi, defaultRepo, config);
+        keycloakUserService.login();
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
         String walletHash = retrieveHash(params, 1);
@@ -307,8 +309,6 @@ public class WalletApiScript extends Script {
                 newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
                 LOG.info("wallet_creation Updated wallet hash: {}", newHash);
             }
-            KeycloakUserService keycloakUserService = new KeycloakUserService(crossStorageApi, defaultRepo, config);
-            keycloakUserService.login();
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
             LOG.error(CREATE_WALLET_ERROR, e);
