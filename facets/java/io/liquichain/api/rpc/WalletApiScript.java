@@ -2,7 +2,9 @@ package io.liquichain.api.rpc;
 
 import java.util.*;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
@@ -24,6 +26,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
 import org.web3j.utils.*;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 public class WalletApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(WalletApiScript.class);
@@ -299,6 +307,8 @@ public class WalletApiScript extends Script {
                 newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
                 LOG.info("wallet_creation Updated wallet hash: {}", newHash);
             }
+            KeycloakUserService keycloakUserService = new KeycloakUserService(crossStorageApi, defaultRepo, config);
+            keycloakUserService.login();
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
             LOG.error(CREATE_WALLET_ERROR, e);
@@ -565,4 +575,66 @@ public class WalletApiScript extends Script {
 
         return createResponse(requestId, response.toString());
     }
+}
+
+
+class KeycloakUserService {
+    private static final Logger LOG = LoggerFactory.getLogger(KeycloakUserService.class);
+
+    private static final int CONNECTION_POOL_SIZE = 50;
+    private static final int MAX_POOLED_PER_ROUTE = 5;
+    private static final long CONNECTION_TTL = 5;
+    private static Client client = new ResteasyClientBuilder()
+        .connectionPoolSize(CONNECTION_POOL_SIZE)
+        .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+        .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+        .build();
+
+    private CrossStorageApi crossStorageApi;
+    private Repository defaultRepo;
+    private ParamBean config;
+
+    private String AUTH_URL;
+    private String CLIENT_ID;
+    private String CLIENT_SECRET;
+    private String WEB_CONTEXT;
+    private String LOGIN_URL;
+    private String USERS_URL;
+
+    public KeycloakUserService(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
+        this.crossStorageApi = crossStorageApi;
+        this.defaultRepo = defaultRepo;
+        this.config = config;
+
+        AUTH_URL = config.getProperty("keycloak.auth.url", "http://localhost:8081/auth");
+        CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
+        CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
+        WEB_CONTEXT = config.getProperty("meveo.admin.webContext", "meveo");
+        LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
+        USERS_URL = AUTH_URL + "/admin/realms/" + WEB_CONTEXT + "/users";
+    }
+
+    public String login() {
+        LOG.info("login - START");
+        String result = null;
+        Response response = null;
+        try {
+            Form form = new Form()
+                .param("grant_type", "client_credentials")
+                .param("client_id", CLIENT_ID)
+                .param("client_secret", CLIENT_SECRET);
+
+            response = client.target(LOGIN_URL)
+                             .request(MediaType.APPLICATION_FORM_URLENCODED)
+                             .post(Entity.form(form));
+            result = response.readEntity(String.class);
+        } finally {
+            if (response != null){
+                response.close();
+            }
+        }
+        LOG.info("login - result={}", result);
+        return result;
+    }
+
 }
