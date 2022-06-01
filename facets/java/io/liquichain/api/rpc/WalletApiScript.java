@@ -622,7 +622,7 @@ class KeycloakUserService {
         return map != null && !map.isEmpty();
     }
 
-    private String login() throws BusinessException {
+    private String login() {
         LOG.info("login - START");
         String token;
         Response response = null;
@@ -636,12 +636,10 @@ class KeycloakUserService {
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
                              .post(Entity.form(form));
             String loginData = response.readEntity(String.class);
-            Map<String, String> dataMap = mapper.readValue(loginData, new TypeReference<>() {
-            });
+            Map<String, String> dataMap = new Gson()
+                .fromJson(loginData, new TypeToken<Map<String, String>>() {
+                }.getType());
             token = dataMap.get("access_token");
-        } catch (Exception e) {
-            LOG.error("Failed to login.", e);
-            throw new BusinessException("Failed to login.", e);
         } finally {
             if (response != null) {
                 response.close();
@@ -651,7 +649,7 @@ class KeycloakUserService {
         return token;
     }
 
-    public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
+    public void createUser(String name, String publicInfo, String privateInfo) {
         Map<String, String> publicInfoMap = null;
         Map<String, String> privateInfoMap = null;
         if (StringUtils.isNotBlank(publicInfo)) {
@@ -671,11 +669,7 @@ class KeycloakUserService {
         String base64Avatar = null;
         if (isNotEmptyMap(publicInfoMap)) {
             username = publicInfoMap.get("username");
-            try {
-                shippingAddress = mapper.writeValueAsString(publicInfoMap.get("shippingAddress"));
-            } catch (Exception e) {
-                throw new BusinessException("Failed to parse shipping address.", e);
-            }
+            shippingAddress = publicInfoMap.get("shippingAddress");
             coords = publicInfoMap.get("coords");
             base64Avatar = publicInfoMap.get("base64Avatar");
         }
