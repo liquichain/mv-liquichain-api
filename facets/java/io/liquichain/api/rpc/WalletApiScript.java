@@ -666,7 +666,7 @@ class KeycloakUserService {
                 privateInfoMap = mapper.readValue(privateInfo, new TypeReference<>() {
                 });
             }
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             throw new BusinessException("Failed to parse data.", e);
         }
         String username = null;
