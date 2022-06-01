@@ -620,7 +620,7 @@ class KeycloakUserService {
         USERS_URL = AUTH_URL + "/admin/realms/" + REALM + "/users";
     }
 
-    private boolean isNotEmptyMap(Map<String, Object> map) {
+    private boolean isNotEmptyMap(Map<String, String> map) {
         return map != null && !map.isEmpty();
     }
 
@@ -654,8 +654,8 @@ class KeycloakUserService {
     }
 
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
-        Map<String, Object> publicInfoMap = null;
-        Map<String, Object> privateInfoMap = null;
+        Map<String, String> publicInfoMap = null;
+        Map<String, String> privateInfoMap = null;
         try {
             if (StringUtils.isNotBlank(publicInfo)) {
                 publicInfoMap = mapper.readValue(publicInfo, new TypeReference<>() {
@@ -674,22 +674,18 @@ class KeycloakUserService {
         String coords = null;
         String base64Avatar = null;
         if (isNotEmptyMap(publicInfoMap)) {
-            username = (String) publicInfoMap.get("username");
-            try {
-                shippingAddress = mapper.writeValueAsString(publicInfoMap.get("shippingAddress"));
-            } catch (Exception e) {
-                throw new BusinessException("Failed to parse shippingAddress.", e);
-            }
-            coords = (String) publicInfoMap.get("coords");
-            base64Avatar = (String) publicInfoMap.get("base64Avatar");
+            username = publicInfoMap.get("username");
+            shippingAddress = publicInfoMap.get("shippingAddress");
+            coords = publicInfoMap.get("coords");
+            base64Avatar = publicInfoMap.get("base64Avatar");
         }
         String emailAddress = null;
         String phoneNumber = null;
         String password = null;
         if (isNotEmptyMap(privateInfoMap)) {
-            password = (String) privateInfoMap.get("password");
-            emailAddress = (String) privateInfoMap.get("emailAddress");
-            phoneNumber = (String) privateInfoMap.get("phoneNumber");
+            password = privateInfoMap.get("password");
+            emailAddress = privateInfoMap.get("emailAddress");
+            phoneNumber = privateInfoMap.get("phoneNumber");
         }
         String token = login();
 
@@ -714,14 +710,11 @@ class KeycloakUserService {
             "        \"coords\": \"" + coords + "\",\n" +
             "        \"base64Avatar\": \"" + base64Avatar + "\"\n" +
             "    },\n" +
-            "    \"disableableCredentialTypes\": [],\n" +
             "    \"credentials\": [{" +
             "        \"type\": \"password\",\n" +
             "        \"value\": \"" + password + "\",\n" +
             "        \"temporary\": false\n" +
             "    }],\n" +
-            "    \"requiredActions\": [],\n" +
-            "    \"notBefore\": 0,\n" +
             "    \"access\": {\n" +
             "        \"manageGroupMembership\": true,\n" +
             "        \"view\": true,\n" +
