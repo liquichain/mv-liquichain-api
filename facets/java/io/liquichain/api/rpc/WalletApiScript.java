@@ -11,11 +11,16 @@ import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.commons.utils.StringUtils;
+import org.meveo.model.admin.User;
 import org.meveo.model.customEntities.LiquichainApp;
 import org.meveo.model.customEntities.VerifiedEmail;
 import org.meveo.model.customEntities.VerifiedPhoneNumber;
 import org.meveo.model.customEntities.Wallet;
+import org.meveo.model.security.DefaultRole;
+import org.meveo.model.security.Role;
+import org.meveo.model.shared.Name;
 import org.meveo.model.storage.Repository;
+import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
@@ -56,10 +61,12 @@ public class WalletApiScript extends Script {
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
 
+    private final UserService userService = getCDIBean(UserService.class);
     protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
     protected ParamBean config = paramBeanFactory.getInstance();
-    KeycloakUserService keycloakUserService = new KeycloakUserService(crossStorageApi, defaultRepo, config);
+    KeycloakUserService keycloakUserService =
+        new KeycloakUserService(crossStorageApi, defaultRepo, config, userService);
 
     protected String result;
 
@@ -600,16 +607,19 @@ class KeycloakUserService {
     private CrossStorageApi crossStorageApi;
     private Repository defaultRepo;
     private ParamBean config;
+    private UserService userService;
 
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
     private final String LOGIN_URL;
     private final String USERS_URL;
 
-    public KeycloakUserService(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
+    public KeycloakUserService(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config,
+        UserService userService) {
         this.crossStorageApi = crossStorageApi;
         this.defaultRepo = defaultRepo;
         this.config = config;
+        this.userService = userService;
 
         String AUTH_URL = System.getProperty("meveo.keycloak.url");
         String REALM = System.getProperty("meveo.keycloak.realm");
@@ -734,7 +744,22 @@ class KeycloakUserService {
                 response.close();
             }
         }
+
+        User user = new User();
+        Name fullName = new Name();
+        Set<Role> roles = new HashSet<>();
+
+        fullName.setFirstName(name);
+        user.setName(fullName);
+        user.setUserName(username);
+        user.setEmail(emailAddress);
+        roles.add(DefaultRole.MODIFY_ALL_CE.get());
+        roles.add(DefaultRole.READ_ALL_CE.get());
+        roles.add(DefaultRole.EXECUTE_ALL_ENDPOINTS.get());
+        user.setRoles(roles);
+
+        userService.create(user);
+
         LOG.info("postResult: {}", postResult);
     }
-
 }
