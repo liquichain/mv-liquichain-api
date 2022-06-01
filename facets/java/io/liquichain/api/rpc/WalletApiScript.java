@@ -586,6 +586,7 @@ public class WalletApiScript extends Script {
 
 class KeycloakUserService {
     private static final Logger LOG = LoggerFactory.getLogger(KeycloakUserService.class);
+    private static final Gson gson = new Gson();
 
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
@@ -636,9 +637,8 @@ class KeycloakUserService {
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
                              .post(Entity.form(form));
             String loginData = response.readEntity(String.class);
-            Map<String, String> dataMap = new Gson()
-                .fromJson(loginData, new TypeToken<Map<String, String>>() {
-                }.getType());
+            Map<String, String> dataMap = gson.fromJson(loginData, new TypeToken<Map<String, String>>() {
+            }.getType());
             token = dataMap.get("access_token");
         } finally {
             if (response != null) {
@@ -653,15 +653,13 @@ class KeycloakUserService {
         Map<String, Object> publicInfoMap = null;
         Map<String, String> privateInfoMap = null;
         if (StringUtils.isNotBlank(publicInfo)) {
-            publicInfoMap = new Gson()
-                .fromJson(publicInfo, new TypeToken<Map<String, Object>>() {
-                }.getType());
+            publicInfoMap = gson.fromJson(publicInfo, new TypeToken<Map<String, Object>>() {
+            }.getType());
         }
 
         if (StringUtils.isNotBlank(privateInfo)) {
-            privateInfoMap = new Gson()
-                .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
-                }.getType());
+            privateInfoMap = gson.fromJson(privateInfo, new TypeToken<Map<String, String>>() {
+            }.getType());
         }
         String username = null;
         String shippingAddress = null;
@@ -669,7 +667,8 @@ class KeycloakUserService {
         String base64Avatar = null;
         if (isNotEmptyMap(publicInfoMap)) {
             username = (String) publicInfoMap.get("username");
-            shippingAddress = new Gson().toJson(publicInfoMap.get("shippingAddress"));
+
+            shippingAddress = gson.toJson(gson.toJson(publicInfoMap.get("shippingAddress")));
             coords = (String) publicInfoMap.get("coords");
             base64Avatar = (String) publicInfoMap.get("base64Avatar");
         }
