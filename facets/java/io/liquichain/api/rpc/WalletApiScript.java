@@ -653,7 +653,7 @@ class KeycloakUserService {
         return token;
     }
 
-    public String createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
+    public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, Object> publicInfoMap = null;
         Map<String, Object> privateInfoMap = null;
         try {
@@ -740,7 +740,7 @@ class KeycloakUserService {
                 response.close();
             }
         }
-        return postResult;
+        LOG.info("postResult: {}", postResult);
     }
 
 }
