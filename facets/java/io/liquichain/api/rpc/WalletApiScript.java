@@ -675,7 +675,11 @@ class KeycloakUserService {
         String base64Avatar = null;
         if (isNotEmptyMap(publicInfoMap)) {
             username = publicInfoMap.get("username");
-            shippingAddress = publicInfoMap.get("shippingAddress");
+            try {
+                shippingAddress = mapper.writeValueAsString(publicInfoMap.get("shippingAddress"));
+            } catch (Exception e) {
+                throw new BusinessException("Failed to parse shipping address.", e);
+            }
             coords = publicInfoMap.get("coords");
             base64Avatar = publicInfoMap.get("base64Avatar");
         }
