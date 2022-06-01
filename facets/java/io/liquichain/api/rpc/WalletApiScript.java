@@ -4,9 +4,7 @@ import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -656,18 +654,16 @@ class KeycloakUserService {
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, String> publicInfoMap = null;
         Map<String, String> privateInfoMap = null;
-        try {
-            if (StringUtils.isNotBlank(publicInfo)) {
-                publicInfoMap = mapper.readValue(publicInfo, new TypeReference<>() {
-                });
-            }
+        if (StringUtils.isNotBlank(publicInfo)) {
+            publicInfoMap = new Gson()
+                .fromJson(publicInfo, new TypeToken<Map<String, String>>() {
+                }.getType());
+        }
 
-            if (StringUtils.isNotBlank(privateInfo)) {
-                privateInfoMap = mapper.readValue(privateInfo, new TypeReference<>() {
-                });
-            }
-        } catch (Exception e) {
-            throw new BusinessException("Failed to parse data.", e);
+        if (StringUtils.isNotBlank(privateInfo)) {
+            privateInfoMap = new Gson()
+                .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
+                }.getType());
         }
         String username = null;
         String shippingAddress = null;
