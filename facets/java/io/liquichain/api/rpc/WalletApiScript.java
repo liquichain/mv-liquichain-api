@@ -696,7 +696,7 @@ class KeycloakUserService {
             "    \"attributes\": {\n" +
             "        \"locale\": [\n\"en\"\n],\n" +
             "        \"phoneNumber\": \"" + phoneNumber + "\",\n" +
-            "        \"shippingAddress\": " + shippingAddress + ",\n" +
+            "        \"shippingAddress\": \"" + shippingAddress + "\",\n" +
             "        \"coords\": \"" + coords + "\",\n" +
             "        \"base64Avatar\": \"" + base64Avatar + "\"\n" +
             "    },\n" +
