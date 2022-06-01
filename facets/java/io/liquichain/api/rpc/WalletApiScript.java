@@ -269,7 +269,11 @@ public class WalletApiScript extends Script {
             }
         }
 
-        keycloakUserService.createUser(name, publicInfo, privateInfo);
+        try {
+            keycloakUserService.createUser(name, publicInfo, privateInfo);
+        } catch (BusinessException e) {
+            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+        }
 
         try {
             LOG.info(
@@ -645,7 +649,7 @@ class KeycloakUserService {
         return token;
     }
 
-    public void createUser(String name, String publicInfo, String privateInfo) {
+    public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, Object> publicInfoMap = null;
         Map<String, String> privateInfoMap = null;
         if (StringUtils.isNotBlank(publicInfo)) {
@@ -723,6 +727,9 @@ class KeycloakUserService {
                              .header("Authorization", "Bearer " + token)
                              .post(Entity.json(userDetails));
             postResult = response.readEntity(String.class);
+            if (postResult != null && postResult.contains("error")) {
+                throw new BusinessException("Failed to save new keycloak user.");
+            }
         } finally {
             if (response != null) {
                 response.close();
