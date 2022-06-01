@@ -590,7 +590,7 @@ class KeycloakUserService {
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
-    private static Client client = new ResteasyClientBuilder()
+    private static final Client client = new ResteasyClientBuilder()
         .connectionPoolSize(CONNECTION_POOL_SIZE)
         .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
         .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
