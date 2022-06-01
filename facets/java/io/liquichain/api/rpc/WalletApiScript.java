@@ -4,7 +4,6 @@ import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -20,7 +19,6 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -271,6 +269,8 @@ public class WalletApiScript extends Script {
             }
         }
 
+        keycloakUserService.createUser(name, publicInfo, privateInfo);
+
         try {
             LOG.info(
                 "wallet_creation Creating wallet with name={}, walletHash={}, accountHash={}, email={}, phoneNumber={}",
@@ -311,7 +311,6 @@ public class WalletApiScript extends Script {
                 newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
                 LOG.info("wallet_creation Updated wallet hash: {}", newHash);
             }
-            keycloakUserService.createUser(name, publicInfo, privateInfo);
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
             LOG.error(CREATE_WALLET_ERROR, e);
@@ -583,7 +582,6 @@ public class WalletApiScript extends Script {
 
 class KeycloakUserService {
     private static final Logger LOG = LoggerFactory.getLogger(KeycloakUserService.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
@@ -598,27 +596,25 @@ class KeycloakUserService {
     private Repository defaultRepo;
     private ParamBean config;
 
-    private String AUTH_URL;
-    private String CLIENT_ID;
-    private String CLIENT_SECRET;
-    private String REALM;
-    private String LOGIN_URL;
-    private String USERS_URL;
+    private final String CLIENT_ID;
+    private final String CLIENT_SECRET;
+    private final String LOGIN_URL;
+    private final String USERS_URL;
 
     public KeycloakUserService(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         this.crossStorageApi = crossStorageApi;
         this.defaultRepo = defaultRepo;
         this.config = config;
 
-        AUTH_URL = System.getProperty("meveo.keycloak.url");
-        REALM = System.getProperty("meveo.keycloak.realm");
+        String AUTH_URL = System.getProperty("meveo.keycloak.url");
+        String REALM = System.getProperty("meveo.keycloak.realm");
         CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
         CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
         LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
         USERS_URL = AUTH_URL + "/admin/realms/" + REALM + "/users";
     }
 
-    private boolean isNotEmptyMap(Map<String, String> map) {
+    private boolean isNotEmptyMap(Map<String, ?> map) {
         return map != null && !map.isEmpty();
     }
 
@@ -650,7 +646,7 @@ class KeycloakUserService {
     }
 
     public void createUser(String name, String publicInfo, String privateInfo) {
-        Map<String, String> publicInfoMap = null;
+        Map<String, Object> publicInfoMap = null;
         Map<String, String> privateInfoMap = null;
         if (StringUtils.isNotBlank(publicInfo)) {
             publicInfoMap = new Gson()
@@ -668,10 +664,10 @@ class KeycloakUserService {
         String coords = null;
         String base64Avatar = null;
         if (isNotEmptyMap(publicInfoMap)) {
-            username = publicInfoMap.get("username");
-            shippingAddress = publicInfoMap.get("shippingAddress");
-            coords = publicInfoMap.get("coords");
-            base64Avatar = publicInfoMap.get("base64Avatar");
+            username = (String) publicInfoMap.get("username");
+            shippingAddress = new Gson().toJson(publicInfoMap.get("shippingAddress"));
+            coords = (String) publicInfoMap.get("coords");
+            base64Avatar = (String) publicInfoMap.get("base64Avatar");
         }
         String emailAddress = null;
         String phoneNumber = null;
