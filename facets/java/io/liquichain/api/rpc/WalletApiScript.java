@@ -4,12 +4,16 @@ import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
+import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.LiquichainApp;
 import org.meveo.model.customEntities.VerifiedEmail;
 import org.meveo.model.customEntities.VerifiedPhoneNumber;
@@ -18,6 +22,7 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -58,6 +63,7 @@ public class WalletApiScript extends Script {
     protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
     protected ParamBean config = paramBeanFactory.getInstance();
+    KeycloakUserService keycloakUserService = new KeycloakUserService(crossStorageApi, defaultRepo, config);
 
     protected String result;
 
@@ -203,8 +209,6 @@ public class WalletApiScript extends Script {
     }
 
     private String createWallet(String requestId, Map<String, Object> parameters) {
-        KeycloakUserService keycloakUserService = new KeycloakUserService(crossStorageApi, defaultRepo, config);
-        keycloakUserService.login();
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
         String walletHash = retrieveHash(params, 1);
@@ -309,6 +313,7 @@ public class WalletApiScript extends Script {
                 newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
                 LOG.info("wallet_creation Updated wallet hash: {}", newHash);
             }
+            keycloakUserService.createUser(name, publicInfo, privateInfo);
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
             LOG.error(CREATE_WALLET_ERROR, e);
@@ -580,6 +585,7 @@ public class WalletApiScript extends Script {
 
 class KeycloakUserService {
     private static final Logger LOG = LoggerFactory.getLogger(KeycloakUserService.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
@@ -614,9 +620,13 @@ class KeycloakUserService {
         USERS_URL = AUTH_URL + "/admin/realms/" + REALM + "/users";
     }
 
-    public String login() {
+    private boolean isNotEmptyMap(Map<String, Object> map) {
+        return map != null && !map.isEmpty();
+    }
+
+    private String login() throws BusinessException {
         LOG.info("login - START");
-        String result = null;
+        String token;
         Response response = null;
         try {
             Form form = new Form()
@@ -627,14 +637,110 @@ class KeycloakUserService {
             response = client.target(LOGIN_URL)
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
                              .post(Entity.form(form));
-            result = response.readEntity(String.class);
+            String loginData = response.readEntity(String.class);
+            Map<String, String> dataMap = mapper.readValue(loginData, new TypeReference<>() {
+            });
+            token = dataMap.get("access_token");
+        } catch (Exception e) {
+            LOG.error("Failed to login.", e);
+            throw new BusinessException("Failed to login.", e);
         } finally {
-            if (response != null){
+            if (response != null) {
                 response.close();
             }
         }
-        LOG.info("login - result={}", result);
-        return result;
+        LOG.info("login - token={}", token);
+        return token;
+    }
+
+    public String createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
+        Map<String, Object> publicInfoMap = null;
+        Map<String, Object> privateInfoMap = null;
+        try {
+            if (StringUtils.isNotBlank(publicInfo)) {
+                publicInfoMap = mapper.readValue(publicInfo, new TypeReference<>() {
+                });
+            }
+
+            if (StringUtils.isNotBlank(privateInfo)) {
+                privateInfoMap = mapper.readValue(privateInfo, new TypeReference<>() {
+                });
+            }
+        } catch (JsonProcessingException e) {
+            throw new BusinessException("Failed to parse data.", e);
+        }
+        String username = null;
+        String shippingAddress = null;
+        String coords = null;
+        String base64Avatar = null;
+        if (isNotEmptyMap(publicInfoMap)) {
+            username = (String) publicInfoMap.get("username");
+            shippingAddress = (String) publicInfoMap.get("shippingAddress");
+            coords = (String) publicInfoMap.get("coords");
+            base64Avatar = (String) publicInfoMap.get("base64Avatar");
+        }
+        String emailAddress = null;
+        String phoneNumber = null;
+        String password = null;
+        if (isNotEmptyMap(privateInfoMap)) {
+            password = (String) privateInfoMap.get("password");
+            emailAddress = (String) privateInfoMap.get("emailAddress");
+            phoneNumber = (String) privateInfoMap.get("phoneNumber");
+        }
+        String token = login();
+
+        username = StringUtils.isBlank(username) ? "" : username;
+        shippingAddress = StringUtils.isBlank(shippingAddress) ? "" : shippingAddress;
+        coords = StringUtils.isBlank(coords) ? "" : coords;
+        base64Avatar = StringUtils.isBlank(base64Avatar) ? "" : base64Avatar;
+        emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
+        phoneNumber = StringUtils.isBlank(phoneNumber) ? "" : phoneNumber;
+
+        String userDetails = "{\n" +
+            "    \"username\": \"" + username + "\",\n" +
+            "    \"enabled\": true,\n" +
+            "    \"email\": \"" + emailAddress + "\",\n" +
+            "    \"emailVerified\": true,\n" +
+            "    \"firstName\": \"" + name + "\",\n" +
+            "    \"lastName\": \"\",\n" +
+            "    \"attributes\": {\n" +
+            "        \"locale\": [\n\"en\"\n],\n" +
+            "        \"phoneNumber\": \"" + phoneNumber + "\",\n" +
+            "        \"shippingAddress\": \"" + shippingAddress + "\",\n" +
+            "        \"coords\": \"" + coords + "\",\n" +
+            "        \"base64Avatar\": \"" + base64Avatar + "\"\n" +
+            "    },\n" +
+            "    \"disableableCredentialTypes\": [],\n" +
+            "    \"credentials\": [{" +
+            "        \"type\": \"password\",\n" +
+            "        \"value\": \"" + password + "\",\n" +
+            "        \"temporary\": false\n" +
+            "    }],\n" +
+            "    \"requiredActions\": [],\n" +
+            "    \"notBefore\": 0,\n" +
+            "    \"access\": {\n" +
+            "        \"manageGroupMembership\": true,\n" +
+            "        \"view\": true,\n" +
+            "        \"mapRoles\": true,\n" +
+            "        \"impersonate\": false,\n" +
+            "        \"manage\": true\n" +
+            "    }\n" +
+            "}";
+        Response response = null;
+        String postResult;
+        try {
+
+            response = client.target(USERS_URL)
+                             .request(MediaType.APPLICATION_JSON)
+                             .header("Authorization", "Bearer " + token)
+                             .post(Entity.json(userDetails));
+            postResult = response.readEntity(String.class);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        return postResult;
     }
 
 }
