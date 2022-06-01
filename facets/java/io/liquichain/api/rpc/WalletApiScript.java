@@ -650,7 +650,7 @@ class KeycloakUserService {
         Map<String, String> privateInfoMap = null;
         if (StringUtils.isNotBlank(publicInfo)) {
             publicInfoMap = new Gson()
-                .fromJson(publicInfo, new TypeToken<Map<String, String>>() {
+                .fromJson(publicInfo, new TypeToken<Map<String, Object>>() {
                 }.getType());
         }
 
