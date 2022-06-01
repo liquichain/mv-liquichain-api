@@ -668,7 +668,7 @@ class KeycloakUserService {
         if (isNotEmptyMap(publicInfoMap)) {
             username = (String) publicInfoMap.get("username");
 
-            shippingAddress = gson.toJson(gson.toJson(publicInfoMap.get("shippingAddress")));
+            shippingAddress = gson.toJson(publicInfoMap.get("shippingAddress"));
             coords = (String) publicInfoMap.get("coords");
             base64Avatar = (String) publicInfoMap.get("base64Avatar");
         }
@@ -683,7 +683,7 @@ class KeycloakUserService {
         String token = login();
 
         username = StringUtils.isBlank(username) ? "" : username;
-        shippingAddress = StringUtils.isBlank(shippingAddress) ? "" : shippingAddress;
+        shippingAddress = StringUtils.isBlank(shippingAddress) ? "" : gson.toJson(shippingAddress);
         coords = StringUtils.isBlank(coords) ? "" : coords;
         base64Avatar = StringUtils.isBlank(base64Avatar) ? "" : base64Avatar;
         emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
@@ -699,7 +699,7 @@ class KeycloakUserService {
             "    \"attributes\": {\n" +
             "        \"locale\": [\n\"en\"\n],\n" +
             "        \"phoneNumber\": \"" + phoneNumber + "\",\n" +
-            "        \"shippingAddress\": \"" + shippingAddress + "\",\n" +
+            "        \"shippingAddress\": " + shippingAddress + ",\n" +
             "        \"coords\": \"" + coords + "\",\n" +
             "        \"base64Avatar\": \"" + base64Avatar + "\"\n" +
             "    },\n" +
