@@ -730,6 +730,7 @@ class KeycloakUserService {
             "        \"manage\": true\n" +
             "    }\n" +
             "}";
+        LOG.info("userDetails: {}", userDetails);
         Response response = null;
         String postResult;
         try {
