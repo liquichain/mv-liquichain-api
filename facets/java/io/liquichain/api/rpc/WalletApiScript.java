@@ -20,6 +20,7 @@ import org.meveo.model.security.DefaultRole;
 import org.meveo.model.security.Role;
 import org.meveo.model.shared.Name;
 import org.meveo.model.storage.Repository;
+import org.meveo.service.admin.impl.RoleService;
 import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
@@ -62,11 +63,12 @@ public class WalletApiScript extends Script {
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
 
     private final UserService userService = getCDIBean(UserService.class);
+    private final RoleService roleService = getCDIBean(RoleService.class);
     protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
     protected ParamBean config = paramBeanFactory.getInstance();
     KeycloakUserService keycloakUserService =
-        new KeycloakUserService(crossStorageApi, defaultRepo, config, userService);
+        new KeycloakUserService(crossStorageApi, defaultRepo, config, userService, roleService);
 
     protected String result;
 
@@ -608,6 +610,7 @@ class KeycloakUserService {
     private Repository defaultRepo;
     private ParamBean config;
     private UserService userService;
+    private RoleService roleService;
 
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
@@ -615,11 +618,12 @@ class KeycloakUserService {
     private final String USERS_URL;
 
     public KeycloakUserService(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config,
-        UserService userService) {
+        UserService userService, RoleService roleService) {
         this.crossStorageApi = crossStorageApi;
         this.defaultRepo = defaultRepo;
         this.config = config;
         this.userService = userService;
+        this.roleService = roleService;
 
         String AUTH_URL = System.getProperty("meveo.keycloak.url");
         String REALM = System.getProperty("meveo.keycloak.realm");
@@ -631,6 +635,14 @@ class KeycloakUserService {
 
     private boolean isNotEmptyMap(Map<String, ?> map) {
         return map != null && !map.isEmpty();
+    }
+
+    private Set<Role> fetchDefaultRoles(){
+        Set<Role> defaultRoles = new HashSet<>();
+        defaultRoles.add(roleService.findByName(DefaultRole.EXECUTE_ALL_ENDPOINTS.getRoleName()));
+        defaultRoles.add(roleService.findByName(DefaultRole.READ_ALL_CE.getRoleName()));
+        defaultRoles.add(roleService.findByName(DefaultRole.MODIFY_ALL_CE.getRoleName()));
+        return defaultRoles;
     }
 
     private String login() {
@@ -658,6 +670,8 @@ class KeycloakUserService {
         LOG.info("login - token={}", token);
         return token;
     }
+
+
 
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, Object> publicInfoMap = null;
@@ -747,16 +761,12 @@ class KeycloakUserService {
 
         User user = new User();
         Name fullName = new Name();
-        Set<Role> roles = new HashSet<>();
 
         fullName.setFirstName(name);
         user.setName(fullName);
         user.setUserName(username);
         user.setEmail(emailAddress);
-        roles.add(DefaultRole.MODIFY_ALL_CE.get());
-        roles.add(DefaultRole.READ_ALL_CE.get());
-        roles.add(DefaultRole.EXECUTE_ALL_ENDPOINTS.get());
-        user.setRoles(roles);
+        user.setRoles(fetchDefaultRoles());
 
         userService.create(user);
 
