@@ -717,7 +717,7 @@ class KeycloakUserService {
                 "    \"firstName\": \"" + name + "\",\n" +
                 "    \"lastName\": \"\",\n" +
                 "    \"attributes\": {\n" +
-                "        \"locale\": [\n\"en\"\n]\n" +
+                "        \"locale\": [\"en\"]\n" +
                 "    },\n" +
                 "    \"credentials\": [{" +
                 "        \"type\": \"password\",\n" +
