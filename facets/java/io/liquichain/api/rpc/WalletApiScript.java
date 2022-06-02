@@ -67,19 +67,18 @@ public class WalletApiScript extends Script {
 
     private final UserService userService = getCDIBean(UserService.class);
     private final RoleService roleService = getCDIBean(RoleService.class);
-    protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-    protected final Repository defaultRepo = repositoryService.findDefaultRepository();
-    protected ParamBean config = paramBeanFactory.getInstance();
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final ParamBean config = paramBeanFactory.getInstance();
+    private final String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
     private final KeycloakUserService keycloakUserService = new KeycloakUserService(config, userService, roleService);
 
-    protected String result;
+    private String result;
 
     public String getResult() {
         return this.result;
     }
-
-    private final String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
     protected String parseAddress(String signature, String message) throws Exception {
         byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
