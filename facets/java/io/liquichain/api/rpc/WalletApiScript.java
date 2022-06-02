@@ -70,7 +70,8 @@ public class WalletApiScript extends Script {
     protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
     protected ParamBean config = paramBeanFactory.getInstance();
-    KeycloakUserService keycloakUserService = new KeycloakUserService(config, userService, roleService);
+
+    private final KeycloakUserService keycloakUserService = new KeycloakUserService(config, userService, roleService);
 
     protected String result;
 
