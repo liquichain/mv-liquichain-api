@@ -372,12 +372,19 @@ public class WalletApiScript extends Script {
 
         String emailAddress = null;
         String phoneNumber = null;
+        String sanitizedPrivateInfo = null;
         if (privateInfo != null) {
             Map<String, String> privateInfoMap = new Gson()
                 .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
                 }.getType());
             emailAddress = privateInfoMap.get("emailAddress");
             phoneNumber = privateInfoMap.get("phoneNumber");
+            Map<String, String> sanitizedMap = privateInfoMap
+                .entrySet()
+                .stream()
+                .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            sanitizedPrivateInfo = gson.toJson(sanitizedMap);
         }
 
         LOG.info("wallet_update received email: {}", emailAddress);
@@ -453,6 +460,7 @@ public class WalletApiScript extends Script {
         try {
             wallet.setName(name);
             wallet.setPublicInfo(publicInfo);
+            wallet.setPrivateInfo(sanitizedPrivateInfo);
             if (verifiedEmail != null) {
                 wallet.setEmailAddress(verifiedEmail);
             }
@@ -585,9 +593,20 @@ public class WalletApiScript extends Script {
                         verifiedPhoneNumber.getUuid()));
                 }
             }
+
+            if (StringUtils.isNotBlank(wallet.getPrivateInfo())) {
+                Map<String, String> privateInfoMap = new Gson()
+                    .fromJson(wallet.getPrivateInfo(), new TypeToken<Map<String, String>>() {
+                    }.getType());
+
+                privateInfo.append(privateInfoMap
+                    .keySet().stream()
+                    .map(key -> String.format("\"%s\": \"%s\"", key, privateInfoMap.get(key)))
+                    .collect(Collectors.joining(",")));
+            }
+
             privateInfo.append("}");
-            response.append(String.format(",\"privateInfo\":%s",
-                new Gson().toJson(privateInfo.toString())));
+            response.append(String.format(",\"privateInfo\": %s", new Gson().toJson(privateInfo.toString())));
             try {
                 wallet.setLastPrivateInfoRequest(requestTime);
                 crossStorageApi.createOrUpdate(defaultRepo, wallet);
