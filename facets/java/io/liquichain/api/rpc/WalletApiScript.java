@@ -719,7 +719,7 @@ class KeycloakUserService {
                 "    \"attributes\": {\n" +
                 "        \"locale\": [\"en\"]\n" +
                 "    },\n" +
-                "    \"credentials\": [{" +
+                "    \"credentials\": [{\n" +
                 "        \"type\": \"password\",\n" +
                 "        \"value\": \"" + password + "\",\n" +
                 "        \"temporary\": false\n" +
