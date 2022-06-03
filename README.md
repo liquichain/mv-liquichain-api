@@ -1626,21 +1626,23 @@ This request is made via POST method to json rpc method **wallet_creation** with
 - **privateInfo** (required): string escaped json data containing emailAddress(required), and phoneNumber(optional)
     - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
 
+> **Note** -  It is possible to create a keycloak and meveo user automatically when a wallet is created.  To accomplish that, the **username** can be included in the **publicInfo** or in the **privateInfo** data and make sure that the **password** is included in the **privateInfo**
+
 **Sample Request**
 ```json
-POST /rest/
+POST /rest/wallet_jsonrpc
 
 {
-	"jsonrpc": "2.0",
-	"method": "wallet_creation",
-	"params": [
-		"Test Wallet",
-		"0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
-		"f607657cca596c50e78d9995202df3ad22e4c117a35cc21667f6ea2170570c5d",
-		"0x13af7bd41b14d03193147fa01859a7c71b92c697b3687ec9a4a2a7b57a311f7013539874f5f933da82f0337a7a4eaeb9348db2442d57e7ab0edf965019f59f151b",
-		"{\"shippingAddress\":{\"email\":\"account1@telecelplay.io\",\"phone\":\"+639991234567\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
-		"{\"emailAddress\":\"account1@telecelplay.io\", \"phoneNumber\":\"+639991234567\"}"
-	]
+  "jsonrpc": "2.0",
+  "method": "wallet_creation",
+  "params": [
+    "Test Wallet",
+    "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+    "3ea21960cc11bb3d82bcf47d2992e39935e182a401385720f842cbdddc97a408",
+    "0x42d1db7d16c111e62a8725371eb04e98ef353de88d11be7faef6768d18f0603851e4cfed4fd7d5130a70be022f8f96d6e280dedbcf190d9804d1540e95f0939c1c",
+    "{\"shippingAddress\":{\"email\":\"testwallet1@telecelplay.io\",\"phone\":\"+639991234567\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+    "{\"username\": \"walletuser\", \"emailAddress\":\"testwallet1@telecelplay.io\", \"password\": \"walletuser\",\"phoneNumber\":\"+639991234567\"}"
+  ]
 }
 ```
 **Sample Response**
@@ -1664,6 +1666,8 @@ This request is made via POST method to json rpc method **wallet_update** with t
 
 **Sample Request**
 ```json
+PUT /rest/wallet_jsonrpc
+
 {
   "jsonrpc": "2.0",
   "method": "wallet_update",
@@ -1695,13 +1699,15 @@ This request is made via POST method to json rpc method **wallet_info** with the
 
 **Sample Request**
 ```json
+GET /rest/wallet_jsonrpc
+
 {
   "jsonrpc": "2.0",
   "method": "wallet_info",
   "params": [
     "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
-    "0x42f51a46f6d6b0e2d43d47411d901c1798242f57483c5d7271929cb1ce9dfe6c259390fbce3c0ac36a32fa3b25fd6b1213da659f41db8ed817fd5e5ad67215161c",
-    "walletInfo,0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876,1651827972502"
+    "0x82a0faa065ce169afbd63c5bd36543fb56d9bb6b4f693ae5a41fbbabfa3bb1b709b5b5a7f9cef140cb6134d50b4005e2054fd8ca351f53498702aebd8330c8561c",
+    "walletInfo,0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876,1654238475264"
   ]
 }
 ```
