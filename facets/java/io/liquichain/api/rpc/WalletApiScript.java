@@ -674,8 +674,6 @@ class KeycloakUserService {
         return token;
     }
 
-
-
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, Object> publicInfoMap = null;
         Map<String, String> privateInfoMap = null;
@@ -744,7 +742,7 @@ class KeycloakUserService {
                                  .post(Entity.json(userDetails));
                 postResult = response.readEntity(String.class);
                 if (postResult != null && postResult.contains("error")) {
-                    throw new BusinessException("Failed to save new keycloak user.");
+                    throw new BusinessException("Failed to save new keycloak user. " + postResult);
                 }
             } finally {
                 if (response != null) {
