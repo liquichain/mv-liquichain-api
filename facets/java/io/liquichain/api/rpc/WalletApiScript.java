@@ -598,7 +598,9 @@ public class WalletApiScript extends Script {
                 Map<String, String> privateInfoMap = new Gson()
                     .fromJson(wallet.getPrivateInfo(), new TypeToken<Map<String, String>>() {
                     }.getType());
-
+                if (privateInfo.indexOf("emailAddress") > 0 || privateInfo.indexOf("phoneNumber") > 0) {
+                    privateInfo.append(",");
+                }
                 privateInfo.append(privateInfoMap
                     .keySet().stream()
                     .map(key -> String.format("\"%s\": \"%s\"", key, privateInfoMap.get(key)))
