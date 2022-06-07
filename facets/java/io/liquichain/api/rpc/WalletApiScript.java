@@ -458,6 +458,12 @@ public class WalletApiScript extends Script {
         }
 
         try {
+            keycloakUserService.updateUser(name, publicInfo, privateInfo, wallet);
+        } catch (BusinessException e) {
+            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+        }
+
+        try {
             wallet.setName(name);
             wallet.setPublicInfo(publicInfo);
             wallet.setPrivateInfo(sanitizedPrivateInfo);
@@ -669,6 +675,36 @@ class KeycloakUserService {
         return defaultRoles;
     }
 
+    private String buildUserDetails(String username, String emailAddress, String name, String password) {
+        emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
+
+        String userDetails = "{\n" +
+            "    \"username\": \"" + username + "\",\n" +
+            "    \"enabled\": true,\n" +
+            "    \"email\": \"" + emailAddress + "\",\n" +
+            "    \"emailVerified\": true,\n" +
+            "    \"firstName\": \"" + name + "\",\n" +
+            "    \"lastName\": \"\",\n" +
+            "    \"attributes\": {\n" +
+            "        \"locale\": [\"en\"]\n" +
+            "    },\n" +
+            "    \"credentials\": [{\n" +
+            "        \"type\": \"password\",\n" +
+            "        \"value\": \"" + password + "\",\n" +
+            "        \"temporary\": false\n" +
+            "    }],\n" +
+            "    \"access\": {\n" +
+            "        \"manageGroupMembership\": true,\n" +
+            "        \"view\": true,\n" +
+            "        \"mapRoles\": true,\n" +
+            "        \"impersonate\": false,\n" +
+            "        \"manage\": true\n" +
+            "    }\n" +
+            "}";
+        LOG.info("userDetails: {}", userDetails);
+        return userDetails;
+    }
+
     private String login() {
         LOG.info("login - START");
         String token;
@@ -693,6 +729,61 @@ class KeycloakUserService {
         }
         LOG.info("login - token={}", token);
         return token;
+    }
+
+    public String findUser(String token, String username) throws BusinessException {
+        Response response = null;
+        String getResult;
+        try {
+            String findUserUrl = USERS_URL + "?username=" + username;
+            response = client.target(findUserUrl)
+                             .request(MediaType.APPLICATION_JSON)
+                             .header("Authorization", "Bearer " + token)
+                             .get();
+            getResult = response.readEntity(String.class);
+            if (getResult != null && getResult.contains("error")) {
+                throw new BusinessException("Failed to find new keycloak user: " + username + ". Error: " + getResult);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        return getResult;
+    }
+
+    public String saveUser(String userDetails) throws BusinessException {
+        Response response = null;
+        String postResult;
+        String token = login();
+        try {
+            response = client.target(USERS_URL)
+                             .request(MediaType.APPLICATION_JSON)
+                             .header("Authorization", "Bearer " + token)
+                             .post(Entity.json(userDetails));
+            postResult = response.readEntity(String.class);
+            if (postResult != null && postResult.contains("error")) {
+                throw new BusinessException("Failed to save new keycloak user. " + postResult);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        return postResult;
+    }
+
+    public void saveMeveoUser(String name, String username, String emailAddress) throws BusinessException {
+        User user = new User();
+        Name fullName = new Name();
+
+        fullName.setFirstName(name);
+        user.setName(fullName);
+        user.setUserName(username);
+        user.setEmail(emailAddress);
+        user.setRoles(fetchDefaultRoles());
+
+        userService.create(user);
     }
 
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
@@ -724,67 +815,95 @@ class KeycloakUserService {
             emailAddress = privateInfoMap.get("emailAddress");
         }
 
-        if (StringUtils.isNotBlank(password)) {
-            username = StringUtils.isBlank(username) ? "" : username;
-            emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
-
-            String userDetails = "{\n" +
-                "    \"username\": \"" + username + "\",\n" +
-                "    \"enabled\": true,\n" +
-                "    \"email\": \"" + emailAddress + "\",\n" +
-                "    \"emailVerified\": true,\n" +
-                "    \"firstName\": \"" + name + "\",\n" +
-                "    \"lastName\": \"\",\n" +
-                "    \"attributes\": {\n" +
-                "        \"locale\": [\"en\"]\n" +
-                "    },\n" +
-                "    \"credentials\": [{\n" +
-                "        \"type\": \"password\",\n" +
-                "        \"value\": \"" + password + "\",\n" +
-                "        \"temporary\": false\n" +
-                "    }],\n" +
-                "    \"access\": {\n" +
-                "        \"manageGroupMembership\": true,\n" +
-                "        \"view\": true,\n" +
-                "        \"mapRoles\": true,\n" +
-                "        \"impersonate\": false,\n" +
-                "        \"manage\": true\n" +
-                "    }\n" +
-                "}";
-            LOG.info("userDetails: {}", userDetails);
-
-            Response response = null;
-            String postResult;
-            String token = login();
-            try {
-                response = client.target(USERS_URL)
-                                 .request(MediaType.APPLICATION_JSON)
-                                 .header("Authorization", "Bearer " + token)
-                                 .post(Entity.json(userDetails));
-                postResult = response.readEntity(String.class);
-                if (postResult != null && postResult.contains("error")) {
-                    throw new BusinessException("Failed to save new keycloak user. " + postResult);
-                }
-            } finally {
-                if (response != null) {
-                    response.close();
-                }
-            }
-
-            User user = new User();
-            Name fullName = new Name();
-
-            fullName.setFirstName(name);
-            user.setName(fullName);
-            user.setUserName(username);
-            user.setEmail(emailAddress);
-            user.setRoles(fetchDefaultRoles());
-
-            userService.create(user);
-
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+            String userDetails = this.buildUserDetails(username, emailAddress, name, password);
+            String postResult = this.saveUser(userDetails);
+            this.saveMeveoUser(name, username, emailAddress);
             LOG.info("postResult: {}", postResult);
         } else {
-            LOG.info("No password included, will not create keycloak and meveo user.");
+            LOG.info("No username and password included, will not create keycloak and meveo user.");
+        }
+    }
+
+    public void updateUser(String name, String publicInfo, String privateInfo, Wallet wallet) throws BusinessException {
+        Map<String, Object> publicInfoMap = null;
+        Map<String, String> privateInfoMap = null;
+
+        if (StringUtils.isNotBlank(publicInfo)) {
+            publicInfoMap = gson.fromJson(publicInfo, new TypeToken<Map<String, Object>>() {
+            }.getType());
+        }
+
+        if (StringUtils.isNotBlank(privateInfo)) {
+            privateInfoMap = gson.fromJson(privateInfo, new TypeToken<Map<String, String>>() {
+            }.getType());
+        }
+
+        String username = null;
+        if (isNotEmptyMap(publicInfoMap)) {
+            username = (String) publicInfoMap.get("username");
+        }
+
+        String emailAddress = null;
+        String phoneNumber = null;
+        String password = null;
+        if (isNotEmptyMap(privateInfoMap)) {
+            username = StringUtils.isNotBlank(privateInfoMap.get("username"))
+                ? privateInfoMap.get("username")
+                : username;
+            password = privateInfoMap.get("password");
+            emailAddress = privateInfoMap.get("emailAddress");
+            phoneNumber = privateInfoMap.get("phoneNumber");
+        }
+
+        Map<String, String> currentPublicInfoMap = null;
+        String currentPublicInfo = wallet.getPublicInfo();
+
+        if (StringUtils.isNotBlank(currentPublicInfo)) {
+            currentPublicInfoMap = gson.fromJson(currentPublicInfo, new TypeToken<Map<String, String>>() {
+            }.getType());
+        }
+
+        Map<String, String> currentPrivateInfoMap = null;
+        String currentPrivateInfo = wallet.getPrivateInfo();
+
+        if (StringUtils.isNotBlank(currentPrivateInfo)) {
+            currentPrivateInfoMap = gson.fromJson(currentPrivateInfo, new TypeToken<Map<String, String>>() {
+            }.getType());
+        }
+
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+            String currentUsername = null;
+            String currentPassword = null;
+            if (isNotEmptyMap(currentPublicInfoMap)) {
+                currentUsername = currentPublicInfoMap.get("username");
+            }
+            if (isNotEmptyMap(currentPrivateInfoMap)) {
+                currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
+                    ? currentPrivateInfoMap.get("username")
+                    : currentUsername;
+                currentPassword = currentPrivateInfoMap.get("password");
+            }
+
+            if (!username.equals(currentUsername) || !password.equals(currentPassword)) {
+                String token = login();
+                String userResult = findUser(token, currentUsername);
+                LOG.info("userResult: {}", userResult);
+                Map<String, Object> userResultMap = null;
+                if (StringUtils.isNotBlank(userResult)) {
+                    userResultMap = gson.fromJson(userResult, new TypeToken<Map<String, Object>>() {
+                    }.getType());
+                } else {
+                    String userDetails = this.buildUserDetails(username, emailAddress, name, password);
+                    String postResult = this.saveUser(userDetails);
+                    this.saveMeveoUser(name, username, emailAddress);
+                    LOG.info("postResult: {}", postResult);
+                }
+            } else {
+                LOG.info("Same username and password, will not update keycloak and meveo user.");
+            }
+        } else {
+            LOG.info("No username and password included, will not update keycloak and meveo user.");
         }
     }
 }
