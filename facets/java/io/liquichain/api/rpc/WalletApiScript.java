@@ -856,11 +856,11 @@ class KeycloakUserService {
             phoneNumber = privateInfoMap.get("phoneNumber");
         }
 
-        Map<String, String> currentPublicInfoMap = null;
+        Map<String, Object> currentPublicInfoMap = null;
         String currentPublicInfo = wallet.getPublicInfo();
 
         if (StringUtils.isNotBlank(currentPublicInfo)) {
-            currentPublicInfoMap = gson.fromJson(currentPublicInfo, new TypeToken<Map<String, String>>() {
+            currentPublicInfoMap = gson.fromJson(currentPublicInfo, new TypeToken<Map<String, Object>>() {
             }.getType());
         }
 
@@ -876,7 +876,7 @@ class KeycloakUserService {
             String currentUsername = null;
             String currentPassword = null;
             if (isNotEmptyMap(currentPublicInfoMap)) {
-                currentUsername = currentPublicInfoMap.get("username");
+                currentUsername = "" + currentPublicInfoMap.get("username");
             }
             if (isNotEmptyMap(currentPrivateInfoMap)) {
                 currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
