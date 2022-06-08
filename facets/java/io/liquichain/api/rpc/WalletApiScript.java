@@ -915,9 +915,10 @@ class KeycloakUserService {
                     if (!username.equals(currentUsername) && currentUsername != null) {
                         LOG.info("new username: {}", username);
                         userMap.put("username", username);
-                        User user = userService.findByUsername(currentUsername);
-                        user.setUserName(username);
-                        userService.update(user);
+//                        TODO - username cannot be updated on meveo
+//                        User user = userService.findByUsername(currentUsername);
+//                        user.setUserName(username);
+//                        userService.update(user);
                     }
                     if (!password.equals(currentPassword) && currentPassword != null) {
                         LOG.info("new password: {}", password);
