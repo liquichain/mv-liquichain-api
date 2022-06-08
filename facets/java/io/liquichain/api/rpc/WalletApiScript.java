@@ -931,6 +931,7 @@ class KeycloakUserService {
                         userMap.put("credentials", credentialList);
                     }
                     String userDetails = gson.toJson(userMap);
+                    LOG.info("userDetails: {}", userDetails);
                     String updateResult = this.updateKeycloakUser("" + userMap.get("id"), userDetails);
                     LOG.info("updateResult: {}", updateResult);
                 } else {
