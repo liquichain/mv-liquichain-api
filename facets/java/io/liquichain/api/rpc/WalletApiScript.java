@@ -728,7 +728,6 @@ class KeycloakUserService {
                 response.close();
             }
         }
-        LOG.info("login - token={}", token);
         return token;
     }
 
@@ -810,8 +809,6 @@ class KeycloakUserService {
 
         userService.create(user);
     }
-
-
 
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, Object> publicInfoMap = null;
