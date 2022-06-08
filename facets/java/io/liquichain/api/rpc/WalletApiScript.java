@@ -72,7 +72,8 @@ public class WalletApiScript extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
     private final String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
-    private final KeycloakUserService keycloakUserService = new KeycloakUserService(config, userService, roleService);
+    private final KeycloakUserService keycloakUserService =
+        new KeycloakUserService(config, crossStorageApi, defaultRepo, userService, roleService);
 
     private String result;
 
@@ -645,13 +646,18 @@ class KeycloakUserService {
 
     private final UserService userService;
     private final RoleService roleService;
+    private final CrossStorageApi crossStorageApi;
+    private final Repository defaultRepo;
 
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
     private final String LOGIN_URL;
     private final String USERS_URL;
 
-    public KeycloakUserService(ParamBean config, UserService userService, RoleService roleService) {
+    public KeycloakUserService(ParamBean config, CrossStorageApi crossStorageApi, Repository defaultRepo,
+        UserService userService, RoleService roleService) {
+        this.crossStorageApi = crossStorageApi;
+        this.defaultRepo = defaultRepo;
         this.userService = userService;
         this.roleService = roleService;
 
@@ -886,7 +892,9 @@ class KeycloakUserService {
             }
 
             LOG.info("wallet emailAddress: {}", wallet.getEmailAddress());
-            String currentEmailAddress = wallet.getEmailAddress() != null ? wallet.getEmailAddress().getEmail() : null;
+            VerifiedEmail verifiedEmail = wallet.getEmailAddress();
+            verifiedEmail = crossStorageApi.find(defaultRepo, verifiedEmail.getUuid(), VerifiedEmail.class);
+            String currentEmailAddress = verifiedEmail != null ? verifiedEmail.getEmail() : null;
             LOG.info("currentEmailAddress: {}", currentEmailAddress);
 
             boolean differentName = !("" + name).equals(wallet.getName());
