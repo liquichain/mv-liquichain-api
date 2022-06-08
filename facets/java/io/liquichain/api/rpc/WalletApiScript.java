@@ -744,7 +744,7 @@ class KeycloakUserService {
     public Map<String, Object> findUser(String token, String username) throws BusinessException {
         Response response = null;
         String getResult;
-        List<Map<String, Object>> dataMap = null;
+        List<Map<String, Object>> dataMap;
         try {
             String findUserUrl = USERS_URL + "?username=" + username;
             response = client.target(findUserUrl)
@@ -912,16 +912,13 @@ class KeycloakUserService {
                     if (differentName) {
                         userMap.put("firstName", name);
                     }
-
                     if (differentEmailAddress) {
                         userMap.put("email", emailAddress);
                         userMap.put("emailVerified", true);
                     }
-
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
-
                     if (hasNewPassword) {
                         LOG.info("new password: {}", password);
                         List<Map<String, Object>> credentials = new ArrayList<>();
@@ -949,8 +946,8 @@ class KeycloakUserService {
             if (shouldUpdateMeveoUser) {
                 User user = userService.findByUsername(currentUsername);
                 if (user != null) { // update meveo user
-                    // if (differentUsername) {
                     // TODO - meveo username cannot be updated
+                    // if (differentUsername) {
                     // user.setUserName(username);
                     // }
                     if (differentEmailAddress) {
