@@ -706,6 +706,11 @@ class KeycloakUserService {
         return userDetails;
     }
 
+    private <T> T convertToMap(String data) {
+        return gson.fromJson(data, new TypeToken<T>() {
+        }.getType());
+    }
+
     private String login() {
         LOG.info("login - START");
         String token;
@@ -720,8 +725,7 @@ class KeycloakUserService {
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
                              .post(Entity.form(form));
             String loginData = response.readEntity(String.class);
-            Map<String, String> dataMap = gson.fromJson(loginData, new TypeToken<Map<String, String>>() {
-            }.getType());
+            Map<String, String> dataMap = convertToMap(loginData);
             token = dataMap.get("access_token");
         } finally {
             if (response != null) {
@@ -745,8 +749,7 @@ class KeycloakUserService {
             if (getResult != null && getResult.contains("error")) {
                 throw new BusinessException("Failed to find new keycloak user: " + username + ". Error: " + getResult);
             }
-            dataMap = gson.fromJson(getResult, new TypeToken<List<Map<String, Object>>>() {
-            }.getType());
+            dataMap = convertToMap(getResult);
         } finally {
             if (response != null) {
                 response.close();
@@ -811,38 +814,26 @@ class KeycloakUserService {
     }
 
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
-        Map<String, Object> publicInfoMap = null;
-        Map<String, String> privateInfoMap = null;
-
-        if (StringUtils.isNotBlank(publicInfo)) {
-            publicInfoMap = gson.fromJson(publicInfo, new TypeToken<Map<String, Object>>() {
-            }.getType());
-        }
-
-        if (StringUtils.isNotBlank(privateInfo)) {
-            privateInfoMap = gson.fromJson(privateInfo, new TypeToken<Map<String, String>>() {
-            }.getType());
-        }
+        Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convertToMap(publicInfo) : null;
+        Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convertToMap(privateInfo) : null;
 
         String username = null;
-        if (isNotEmptyMap(publicInfoMap)) {
-            username = (String) publicInfoMap.get("username");
+        if (isNotEmptyMap(publicMap)) {
+            username = "" + publicMap.get("username");
         }
 
         String emailAddress = null;
         String password = null;
-        if (isNotEmptyMap(privateInfoMap)) {
-            username = StringUtils.isNotBlank(privateInfoMap.get("username"))
-                ? privateInfoMap.get("username")
-                : username;
-            password = privateInfoMap.get("password");
-            emailAddress = privateInfoMap.get("emailAddress");
+        if (isNotEmptyMap(privateMap)) {
+            username = StringUtils.isNotBlank(privateMap.get("username")) ? privateMap.get("username") : username;
+            password = privateMap.get("password");
+            emailAddress = privateMap.get("emailAddress");
         }
 
         if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-            String userDetails = this.buildUserDetails(username, emailAddress, name, password);
-            String saveResult = this.createKeycloakUser(userDetails);
-            this.createMeveoUser(name, username, emailAddress);
+            String userDetails = buildUserDetails(username, emailAddress, name, password);
+            String saveResult = createKeycloakUser(userDetails);
+            createMeveoUser(name, username, emailAddress);
             LOG.info("saveResult: {}", saveResult);
         } else {
             LOG.info("No username and password included, will not create keycloak and meveo user.");
@@ -850,101 +841,125 @@ class KeycloakUserService {
     }
 
     public void updateUser(String name, String publicInfo, String privateInfo, Wallet wallet) throws BusinessException {
-        Map<String, Object> publicInfoMap = null;
-        Map<String, String> privateInfoMap = null;
-
-        if (StringUtils.isNotBlank(publicInfo)) {
-            publicInfoMap = gson.fromJson(publicInfo, new TypeToken<Map<String, Object>>() {
-            }.getType());
-        }
-
-        if (StringUtils.isNotBlank(privateInfo)) {
-            privateInfoMap = gson.fromJson(privateInfo, new TypeToken<Map<String, String>>() {
-            }.getType());
-        }
-
-        String username = null;
-        if (isNotEmptyMap(publicInfoMap)) {
-            username = (String) publicInfoMap.get("username");
-        }
-
-        String emailAddress = null;
-        String phoneNumber = null;
-        String password = null;
-        if (isNotEmptyMap(privateInfoMap)) {
-            username = StringUtils.isNotBlank(privateInfoMap.get("username"))
-                ? privateInfoMap.get("username")
-                : username;
-            password = privateInfoMap.get("password");
-            emailAddress = privateInfoMap.get("emailAddress");
-        }
+        String currentPublicInfo = wallet.getPublicInfo();
+        String currentPrivateInfo = wallet.getPrivateInfo();
 
         Map<String, Object> currentPublicInfoMap = null;
-        String currentPublicInfo = wallet.getPublicInfo();
-
         if (StringUtils.isNotBlank(currentPublicInfo)) {
-            currentPublicInfoMap = gson.fromJson(currentPublicInfo, new TypeToken<Map<String, Object>>() {
-            }.getType());
+            currentPublicInfoMap = convertToMap(currentPublicInfo);
         }
 
         Map<String, String> currentPrivateInfoMap = null;
-        String currentPrivateInfo = wallet.getPrivateInfo();
-
         if (StringUtils.isNotBlank(currentPrivateInfo)) {
-            currentPrivateInfoMap = gson.fromJson(currentPrivateInfo, new TypeToken<Map<String, String>>() {
-            }.getType());
+            currentPrivateInfoMap = convertToMap(currentPrivateInfo);
         }
 
-        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-            String currentUsername = null;
-            String currentPassword = null;
-            if (isNotEmptyMap(currentPublicInfoMap)) {
-                currentUsername = "" + currentPublicInfoMap.get("username");
-            }
-            if (isNotEmptyMap(currentPrivateInfoMap)) {
-                currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
-                    ? currentPrivateInfoMap.get("username")
-                    : currentUsername;
-                currentPassword = currentPrivateInfoMap.get("password");
+        String currentUsername = null;
+
+        if (isNotEmptyMap(currentPublicInfoMap)) {
+            currentUsername = "" + currentPublicInfoMap.get("username");
+        }
+
+        if (isNotEmptyMap(currentPrivateInfoMap)) {
+            currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
+                ? currentPrivateInfoMap.get("username")
+                : currentUsername;
+        }
+
+        if (StringUtils.isBlank(currentUsername)) {
+            createUser(name, publicInfo, privateInfo);
+        } else {
+            Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convertToMap(publicInfo) : null;
+            Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convertToMap(privateInfo) : null;
+
+            String username = "";
+            if (isNotEmptyMap(publicMap)) {
+                username = "" + publicMap.get("username");
             }
 
-            if (!username.equals(currentUsername) || !password.equals(currentPassword)) {
+            String emailAddress = "";
+            String password = "";
+            if (isNotEmptyMap(privateMap)) {
+                username = StringUtils.isNotBlank(privateMap.get("username")) ? privateMap.get("username") : username;
+                password = "" + privateMap.get("password");
+                emailAddress = "" + privateMap.get("emailAddress");
+            }
+
+            LOG.info("wallet emailAddress: {}", wallet.getEmailAddress());
+            String currentEmailAddress = wallet.getEmailAddress() != null ? wallet.getEmailAddress().getEmail() : null;
+            LOG.info("currentEmailAddress: {}", currentEmailAddress);
+
+            boolean differentName = !("" + name).equals(wallet.getName());
+            boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
+            boolean differentUsername = !username.equals(currentUsername);
+            boolean hasNewPassword = StringUtils.isNotBlank(password);
+
+            boolean shouldUpdateKCUser = differentName || differentEmailAddress || differentUsername || hasNewPassword;
+            boolean shouldUpdateMeveoUser = differentName || differentEmailAddress || differentUsername;
+
+            if (shouldUpdateKCUser) {
                 String token = login();
                 Map<String, Object> userMap = findUser(token, currentUsername);
-                if (userMap != null) {
-                    if (!username.equals(currentUsername) && currentUsername != null) {
-                        LOG.info("new username: {}", username);
-                        userMap.put("username", username);
-//                        TODO - username cannot be updated on meveo
-//                        User user = userService.findByUsername(currentUsername);
-//                        user.setUserName(username);
-//                        userService.update(user);
+                if (userMap != null) { // update keycloak user
+                    if (differentName) {
+                        userMap.put("firstName", name);
                     }
-                    if (!password.equals(currentPassword) && currentPassword != null) {
+
+                    if (differentEmailAddress) {
+                        userMap.put("email", emailAddress);
+                        userMap.put("emailVerified", true);
+                    }
+
+                    if (differentUsername) {
+                        userMap.put("username", username);
+                    }
+
+                    if (hasNewPassword) {
                         LOG.info("new password: {}", password);
-                        List<Map<String, Object>> credentialList = new ArrayList<>();
+                        List<Map<String, Object>> credentials = new ArrayList<>();
                         Map<String, Object> credentialMap = new HashMap<>();
                         credentialMap.put("type", "password");
                         credentialMap.put("value", password);
                         credentialMap.put("temporary", false);
-                        credentialList.add(credentialMap);
-                        userMap.put("credentials", credentialList);
+                        credentials.add(credentialMap);
+                        userMap.put("credentials", credentials);
                     }
                     String userDetails = gson.toJson(userMap);
                     LOG.info("userDetails: {}", userDetails);
-                    String updateResult = this.updateKeycloakUser("" + userMap.get("id"), userDetails);
+                    String updateResult = updateKeycloakUser("" + userMap.get("id"), userDetails);
                     LOG.info("updateResult: {}", updateResult);
-                } else {
+                } else { // create keycloak user
                     String userDetails = this.buildUserDetails(username, emailAddress, name, password);
                     String saveResult = this.createKeycloakUser(userDetails);
                     this.createMeveoUser(name, username, emailAddress);
                     LOG.info("saveResult: {}", saveResult);
                 }
             } else {
-                LOG.info("Same username and password, will not update keycloak and meveo user.");
+                LOG.info("No changes detected, will not update keycloak user");
             }
-        } else {
-            LOG.info("No username and password included, will not update keycloak and meveo user.");
+
+            if (shouldUpdateMeveoUser) {
+                User user = userService.findByUsername(currentUsername);
+                if (user != null) { // update meveo user
+                    // if (differentUsername) {
+                    // TODO - meveo username cannot be updated
+                    // user.setUserName(username);
+                    // }
+                    if (differentEmailAddress) {
+                        user.setEmail(emailAddress);
+                    }
+                    if (differentName) {
+                        Name fullName = new Name();
+                        fullName.setFirstName(name);
+                        user.setName(fullName);
+                    }
+                    userService.update(user);
+                } else { // create meveo user
+                    createMeveoUser(name, username, emailAddress);
+                }
+            } else {
+                LOG.info("No changes detected, will not update meveo user");
+            }
         }
     }
 }
