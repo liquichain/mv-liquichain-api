@@ -20,7 +20,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_creation\",\n\t\"params\": [\n\t\t\"Wallet User\",\n\t\t\"0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876\",\n\t\t\"98bead3bdd48a5a1268baa1216ddf63a360d8981d2c868dd44e29516116294a5\",\n\t\t\"0xbdaf018cdea31b3a10a6d517f7a987b3b9dad97e55f203d2aa9a046018eddf865c3c7a15868799f422ddf5d375425e58fa04ddd7f2effae2ac0984d07b1056ee1c\",\n\t\t\"{\\\"shippingAddress\\\":{\\\"email\\\":\\\"testwallet1@telecelplay.io\\\",\\\"phone\\\":\\\"+639991234567\\\",\\\"address\\\":\\\"Milo\\\",\\\"street\\\":\\\"Kaban\\\",\\\"zipCode\\\":\\\"39242\\\",\\\"city\\\":\\\"Ciney\\\",\\\"country\\\":\\\"Combo\\\"},\\\"coords\\\":null}\",\n\t\t\"{\\\"username\\\": \\\"walletuser\\\", \\\"password\\\": \\\"walletuser\\\", \\\"emailAddress\\\":\\\"testwallet1@telecelplay.io\\\", \\\"phoneNumber\\\":\\\"+639991234567\\\"}\"\n\t]\n}",
+					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_creation\",\n\t\"params\": [\n\t\t\"Wallet User\",\n\t\t\"0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876\",\n\t\t\"98bead3bdd48a5a1268baa1216ddf63a360d8981d2c868dd44e29516116294a5\",\n\t\t\"0x82e411783094046c73cac729efbf23d498721a22a3cad0c2a6d9a6a7edcae5f710c97cfa8c7c8dece8c925ca75abcf90da26c72c7880776fe889608ef9ba0bf71b\",\n\t\t\"{\\\"shippingAddress\\\":{\\\"email\\\":\\\"testwallet1@telecelplay.io\\\",\\\"phone\\\":\\\"+639991234567\\\",\\\"address\\\":\\\"Milo\\\",\\\"street\\\":\\\"Kaban\\\",\\\"zipCode\\\":\\\"39242\\\",\\\"city\\\":\\\"Ciney\\\",\\\"country\\\":\\\"Combo\\\"},\\\"coords\\\":null}\",\n\t\t\"{\\\"username\\\": \\\"walletuser\\\", \\\"password\\\": \\\"Pa$sw0rd\\\", \\\"emailAddress\\\":\\\"testwallet1@telecelplay.io\\\", \\\"phoneNumber\\\":\\\"+639991234567\\\"}\"\n\t]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -94,7 +94,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_info\",\n\t\"params\": [\n\t\t\"0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876\",\n\t\t\"0x170abb70a29b0dabcae7ccce6edf9d9f91f1825dcb608150bfcde48948b7a2f66fcfece94afd136f64aceeb2bf31e7d3b42b95010af3598487d48c8cbc4ff4d71b\",\n\t\t\"walletInfo,0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876,1654852992905\"\n\t]\n}",
+					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_info\",\n\t\"params\": [\n\t\t\"0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876\",\n\t\t\"0xd940b0025c87512feab1e052ceee728f8fa0d2db9a903156231c900e9dfc71017295f439cee4905c6549c89ad8062ab3db302a74a7294323a7dfa7e1ba7605bf1b\",\n\t\t\"walletInfo,0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876,1654855920994\"\n\t]\n}",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -1637,6 +1637,21 @@ For this to work follow the steps below to setup `keycloak` and `meveo` to allow
 11. Select `Default Roles` tab and select:
     - **Edit username**: `on`
 
+### Configure password rules in `keycloak`
+1. Login to keycloak administration console.
+2. Select `Meveo` realm.
+3. Click `Authentication` at the sidebar menu.
+4. Click `Password Policy` tab.
+5. Click `Add policy...` dropdown at the top right of the table and set the following policies:
+    - **Minimum Length** - `8`
+    - **Not Recently Used** - `1`
+    - **Special Characters** - `1`
+    - **Uppercase Characters** - `1`
+    - **Digits** - `1`
+6. Click `Save`.
+
+> **Note**: `Maximum Length` password policy is only implemented in `Keycloak 15` or higher.  If available, set its value to 16
+
 ### Update `meveo` settings
 1. Login to `meveo` admin.
 2. Select `Configuration` > `Settings` > `System settings`
