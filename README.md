@@ -1615,6 +1615,36 @@ Filters time out when not requested by [`eth_getFilterChanges`](#eth_getfilterch
 }
 ```
 
+## Setup `meveo` and `keycloak`
+When creating or updating a wallet using the Wallet API, it is also possible to automatically create and update a corresponding keycloak and meveo user as well.
+For this to work follow the steps below to setup `keycloak` and `meveo` to allow this functionality.
+
+### Configure `keycloak`
+1. Login to keycloak administration console.
+2. Select `Master` realm at the top left of the admin page.
+3. Click `Clients` at the sidebar menu.
+4. Select `admin-cli` client.
+5. Under the `Settings` tab select:
+    - **Access Type**: `confidential`
+    - **Service Accounts**: `enabled`
+6. Under the `Credentials` tab copy the generated `secret` credentials, this will be needed later on when configuring `meveo` settings.
+7. Switch to the `Meveo` realm at the top left of the admin page.
+8. Click `Roles` at the sidebar menu.
+9. Select `Default Roles` tab and set the following roles:
+    - **meveo-web**: `apiAccess`, `userSelfManagement`
+    - **endpoints**: `Execute_All_Endpoints`
+10. Click `Realm Settings` at the sidebar menu.
+11. Select `Default Roles` tab and select:
+    - **Edit username**: `on`
+
+### Update `meveo` settings
+1. Login to `meveo` admin.
+2. Select `Configuration` > `Settings` > `System settings`
+3. Create or replace the following setting:
+    - **keycloak.client.secret**:  enter the `secret` copied from `step 6` in [Configure keyloak](#configure-keycloak) above.
+4. Click or tab out of the new setting then click `Save`
+
+
 ## wallet_creation
 This request is made via POST method to json rpc method **wallet_creation** with the following parameters in this order **[name, address, accountHash, signature, publicInfo, privateInfo]** where:
 - **name** (required): is combination of firstname and lastname OR username only
@@ -1626,12 +1656,10 @@ This request is made via POST method to json rpc method **wallet_creation** with
 - **privateInfo** (required): string escaped json data containing emailAddress(required), and phoneNumber(optional)
     - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
 
-> **Note** -  It is possible to create a keycloak and meveo user automatically when a wallet is created.  To accomplish that, the **username** can be included in the **publicInfo** or in the **privateInfo** data and make sure that the **password** is included in the **privateInfo**
+> **Note** -  It is possible to create a `keycloak` and `meveo` user automatically when a wallet is created.  To accomplish that, the **username** can be included in the **publicInfo** or in the **privateInfo** data and make sure that the **password** is included in the **privateInfo**.  See [Setup meveo and keycloak](#setup-meveo-and-keycloak) to setup `keycloak` and `meveo` properly for this functionality to work. 
 
 **Sample Request**
 ```json
-POST /rest/wallet_jsonrpc
-
 {
   "jsonrpc": "2.0",
   "method": "wallet_creation",
@@ -1664,10 +1692,10 @@ This request is made via POST method to json rpc method **wallet_update** with t
 - **privateInfo** (optional): string escaped json data containing emailAddress(required), and phoneNumber(optional)
     - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
 
+> **Note** -  It is possible to update `keycloak` and `meveo` user details when a wallet is updated.  To accomplish that, the **username** can be included in the **publicInfo** or in the **privateInfo**.  See [Setup meveo and keycloak](#setup-meveo-and-keycloak) to setup `keycloak` and `meveo` properly for this functionality to work.
+
 **Sample Request**
 ```json
-PUT /rest/wallet_jsonrpc
-
 {
   "jsonrpc": "2.0",
   "method": "wallet_update",
@@ -1699,8 +1727,6 @@ This request is made via POST method to json rpc method **wallet_info** with the
 
 **Sample Request**
 ```json
-GET /rest/wallet_jsonrpc
-
 {
   "jsonrpc": "2.0",
   "method": "wallet_info",
@@ -1720,6 +1746,31 @@ GET /rest/wallet_jsonrpc
     "name": "Test Wallet",
     "publicInfo": "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}"
   }
+}
+```
+
+## Password reset process
+To reset password, OTP verification is required.  Follow the steps below for proper password reset process.
+1. Send an OTP to the wallet's verified phone number using either [`mv-twilio`](https://github.com/telecelplay/mv-twilio) or [`mv-smstelecel`](https://github.com/telecelplay/mv-smstelecel) module.
+2. Verify the OTP using the `verifyOtpForPasswordReset` endpoint with the following details:
+**POST - /rest/verifyOtpForPasswordReset/{phoneNumber}
+- **phoneNumber** - is the verified phone number associated with the user wallet
+- **otp** - the otp code
+- **password** - the new password
+
+**Sample Request**
+```json
+{
+    "otp": "123456",
+    "password": "verifiedPassword"
+}
+```
+
+**Sample Response**
+```json
+{
+  "status": "success",
+  "result": "password_updated"
 }
 ```
 
