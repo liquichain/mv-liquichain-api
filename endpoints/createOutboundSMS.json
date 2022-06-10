@@ -7,14 +7,14 @@
   "synchronous" : true,
   "method" : "POST",
   "parameterMappings" : [ {
-    "serviceParameter" : "to",
-    "multivalued" : false,
-    "parameterName" : "to",
-    "valueRequired" : false
-  }, {
     "serviceParameter" : "otp",
     "multivalued" : false,
     "parameterName" : "otp",
+    "valueRequired" : false
+  }, {
+    "serviceParameter" : "to",
+    "multivalued" : false,
+    "parameterName" : "to",
     "valueRequired" : false
   } ],
   "pathParameters" : [ ],
