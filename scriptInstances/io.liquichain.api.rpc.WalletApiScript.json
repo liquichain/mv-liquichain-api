@@ -12,5 +12,5 @@
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ ]
+  "importScriptInstances" : [ "io.liquichain.api.service.KeycloakUserService" ]
 }
