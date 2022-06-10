@@ -192,7 +192,7 @@ public class KeycloakUserService extends Script {
                              .put(Entity.json(userDetails));
             postResult = response.readEntity(String.class);
             if (postResult != null && postResult.contains("error")) {
-                throw new BusinessException("Failed to save new keycloak user. " + postResult);
+                throw new BusinessException("Failed to save new keycloak user. " + gson.toJson(postResult));
             }
         } finally {
             if (response != null) {
