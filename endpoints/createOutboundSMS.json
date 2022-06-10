@@ -19,6 +19,7 @@
   } ],
   "pathParameters" : [ ],
   "roles" : [ ],
+  "returnedVariableName" : "result",
   "serializeResult" : false,
   "contentType" : "application/json",
   "basePath" : "createOutboundSMS",
