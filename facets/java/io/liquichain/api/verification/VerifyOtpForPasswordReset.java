@@ -122,7 +122,6 @@ public class VerifyOtpForPasswordReset extends Script {
             boolean isTooManyAttempts = attempts >= MAX_ATTEMPTS;
 
             LOG.info("creationDate: {}", creationDate);
-            LOG.info("delay: {}", delay);
             LOG.info("isExpired: {}", isExpired);
             LOG.info("isVerified: {}", isVerified);
             LOG.info("isFailed: {}", isFailed);
