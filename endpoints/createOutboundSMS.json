@@ -6,7 +6,17 @@
   "serviceCode" : "io.liquichain.api.verification.CreateOutboundSMS",
   "synchronous" : true,
   "method" : "POST",
-  "parameterMappings" : [ ],
+  "parameterMappings" : [ {
+    "serviceParameter" : "to",
+    "multivalued" : false,
+    "parameterName" : "to",
+    "valueRequired" : false
+  }, {
+    "serviceParameter" : "otp",
+    "multivalued" : false,
+    "parameterName" : "otp",
+    "valueRequired" : false
+  } ],
   "pathParameters" : [ ],
   "roles" : [ ],
   "serializeResult" : false,
