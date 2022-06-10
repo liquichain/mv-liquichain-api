@@ -297,12 +297,10 @@ public class KeycloakUserService extends Script {
             boolean differentName = !("" + name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
-            boolean hasNewPassword = StringUtils.isNotBlank(password);
 
-            boolean shouldUpdateKCUser = differentName || differentEmailAddress || differentUsername || hasNewPassword;
-            boolean shouldUpdateMeveoUser = differentName || differentEmailAddress || differentUsername;
+            boolean shouldUpdateUser = differentName || differentEmailAddress || differentUsername;
 
-            if (shouldUpdateKCUser) {
+            if (shouldUpdateUser) {
                 String token = login();
                 Map<String, Object> userMap = findUser(token, currentUsername);
                 if (userMap != null) { // update keycloak user
@@ -316,21 +314,17 @@ public class KeycloakUserService extends Script {
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
-                    if (hasNewPassword) {
-                        LOG.info("new password: {}", password);
-                        List<Map<String, Object>> credentials = new ArrayList<>();
-                        Map<String, Object> credentialMap = new HashMap<>();
-                        credentialMap.put("type", "password");
-                        credentialMap.put("value", password);
-                        credentialMap.put("temporary", false);
-                        credentials.add(credentialMap);
-                        userMap.put("credentials", credentials);
-                    }
                     String userDetails = gson.toJson(userMap);
                     LOG.info("userDetails: {}", userDetails);
                     String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
                     LOG.info("updateResult: {}", updateResult);
                 } else { // create keycloak user
+                    if (StringUtils.isBlank(password)) {
+                        String errorMessage =
+                            "Keycloak user does not exist, include a password in privateInfo to create a new one.";
+                        LOG.error(errorMessage);
+                        throw new BusinessException(errorMessage);
+                    }
                     String userDetails = buildUserDetails(username, emailAddress, name, password);
                     String saveResult = createKeycloakUser(token, userDetails);
                     createMeveoUser(name, username, emailAddress);
@@ -340,7 +334,7 @@ public class KeycloakUserService extends Script {
                 LOG.info("No changes detected, will not update keycloak user");
             }
 
-            if (shouldUpdateMeveoUser) {
+            if (shouldUpdateUser) {
                 User user = userService.findByUsername(currentUsername);
                 if (user != null) { // update meveo user
                     // TODO - meveo username cannot be updated
