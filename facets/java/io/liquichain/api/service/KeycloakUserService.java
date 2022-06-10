@@ -193,7 +193,7 @@ public class KeycloakUserService extends Script {
             postResult = response.readEntity(String.class);
             if (postResult != null && postResult.contains("errorMessage")) {
                 String errorMessage = ((Map<String, String>)convertToMap(postResult)).get("errorMessage");
-                throw new BusinessException("Failed to save new keycloak user. - " + errorMessage);
+                throw new BusinessException("Failed to update keycloak user. - " + errorMessage);
             }
         } finally {
             if (response != null) {
