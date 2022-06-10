@@ -191,8 +191,9 @@ public class KeycloakUserService extends Script {
                              .header("Authorization", "Bearer " + token)
                              .put(Entity.json(userDetails));
             postResult = response.readEntity(String.class);
-            if (postResult != null && postResult.contains("error")) {
-                throw new BusinessException("Failed to save new keycloak user. " + gson.toJson(postResult));
+            if (postResult != null && postResult.contains("errorMessage")) {
+                String errorMessage = ((Map<String, String>)convertToMap(postResult)).get("errorMessage");
+                throw new BusinessException("Failed to save new keycloak user. - " + errorMessage);
             }
         } finally {
             if (response != null) {
