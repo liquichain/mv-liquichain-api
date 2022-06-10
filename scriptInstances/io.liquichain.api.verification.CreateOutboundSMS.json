@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.verification.CreateOutboundSMS",
+  "description" : "Create OutboundSMS Entity for testing",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
