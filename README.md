@@ -1768,7 +1768,7 @@ This request is made via POST method to json rpc method **wallet_info** with the
 To reset password, OTP verification is required.  Follow the steps below for proper password reset process.
 1. Send an OTP to the wallet's verified phone number using either [`mv-twilio`](https://github.com/telecelplay/mv-twilio) or [`mv-smstelecel`](https://github.com/telecelplay/mv-smstelecel) module.
 2. Verify the OTP using the `verifyOtpForPasswordReset` endpoint with the following details:
-**POST - /rest/verifyOtpForPasswordReset/{phoneNumber}
+**POST - /rest/verifyOtpForPasswordReset/{phoneNumber}**
 - **phoneNumber** - is the verified phone number associated with the user wallet
 - **otp** - the otp code
 - **password** - the new password
