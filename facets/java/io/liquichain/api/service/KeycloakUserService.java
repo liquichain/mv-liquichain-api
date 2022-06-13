@@ -192,7 +192,7 @@ public class KeycloakUserService extends Script {
                              .put(Entity.json(userDetails));
             postResult = response.readEntity(String.class);
             if (postResult != null && postResult.contains("errorMessage")) {
-                String errorMessage = ((Map<String, String>)convertToMap(postResult)).get("errorMessage");
+                String errorMessage = ((Map<String, String>) convertToMap(postResult)).get("errorMessage");
                 throw new BusinessException("Failed to update keycloak user. - " + errorMessage);
             }
         } finally {
@@ -291,7 +291,9 @@ public class KeycloakUserService extends Script {
 
             LOG.info("wallet emailAddress: {}", wallet.getEmailAddress());
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
-            verifiedEmail = crossStorageApi.find(defaultRepo, verifiedEmail.getUuid(), VerifiedEmail.class);
+            if (verifiedEmail != null) {
+                verifiedEmail = crossStorageApi.find(defaultRepo, verifiedEmail.getUuid(), VerifiedEmail.class);
+            }
             String currentEmailAddress = verifiedEmail != null ? verifiedEmail.getEmail() : null;
             LOG.info("currentEmailAddress: {}", currentEmailAddress);
 
