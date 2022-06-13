@@ -159,7 +159,7 @@ public class KeycloakUserService extends Script {
                 response.close();
             }
         }
-        return dataMap != null ? dataMap.get(0) : new HashMap<>();
+        return dataMap != null && dataMap.size() > 0 ? dataMap.get(0) : new HashMap<>();
     }
 
     public String createKeycloakUser(String token, String userDetails) throws BusinessException {
@@ -302,6 +302,11 @@ public class KeycloakUserService extends Script {
             boolean differentUsername = !username.equals(currentUsername);
 
             boolean shouldUpdateUser = differentName || differentEmailAddress || differentUsername;
+
+            LOG.info("name: {} => {}", wallet.getName(), name);
+            LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
+            LOG.info("username: {} => {}", currentUsername, username);
+            LOG.info("shouldUpdateUser: {}", shouldUpdateUser);
 
             if (shouldUpdateUser) {
                 String token = login();
