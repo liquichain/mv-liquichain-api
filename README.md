@@ -1634,7 +1634,7 @@ For this to work follow the steps below to setup `keycloak` and `meveo` to allow
     - **meveo-web**: `apiAccess`, `userSelfManagement`
     - **endpoints**: `Execute_All_Endpoints`
 10. Click `Realm Settings` at the sidebar menu.
-11. Select `Default Roles` tab and select:
+11. Select `Login` tab and select:
     - **Edit username**: `on`
 
 ### Configure password rules in `keycloak`
