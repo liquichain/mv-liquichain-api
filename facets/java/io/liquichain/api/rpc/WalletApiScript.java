@@ -182,7 +182,7 @@ public class WalletApiScript extends Script {
 
     private String validatePhoneNumber(String phoneNumber, String walletId)
         throws BusinessException {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+        if (StringUtils.isNotBlank(phoneNumber)) {
             throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
         }
         VerifiedPhoneNumber existingPhoneNumber = null;
@@ -252,7 +252,7 @@ public class WalletApiScript extends Script {
         String emailAddress = null;
         String phoneNumber = null;
         String sanitizedPrivateInfo = null;
-        if (privateInfo != null) {
+        if (StringUtils.isNotBlank(privateInfo)) {
             Map<String, String> privateInfoMap = new Gson()
                 .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
                 }.getType());
@@ -266,7 +266,7 @@ public class WalletApiScript extends Script {
             sanitizedPrivateInfo = gson.toJson(sanitizedMap);
         }
 
-        if (phoneNumber != null) {
+        if (StringUtils.isNotBlank(phoneNumber)) {
             try {
                 phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
             } catch (BusinessException e) {
@@ -294,7 +294,7 @@ public class WalletApiScript extends Script {
             wallet.setApplication(app);
             wallet.setVerified(false);
 
-            if (emailAddress != null) {
+            if (StringUtils.isNotBlank(emailAddress)) {
                 VerifiedEmail verifiedEmail = new VerifiedEmail();
                 verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
                 verifiedEmail.setEmail(emailAddress);
@@ -304,7 +304,7 @@ public class WalletApiScript extends Script {
                 wallet.setEmailAddress(verifiedEmail);
             }
 
-            if (phoneNumber != null) {
+            if (StringUtils.isNotBlank(phoneNumber)) {
                 VerifiedPhoneNumber verifiedPhoneNumber = new VerifiedPhoneNumber();
                 verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
                 verifiedPhoneNumber.setPhoneNumber(phoneNumber);
@@ -361,7 +361,7 @@ public class WalletApiScript extends Script {
         String emailAddress = null;
         String phoneNumber = null;
         String sanitizedPrivateInfo = null;
-        if (privateInfo != null) {
+        if (StringUtils.isNotBlank(privateInfo)) {
             Map<String, String> privateInfoMap = new Gson()
                 .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
                 }.getType());
@@ -392,7 +392,7 @@ public class WalletApiScript extends Script {
                     existingEmail = null;
                 }
                 LOG.info("wallet_update existing email: {}", existingEmail);
-                if (emailAddress != null && existingEmail != null
+                if (StringUtils.isNotBlank(emailAddress) && StringUtils.isNotBlank(existingEmail)
                     && !existingEmail.equals(emailAddress)) {
                     verifiedEmail = new VerifiedEmail();
                     verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
@@ -402,7 +402,7 @@ public class WalletApiScript extends Script {
                     crossStorageApi.createOrUpdate(defaultRepo, verifiedEmail);
                     LOG.info("wallet_update old email: {}, saved email: {}", existingEmail, emailAddress);
                 }
-            } else if (emailAddress != null) {
+            } else if (StringUtils.isNotBlank(emailAddress)) {
                 verifiedEmail = new VerifiedEmail();
                 verifiedEmail.setUuid(DigestUtils.sha1Hex(emailAddress));
                 verifiedEmail.setEmail(emailAddress);
@@ -422,7 +422,7 @@ public class WalletApiScript extends Script {
                     existingPhoneNumber = null;
                 }
                 LOG.info("wallet_update existing phoneNumber: {}", existingPhoneNumber);
-                if (phoneNumber != null && existingPhoneNumber != null
+                if (StringUtils.isNotBlank(phoneNumber) && StringUtils.isNotBlank(existingPhoneNumber)
                     && !existingPhoneNumber.equals(phoneNumber)) {
                     verifiedPhoneNumber = new VerifiedPhoneNumber();
                     verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
@@ -431,7 +431,7 @@ public class WalletApiScript extends Script {
                     verifiedPhoneNumber.setVerified(false);
                     crossStorageApi.createOrUpdate(defaultRepo, verifiedPhoneNumber);
                 }
-            } else if (phoneNumber != null) {
+            } else if (StringUtils.isNotBlank(phoneNumber)) {
                 phoneNumber = validatePhoneNumber(phoneNumber, walletHash);
                 verifiedPhoneNumber = new VerifiedPhoneNumber();
                 verifiedPhoneNumber.setUuid(DigestUtils.sha1Hex(phoneNumber));
@@ -536,8 +536,8 @@ public class WalletApiScript extends Script {
                 String emailId = verifiedEmail.getUuid();
                 LOG.info("wallet_info emailId={}", emailId);
                 String emailAddress = verifiedEmail.getEmail();
-                boolean hasEmailAddress = emailAddress != null && !emailAddress.isEmpty();
-                if (emailId != null && !hasEmailAddress) {
+                boolean hasEmailAddress = StringUtils.isNotBlank(emailAddress);
+                if (StringUtils.isNotBlank(emailId) && !hasEmailAddress) {
                     try {
                         verifiedEmail =
                             crossStorageApi.find(defaultRepo, emailId, VerifiedEmail.class);
@@ -564,8 +564,8 @@ public class WalletApiScript extends Script {
                 String phoneId = verifiedPhoneNumber.getUuid();
                 LOG.info("wallet_info phoneId={}", phoneId);
                 String phoneNumber = verifiedPhoneNumber.getPhoneNumber();
-                boolean hasPhoneNumber = phoneNumber != null && !phoneNumber.isEmpty();
-                if (phoneId != null && !hasPhoneNumber) {
+                boolean hasPhoneNumber = StringUtils.isNotBlank(phoneNumber);
+                if (StringUtils.isNotBlank(phoneId) && !hasPhoneNumber) {
                     try {
                         verifiedPhoneNumber = crossStorageApi.find(defaultRepo, phoneId, VerifiedPhoneNumber.class);
                         if (verifiedPhoneNumber != null) {
@@ -577,7 +577,7 @@ public class WalletApiScript extends Script {
                     }
                 }
                 LOG.info("wallet_info phoneNumber={}", phoneNumber);
-                if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+                if (StringUtils.isNotBlank(phoneNumber) && !phoneNumber.trim().isEmpty()) {
                     if (privateInfo.indexOf("emailAddress") > 0) {
                         privateInfo.append(",");
                     }
