@@ -182,7 +182,7 @@ public class WalletApiScript extends Script {
 
     private String validatePhoneNumber(String phoneNumber, String walletId)
         throws BusinessException {
-        if (StringUtils.isNotBlank(phoneNumber)) {
+        if (StringUtils.isBlank(phoneNumber)) {
             throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
         }
         VerifiedPhoneNumber existingPhoneNumber = null;
