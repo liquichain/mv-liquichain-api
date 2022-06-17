@@ -77,6 +77,7 @@ public class KeycloakUserService extends Script {
         defaultRoles.add(roleService.findByName(DefaultRole.EXECUTE_ALL_ENDPOINTS.getRoleName()));
         defaultRoles.add(roleService.findByName(DefaultRole.READ_ALL_CE.getRoleName()));
         defaultRoles.add(roleService.findByName(DefaultRole.MODIFY_ALL_CE.getRoleName()));
+        defaultRoles.add(roleService.findByName("APP_USER"));
         return defaultRoles;
     }
 
