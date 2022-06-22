@@ -66,6 +66,7 @@ public class KeycloakUserService extends Script {
         LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
         String CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
         USERS_URL = CLIENT_REALM_URL + "/users";
+        LOG.info("USERS_URL: {}", USERS_URL);
     }
 
     private boolean isNotEmptyMap(Map<String, ?> map) {
