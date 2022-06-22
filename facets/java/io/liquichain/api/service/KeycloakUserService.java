@@ -136,6 +136,7 @@ public class KeycloakUserService extends Script {
                 response.close();
             }
         }
+        LOG.info("login - TOKEN: " + token);
         return token;
     }
 
