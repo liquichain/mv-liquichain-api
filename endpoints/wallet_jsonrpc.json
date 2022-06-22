@@ -1,7 +1,7 @@
 {
   "code" : "wallet_jsonrpc",
   "description" : "wallet json rpc api",
-  "secured" : false,
+  "secured" : true,
   "checkPathParams" : true,
   "serviceCode" : "io.liquichain.api.rpc.WalletApiScript",
   "synchronous" : true,

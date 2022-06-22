@@ -15,7 +15,7 @@
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
-  "executionRoles" : [ ],
+  "executionRoles" : [ "APP_USER" ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
   "importScriptInstances" : [ ]

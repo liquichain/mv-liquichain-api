@@ -1,7 +1,7 @@
 {
   "code" : "jsonrpc",
   "description" : "eth json rpc api",
-  "secured" : false,
+  "secured" : true,
   "checkPathParams" : true,
   "serviceCode" : "io.liquichain.api.rpc.EthApiScript",
   "synchronous" : true,
