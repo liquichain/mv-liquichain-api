@@ -136,7 +136,7 @@ public class KeycloakUserService extends Script {
                 response.close();
             }
         }
-        LOG.info("login - TOKEN: " + token);
+        LOG.info("login - SUCCESS");
         return token;
     }
 
@@ -167,7 +167,6 @@ public class KeycloakUserService extends Script {
     public String createKeycloakUser(String token, String userDetails) throws BusinessException {
         Response response = null;
         String saveResult;
-        LOG.info("userDetails: {}", userDetails);
         try {
             response = client.target(USERS_URL)
                              .request(MediaType.APPLICATION_JSON)
