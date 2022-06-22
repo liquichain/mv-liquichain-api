@@ -152,7 +152,8 @@ public class KeycloakUserService extends Script {
                              .get();
             getResult = response.readEntity(String.class);
             if (getResult != null && getResult.contains("error")) {
-                throw new BusinessException("Failed to find new keycloak user: " + username + ". Error: " + getResult);
+                LOG.error("Failed to find keycloak user: " + username + ". Error: " + getResult);
+                throw new BusinessException("Failed to find keycloak user: " + username);
             }
             dataMap = convertToMap(getResult);
         } finally {
