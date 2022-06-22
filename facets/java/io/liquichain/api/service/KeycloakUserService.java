@@ -192,9 +192,9 @@ public class KeycloakUserService extends Script {
                              .header("Authorization", "Bearer " + token)
                              .put(Entity.json(userDetails));
             postResult = response.readEntity(String.class);
-            if (postResult != null && postResult.contains("errorMessage")) {
-                String errorMessage = ((Map<String, String>) convertToMap(postResult)).get("errorMessage");
-                throw new BusinessException("Failed to update keycloak user. - " + errorMessage);
+            if (postResult != null && postResult.contains("error")) {
+                LOG.error("Failed to update keycloak user: " + postResult);
+                throw new BusinessException("Failed to update keycloak user.");
             }
         } finally {
             if (response != null) {
