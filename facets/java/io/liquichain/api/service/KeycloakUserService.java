@@ -323,7 +323,6 @@ public class KeycloakUserService extends Script {
                         userMap.put("username", username);
                     }
                     String userDetails = gson.toJson(userMap);
-                    LOG.info("userDetails: {}", userDetails);
                     String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
                     LOG.info("updateResult: {}", updateResult);
                 } else { // create keycloak user
@@ -392,7 +391,6 @@ public class KeycloakUserService extends Script {
                 credentials.add(credentialMap);
                 userMap.put("credentials", credentials);
                 String userDetails = gson.toJson(userMap);
-                LOG.info("userDetails: {}", gson.toJson(userDetails));
                 String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
                 LOG.info("updateResult: {}", updateResult);
             } else { // create keycloak user
