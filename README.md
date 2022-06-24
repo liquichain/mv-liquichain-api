@@ -1628,13 +1628,18 @@ For this to work follow the steps below to setup `keycloak` and `meveo` to allow
     - **Access Type**: `confidential`
     - **Service Accounts**: `enabled`
 6. Under the `Credentials` tab copy the generated `secret` credentials, this will be needed later on when configuring `meveo` settings.
-7. Switch to the `Meveo` realm at the top left of the admin page.
-8. Click `Roles` at the sidebar menu.
-9. Select `Default Roles` tab and set the following roles:
+7. Select the `Service Account Roles` tab.
+8. Type in and select `meveo-realm` in `Client Roles`.
+9. Assign the following roles:
+    - `manage-users`
+    - `view-users`
+10. Switch to the `Meveo` realm at the top left of the admin page.
+11. Click `Roles` at the sidebar menu.
+12. Select `Default Roles` tab and set the following roles:
     - **meveo-web**: `apiAccess`, `userSelfManagement`
     - **endpoints**: `Execute_All_Endpoints`
-10. Click `Realm Settings` at the sidebar menu.
-11. Select `Login` tab and select:
+13. Click `Realm Settings` at the sidebar menu.
+14. Select `Login` tab and select:
     - **Edit username**: `on`
 
 ### Configure password rules in `keycloak`
