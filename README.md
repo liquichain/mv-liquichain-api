@@ -42,9 +42,9 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_uninstallFilter](#eth_uninstallfilter)
 
 ## Setup `meveo` and `keycloak` for keycloak user creation
-- [Configure keycloak](#configure_keycloak)
-- [Configure pasword rules in keycloak](#configure_password_rules_in_keycloak)
-- [Update meveo settings](#update_meveo_settings)
+- [Configure keycloak](#configure-keycloak)
+- [Configure pasword rules in keycloak](#configure-password-rules-in-keycloak)
+- [Update meveo settings](#update-meveo-settings)
 
 ## Wallet operations (not part of Ethereum API)
 The wallet API endpoint is at: **POST /meveo/rest/wallet_jsonrpc** and it has the following methods.
