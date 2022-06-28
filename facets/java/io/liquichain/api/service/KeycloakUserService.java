@@ -310,6 +310,7 @@ public class KeycloakUserService extends Script {
             LOG.info("null? {}", username == null);
             LOG.info("blank string? {}", StringUtils.isBlank(username));
             LOG.info("type: {}", username.getClass().getSimpleName());
+            LOG.info("length: {}", username.length());
             boolean hasUsername = !"null".equalsIgnoreCase(username) || StringUtils.isNotBlank(username);
             boolean differentName = !String.valueOf(name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
