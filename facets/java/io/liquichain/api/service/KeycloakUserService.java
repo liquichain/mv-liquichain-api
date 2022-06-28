@@ -307,6 +307,7 @@ public class KeycloakUserService extends Script {
 
             boolean shouldUpdateUser = hasUsername && (differentName || differentEmailAddress || differentUsername);
 
+            LOG.info("hasUsername: {}", hasUsername);
             LOG.info("name: {} => {}", wallet.getName(), name);
             LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
             LOG.info("username: {} => {}", currentUsername, username);
