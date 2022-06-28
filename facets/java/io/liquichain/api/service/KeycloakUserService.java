@@ -225,8 +225,9 @@ public class KeycloakUserService extends Script {
 
         String username = null;
         if (isNotEmptyMap(publicMap)) {
-            username = "" + publicMap.get("username");
+            username = String.valueOf(publicMap.get("username"));
         }
+        LOG.info("public info username: {}", username);
 
         String emailAddress = null;
         String password = null;
@@ -235,6 +236,7 @@ public class KeycloakUserService extends Script {
             password = privateMap.get("password");
             emailAddress = privateMap.get("emailAddress");
         }
+        LOG.info("private info username: {}", username);
 
         if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
             String token = login();
@@ -264,14 +266,16 @@ public class KeycloakUserService extends Script {
         String currentUsername = null;
 
         if (isNotEmptyMap(currentPublicInfoMap)) {
-            currentUsername = "" + currentPublicInfoMap.get("username");
+            currentUsername = String.valueOf(currentPublicInfoMap.get("username"));
         }
+        LOG.info("public info currentUsername: {}", currentUsername);
 
         if (isNotEmptyMap(currentPrivateInfoMap)) {
             currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
                 ? currentPrivateInfoMap.get("username")
                 : currentUsername;
         }
+        LOG.info("private info currentUsername: {}", currentUsername);
 
         if (StringUtils.isBlank(currentUsername)) {
             createUser(name, publicInfo, privateInfo);
@@ -283,6 +287,7 @@ public class KeycloakUserService extends Script {
             if (isNotEmptyMap(publicMap)) {
                 username = String.valueOf(publicMap.get("username"));
             }
+            LOG.info("public info username: {}", username);
 
             String emailAddress = "";
             String password = "";
@@ -291,6 +296,7 @@ public class KeycloakUserService extends Script {
                 password = String.valueOf(privateMap.get("password"));
                 emailAddress = String.valueOf(privateMap.get("emailAddress"));
             }
+            LOG.info("private info username: {}", username);
 
             LOG.info("wallet emailAddress: {}", wallet.getEmailAddress());
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
