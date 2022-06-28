@@ -300,11 +300,12 @@ public class KeycloakUserService extends Script {
             String currentEmailAddress = verifiedEmail != null ? verifiedEmail.getEmail() : null;
             LOG.info("currentEmailAddress: {}", currentEmailAddress);
 
+            boolean hasUsername = username != null;
             boolean differentName = !("" + name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
 
-            boolean shouldUpdateUser = differentName || differentEmailAddress || differentUsername;
+            boolean shouldUpdateUser = hasUsername && (differentName || differentEmailAddress || differentUsername);
 
             LOG.info("name: {} => {}", wallet.getName(), name);
             LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
