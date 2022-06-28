@@ -281,15 +281,15 @@ public class KeycloakUserService extends Script {
 
             String username = "";
             if (isNotEmptyMap(publicMap)) {
-                username = "" + publicMap.get("username");
+                username = String.valueOf(publicMap.get("username"));
             }
 
             String emailAddress = "";
             String password = "";
             if (isNotEmptyMap(privateMap)) {
                 username = StringUtils.isNotBlank(privateMap.get("username")) ? privateMap.get("username") : username;
-                password = "" + privateMap.get("password");
-                emailAddress = "" + privateMap.get("emailAddress");
+                password = String.valueOf(privateMap.get("password"));
+                emailAddress = String.valueOf(privateMap.get("emailAddress"));
             }
 
             LOG.info("wallet emailAddress: {}", wallet.getEmailAddress());
@@ -301,7 +301,7 @@ public class KeycloakUserService extends Script {
             LOG.info("currentEmailAddress: {}", currentEmailAddress);
 
             boolean hasUsername = StringUtils.isNotBlank(username);
-            boolean differentName = !("" + name).equals(wallet.getName());
+            boolean differentName = !String.valueOf(name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
 
