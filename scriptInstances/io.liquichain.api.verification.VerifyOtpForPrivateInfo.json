@@ -1,0 +1,22 @@
+{
+  "code" : "io.liquichain.api.verification.VerifyOtpForPrivateInfo",
+  "description" : "Verify OTP to retrieve privateInfo",
+  "inputs" : [ {
+    "name" : "otp",
+    "type" : "String"
+  }, {
+    "name" : "phoneNumber",
+    "type" : "String"
+  } ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
