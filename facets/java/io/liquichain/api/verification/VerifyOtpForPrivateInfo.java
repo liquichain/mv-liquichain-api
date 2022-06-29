@@ -16,13 +16,11 @@ import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class VerifyOtpForPrivateInfo extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(VerifyOtpForPasswordReset.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
