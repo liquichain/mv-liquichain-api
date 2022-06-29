@@ -2,50 +2,26 @@ package io.liquichain.api.verification;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import io.liquichain.api.service.KeycloakUserService;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.commons.utils.StringUtils;
-import org.meveo.model.admin.User;
 import org.meveo.model.customEntities.OutboundSMS;
-import org.meveo.model.customEntities.VerifiedEmail;
-import org.meveo.model.customEntities.VerifiedPhoneNumber;
-import org.meveo.model.customEntities.Wallet;
-import org.meveo.model.security.DefaultRole;
-import org.meveo.model.security.Role;
-import org.meveo.model.shared.Name;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.admin.impl.RoleService;
 import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 public class VerifyOtpForPasswordReset extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(VerifyOtpForPasswordReset.class);
-    private static final Gson gson = new Gson();
-    private static final int CONNECTION_POOL_SIZE = 50;
-    private static final int MAX_POOLED_PER_ROUTE = 5;
-    private static final long CONNECTION_TTL = 5;
-    private static final Client client = new ResteasyClientBuilder().connectionPoolSize(CONNECTION_POOL_SIZE)
-                                                                    .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
-                                                                    .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
-                                                                    .build();
 
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
@@ -62,14 +38,6 @@ public class VerifyOtpForPasswordReset extends Script {
 
     private final int MAX_ATTEMPTS = Integer.parseInt(otpMaxAttempts, 10);
     private final Duration MAX_DELAY = Duration.ofMinutes(Long.parseLong(otpMaxDelay));
-    private final String AUTH_URL = System.getProperty("meveo.keycloak.url");
-    private final String REALM = System.getProperty("meveo.keycloak.realm");
-    private final String CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
-    private final String CLIENT_SECRET = config
-        .getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
-    private final String LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
-    private final String CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
-    private final String USERS_URL = CLIENT_REALM_URL + "/users";
 
     private String to;
     private String otp;
@@ -90,6 +58,23 @@ public class VerifyOtpForPasswordReset extends Script {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    private String buildError(String errorMessage) {
+        return "{\"status\": \"failed\", \"result\": \"" + errorMessage + "\"}";
+    }
+
+    private String checkParameters() {
+        if (StringUtils.isBlank(to)) {
+            return "recipient_required";
+        }
+        if (StringUtils.isBlank(otp)) {
+            return "otp_required";
+        }
+        if (StringUtils.isBlank(password)) {
+            return "password_required";
+        }
+        return "valid_parameters";
     }
 
     @Override
@@ -161,27 +146,5 @@ public class VerifyOtpForPasswordReset extends Script {
         } else {
             result = buildError("otp_does_not_exist");
         }
-    }
-
-    private <T> T convertToMap(String data) {
-        return gson.fromJson(data, new TypeToken<T>() {
-        }.getType());
-    }
-
-    private String buildError(String errorMessage) {
-        return "{\"status\": \"failed\", \"result\": \"" + errorMessage + "\"}";
-    }
-
-    private String checkParameters() {
-        if (StringUtils.isBlank(to)) {
-            return "recipient_required";
-        }
-        if (StringUtils.isBlank(otp)) {
-            return "otp_required";
-        }
-        if (StringUtils.isBlank(password)) {
-            return "password_required";
-        }
-        return "valid_parameters";
     }
 }
