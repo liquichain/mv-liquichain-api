@@ -1,0 +1,25 @@
+{
+  "code" : "verifyOtpForPrivateInfo",
+  "description" : "Verify OTP to retrieve privateInfo",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.verification.VerifyOtpForPrivateInfo",
+  "synchronous" : true,
+  "method" : "GET",
+  "parameterMappings" : [ {
+    "serviceParameter" : "otp",
+    "multivalued" : false,
+    "parameterName" : "otp",
+    "valueRequired" : false
+  } ],
+  "pathParameters" : [ "phoneNumber" ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : false,
+  "contentType" : "application/json",
+  "basePath" : "verifyOtpForPrivateInfo",
+  "path" : "/{phoneNumber}",
+  "pool" : {
+    "usePool" : false
+  }
+}
