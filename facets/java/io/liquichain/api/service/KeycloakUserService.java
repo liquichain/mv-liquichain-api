@@ -225,7 +225,7 @@ public class KeycloakUserService extends Script {
 
         String username = null;
         if (isNotEmptyMap(publicMap)) {
-            username = "" + publicMap.get("username");
+            username = String.valueOf(publicMap.get("username"));
         }
 
         String emailAddress = null;
@@ -236,7 +236,9 @@ public class KeycloakUserService extends Script {
             emailAddress = privateMap.get("emailAddress");
         }
 
-        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+        boolean hasUsername = !"null".equalsIgnoreCase(username) && StringUtils.isNotBlank(username);
+        boolean hasPassword = !"null".equalsIgnoreCase(password) && StringUtils.isNotBlank(password);
+        if (hasUsername && hasPassword) {
             String token = login();
             String userDetails = buildUserDetails(username, emailAddress, name, password);
             String saveResult = createKeycloakUser(token, userDetails);
@@ -264,8 +266,9 @@ public class KeycloakUserService extends Script {
         String currentUsername = null;
 
         if (isNotEmptyMap(currentPublicInfoMap)) {
-            currentUsername = "" + currentPublicInfoMap.get("username");
+            currentUsername = String.valueOf(currentPublicInfoMap.get("username"));
         }
+        LOG.info("public info currentUsername: {}", currentUsername);
 
         if (isNotEmptyMap(currentPrivateInfoMap)) {
             currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
@@ -292,15 +295,13 @@ public class KeycloakUserService extends Script {
                 emailAddress = String.valueOf(privateMap.get("emailAddress"));
             }
 
-            LOG.info("wallet emailAddress: {}", wallet.getEmailAddress());
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
             if (verifiedEmail != null) {
                 verifiedEmail = crossStorageApi.find(defaultRepo, verifiedEmail.getUuid(), VerifiedEmail.class);
             }
             String currentEmailAddress = verifiedEmail != null ? verifiedEmail.getEmail() : null;
-            LOG.info("currentEmailAddress: {}", currentEmailAddress);
 
-            boolean hasUsername = StringUtils.isNotBlank(username);
+            boolean hasUsername = !"null".equalsIgnoreCase(username) && StringUtils.isNotBlank(username);
             boolean differentName = !String.valueOf(name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
