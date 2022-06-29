@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.inject.Inject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 
@@ -44,15 +45,16 @@ import org.web3j.utils.*;
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-    private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    @Inject
+    private RepositoryService repositoryService;
+    @Inject
+    private ParamBeanFactory paramBeanFactory;
+    @Inject
+    protected CrossStorageApi crossStorageApi;
 
-    protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-    protected final Repository defaultRepo = repositoryService.findDefaultRepository();
-    protected ParamBean config = paramBeanFactory.getInstance();
-
-    private String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
-    private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
+    protected Repository defaultRepo;
+    protected ParamBean config;
+    private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
 
     protected String result;
 
@@ -60,8 +62,16 @@ public class EthApiScript extends Script {
         return this.result;
     }
 
+    private void init(){
+        defaultRepo = repositoryService.findDefaultRepository();
+        config = paramBeanFactory.getInstance();
+        String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
+        BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
+    }
+
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
+        this.init();
         String method = "" + parameters.get("method");
         BlockchainProcessor processor = null;
         switch (BLOCKCHAIN_BACKEND) {
