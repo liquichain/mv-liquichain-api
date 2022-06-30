@@ -11,13 +11,12 @@ import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WalletByContactScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(WalletByContactScript.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
@@ -34,16 +33,6 @@ public class WalletByContactScript extends Script {
         this.contactHashes = contactHashes;
     }
 
-    public static String toJson(Object data) {
-        String json = null;
-        try {
-            json = mapper.writeValueAsString(data);
-        } catch (Exception e) {
-            LOG.error("Failed to convert to json: {}", data, e);
-        }
-        return json;
-    }
-
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         LOG.info("contactHashes: {}", this.contactHashes);
@@ -55,7 +44,7 @@ public class WalletByContactScript extends Script {
                 .stream()
                 .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
 
-            result = toJson(walletHashes);
+            result = new Gson().toJson(walletHashes);
         }
     }
 }
