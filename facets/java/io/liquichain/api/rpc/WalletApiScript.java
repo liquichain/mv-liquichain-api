@@ -4,6 +4,8 @@ import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.liquichain.api.service.KeycloakUserService;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -21,8 +23,6 @@ import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -32,7 +32,6 @@ import org.web3j.utils.*;
 
 public class WalletApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(WalletApiScript.class);
-    private static final Gson gson = new Gson();
 
     private static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
     private static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
@@ -48,6 +47,7 @@ public class WalletApiScript extends Script {
     private static final String TRANSACTION_REJECTED = "-32003";
     private static final String METHOD_NOT_FOUND = "-32601";
     private static final List<String> FILTERED_KEYS = Arrays.asList("emailAddress", "phoneNumber", "password");
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
@@ -162,6 +162,27 @@ public class WalletApiScript extends Script {
         return normalizeHash(parameters.get(parameterIndex));
     }
 
+    public static String toJson(Object data) {
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(data);
+        } catch (Exception e) {
+            LOG.error("Failed to convert to json: {}", data, e);
+        }
+        return json;
+    }
+
+    public static <T> T convert(String data) {
+        T value = null;
+        try {
+            value = mapper.readValue(data, new TypeReference<T>() {
+            });
+        } catch (Exception e) {
+            LOG.error("Failed to parse data: {}", data, e);
+        }
+        return value;
+    }
+
     private void validateSignature(String walletHash, String signature, String message)
         throws BusinessException {
         String validatedAddress;
@@ -253,9 +274,7 @@ public class WalletApiScript extends Script {
         String phoneNumber = null;
         String sanitizedPrivateInfo = null;
         if (StringUtils.isNotBlank(privateInfo)) {
-            Map<String, String> privateInfoMap = new Gson()
-                .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
-                }.getType());
+            Map<String, String> privateInfoMap = convert(privateInfo);
             emailAddress = privateInfoMap.get("emailAddress");
             phoneNumber = privateInfoMap.get("phoneNumber");
             Map<String, String> sanitizedMap = privateInfoMap
@@ -263,7 +282,7 @@ public class WalletApiScript extends Script {
                 .stream()
                 .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            sanitizedPrivateInfo = gson.toJson(sanitizedMap);
+            sanitizedPrivateInfo = toJson(sanitizedMap);
         }
 
         if (StringUtils.isNotBlank(phoneNumber)) {
@@ -362,9 +381,7 @@ public class WalletApiScript extends Script {
         String phoneNumber = null;
         String sanitizedPrivateInfo = null;
         if (StringUtils.isNotBlank(privateInfo)) {
-            Map<String, String> privateInfoMap = new Gson()
-                .fromJson(privateInfo, new TypeToken<Map<String, String>>() {
-                }.getType());
+            Map<String, String> privateInfoMap = convert(privateInfo);
             emailAddress = privateInfoMap.get("emailAddress");
             phoneNumber = privateInfoMap.get("phoneNumber");
             Map<String, String> sanitizedMap = privateInfoMap
@@ -372,7 +389,7 @@ public class WalletApiScript extends Script {
                 .stream()
                 .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            sanitizedPrivateInfo = gson.toJson(sanitizedMap);
+            sanitizedPrivateInfo = toJson(sanitizedMap);
         }
 
         LOG.info("wallet_update received email: {}", emailAddress);
@@ -526,8 +543,7 @@ public class WalletApiScript extends Script {
         StringBuilder response = new StringBuilder()
             .append("{")
             .append(String.format("\"name\":\"%s\",", wallet.getName()))
-            .append(String.format("\"publicInfo\":%s",
-                new Gson().toJson(wallet.getPublicInfo())));
+            .append(String.format("\"publicInfo\":%s", toJson(wallet.getPublicInfo())));
         if (isValidSignature) {
             StringBuilder privateInfo = new StringBuilder("{");
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
@@ -589,9 +605,7 @@ public class WalletApiScript extends Script {
             }
 
             if (StringUtils.isNotBlank(wallet.getPrivateInfo())) {
-                Map<String, String> privateInfoMap = new Gson()
-                    .fromJson(wallet.getPrivateInfo(), new TypeToken<Map<String, String>>() {
-                    }.getType());
+                Map<String, String> privateInfoMap = convert(wallet.getPrivateInfo());
                 if (privateInfo.indexOf("emailAddress") > 0 || privateInfo.indexOf("phoneNumber") > 0) {
                     privateInfo.append(",");
                 }
@@ -602,7 +616,7 @@ public class WalletApiScript extends Script {
             }
 
             privateInfo.append("}");
-            response.append(String.format(",\"privateInfo\": %s", new Gson().toJson(privateInfo.toString())));
+            response.append(String.format(",\"privateInfo\": %s", toJson(privateInfo.toString())));
             try {
                 wallet.setLastPrivateInfoRequest(requestTime);
                 crossStorageApi.createOrUpdate(defaultRepo, wallet);

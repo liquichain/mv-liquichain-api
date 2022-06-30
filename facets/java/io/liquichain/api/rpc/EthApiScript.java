@@ -33,9 +33,9 @@ import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.storage.RepositoryService;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.math.NumberUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class EthApiScript extends Script {
         return this.result;
     }
 
-    private void init(){
+    private void init() {
         defaultRepo = repositoryService.findDefaultRepository();
         config = paramBeanFactory.getInstance();
         String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
@@ -97,6 +97,7 @@ public class EthApiScript extends Script {
     }
 }
 
+
 class EthApiConstants {
     public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
     public static final String CONTRACT_NOT_ALLOWED_ERROR = "Contract deployment not allowed";
@@ -114,38 +115,41 @@ class EthApiConstants {
     public static final String METHOD_NOT_FOUND = "-32601";
     public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
 
+
     public static enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
 }
 
+
 class EthApiUtils {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static String createResponse(String requestId, String result) {
         String idFormat = requestId == null || NumberUtils.isParsable(requestId)
-                ? "  \"id\": %s,"
-                : "  \"id\": \"%s\",";
+            ? "  \"id\": %s,"
+            : "  \"id\": \"%s\",";
         String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
         String response = "{\n" +
-                String.format(idFormat, requestId) + "\n" +
-                "  \"jsonrpc\": \"2.0\",\n" +
-                "  \"result\": " + String.format(resultFormat, result) + "\n" +
-                "}";
+            String.format(idFormat, requestId) + "\n" +
+            "  \"jsonrpc\": \"2.0\",\n" +
+            "  \"result\": " + String.format(resultFormat, result) + "\n" +
+            "}";
         LOG.debug("response: {}", response);
         return response;
     }
 
     public static String createErrorResponse(String requestId, String errorCode, String message) {
         String idFormat = requestId == null || NumberUtils.isParsable(requestId)
-                ? "  \"id\": %s,"
-                : "  \"id\": \"%s\",";
+            ? "  \"id\": %s,"
+            : "  \"id\": \"%s\",";
         String response = "{\n" +
-                String.format(idFormat, requestId) + "\n" +
-                "  \"jsonrpc\": \"2.0\",\n" +
-                "  \"error\": {\n" +
-                "    \"code\": " + errorCode + ",\n" +
-                "    \"message\": \"" + message + "\"\n" +
-                "  }\n" +
-                "}";
+            String.format(idFormat, requestId) + "\n" +
+            "  \"jsonrpc\": \"2.0\",\n" +
+            "  \"error\": {\n" +
+            "    \"code\": " + errorCode + ",\n" +
+            "    \"message\": \"" + message + "\"\n" +
+            "  }\n" +
+            "}";
         LOG.debug("error response: {}", response);
         return response;
     }
@@ -163,12 +167,32 @@ class EthApiUtils {
 
     public static boolean isJSONValid(String jsonInString) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
             mapper.readTree(jsonInString);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static String toJson(Object data) {
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(data);
+        } catch (Exception e) {
+            LOG.error("Failed to convert to json: {}", data, e);
+        }
+        return json;
+    }
+
+    public static <T> T convert(String data) {
+        T value = null;
+        try {
+            value = mapper.readValue(data, new TypeReference<T>() {
+            });
+        } catch (Exception e) {
+            LOG.error("Failed to parse data: {}", data, e);
+        }
+        return value;
     }
 
     public static String toHex(byte[] bytes) {
@@ -191,6 +215,7 @@ class EthApiUtils {
         return hexValue;
     }
 }
+
 
 abstract class BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BlockchainProcessor.class);
@@ -220,7 +245,7 @@ abstract class BlockchainProcessor {
         isHookAdded = !TRANSACTION_HOOKS.containsKey(key);
         if (isHookAdded) {
             Pattern pattern = Pattern.compile(regex);
-            TRANSACTION_HOOKS.put(key, new Object[]{pattern, script});
+            TRANSACTION_HOOKS.put(key, new Object[] {pattern, script});
         }
         return isHookAdded;
     }
@@ -267,9 +292,9 @@ abstract class BlockchainProcessor {
         Wallet walletWithSameName = null;
         try {
             walletWithSameName = crossStorageApi
-                    .find(defaultRepo, Wallet.class)
-                    .by("name", name)
-                    .getResult();
+                .find(defaultRepo, Wallet.class)
+                .by("name", name)
+                .getResult();
         } catch (Exception e) {
             // do nothing, we want wallet name to be unique
         }
@@ -288,10 +313,10 @@ abstract class BlockchainProcessor {
         VerifiedEmail existingEmail = null;
         try {
             existingEmail = crossStorageApi
-                    .find(defaultRepo, VerifiedEmail.class)
-                    .by("email", email)
-                    .by("not-inList walletId", Arrays.asList(walletId))
-                    .getResult();
+                .find(defaultRepo, VerifiedEmail.class)
+                .by("email", email)
+                .by("not-inList walletId", Arrays.asList(walletId))
+                .getResult();
         } catch (Exception e) {
             // do nothing, we want email address to be unique
         }
@@ -304,17 +329,17 @@ abstract class BlockchainProcessor {
     }
 
     protected String validatePhoneNumber(String phoneNumber, String walletId)
-            throws BusinessException {
+        throws BusinessException {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
             throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
         }
         VerifiedPhoneNumber existingPhoneNumber = null;
         try {
             existingPhoneNumber = crossStorageApi
-                    .find(defaultRepo, VerifiedPhoneNumber.class)
-                    .by("phoneNumber", phoneNumber)
-                    .by("not-inList walletId", Arrays.asList(walletId))
-                    .getResult();
+                .find(defaultRepo, VerifiedPhoneNumber.class)
+                .by("phoneNumber", phoneNumber)
+                .by("not-inList walletId", Arrays.asList(walletId))
+                .getResult();
         } catch (Exception e) {
             // do nothing, we want wallet phoneNumber to be unique
         }
@@ -333,15 +358,15 @@ abstract class BlockchainProcessor {
         String s = "0x" + signature.substring(66, 130);
         String v = "0x" + signature.substring(130, 132);
         String publicKey = Sign
-                .signedMessageHashToKey(
-                        messageHash,
-                        new Sign.SignatureData(
-                                Numeric.hexStringToByteArray(v)[0],
-                                Numeric.hexStringToByteArray(r),
-                                Numeric.hexStringToByteArray(s)
-                        )
+            .signedMessageHashToKey(
+                messageHash,
+                new Sign.SignatureData(
+                    Numeric.hexStringToByteArray(v)[0],
+                    Numeric.hexStringToByteArray(r),
+                    Numeric.hexStringToByteArray(s)
                 )
-                .toString(16);
+            )
+            .toString(16);
         String address = Keys.getAddress(publicKey);
         LOG.info("address: " + address);
         return address;
@@ -358,6 +383,7 @@ abstract class BlockchainProcessor {
     }
 }
 
+
 class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
@@ -367,10 +393,10 @@ class BesuProcessor extends BlockchainProcessor {
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
     private static Client client = new ResteasyClientBuilder()
-            .connectionPoolSize(CONNECTION_POOL_SIZE)
-            .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
-            .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
-            .build();
+        .connectionPoolSize(CONNECTION_POOL_SIZE)
+        .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+        .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+        .build();
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
@@ -410,11 +436,11 @@ class BesuProcessor extends BlockchainProcessor {
         try {
 
             response = client.target(BESU_API_URL)
-                    .request(MediaType.APPLICATION_JSON)
-                    .post(Entity.json(body));
+                             .request(MediaType.APPLICATION_JSON)
+                             .post(Entity.json(body));
             result = response.readEntity(String.class);
         } finally {
-            if (response != null){
+            if (response != null) {
                 response.close();
             }
         }
@@ -425,29 +451,20 @@ class BesuProcessor extends BlockchainProcessor {
     private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         Object id = parameters.get("id");
         String idFormat =
-                id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
+            id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
         String requestBody = new StringBuilder()
-                .append("{")
-                .append(String.format(idFormat, id))
-                .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
-                .append(String.format("\"method\":\"%s\",", parameters.get("method")))
-                .append(String.format("\"params\":%s", new Gson().toJson(parameters.get("params"))))
-                .append("}")
-                .toString();
+            .append("{")
+            .append(String.format(idFormat, id))
+            .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
+            .append(String.format("\"method\":\"%s\",", parameters.get("method")))
+            .append(String.format("\"params\":%s", toJson(parameters.get("params"))))
+            .append("}")
+            .toString();
         try {
             return callProxy(requestBody);
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-        }
-    }
-
-    private String extractJsonValue(String json, String key, String defaultValue) {
-        try {
-            return new Gson().fromJson(json, Map.class).get(key).toString();
-        } catch (Exception e) {
-            LOG.error("Error parsing json", e);
-            return defaultValue;
         }
     }
 
@@ -457,13 +474,13 @@ class BesuProcessor extends BlockchainProcessor {
         String transactionHash = normalizeHash(Hash.sha3(data));
         try {
             Transaction existingTransaction = crossStorageApi
-                    .find(defaultRepo, Transaction.class)
-                    .by("hexHash", transactionHash).getResult();
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", transactionHash).getResult();
             if (existingTransaction != null) {
                 return createErrorResponse(
-                        requestId,
-                        TRANSACTION_REJECTED,
-                        String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
+                    requestId,
+                    TRANSACTION_REJECTED,
+                    String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
             }
         } catch (Exception e) {
             return createErrorResponse(requestId, RESOURCE_NOT_FOUND, e.getMessage());
@@ -516,10 +533,13 @@ class BesuProcessor extends BlockchainProcessor {
                         extraData = "{\"type\":\"purchase\",\"description\":\"Shop purchase\"}";
                     }
                 } else {
-                    type = extractJsonValue(extraData, "type", "transfer");
+                    Map extraDataMap = convert(extraData);
+                    if (extraDataMap != null) {
+                        type = extraDataMap.get("type").toString();
+                    }
                     extraData = "transfer".equals(type)
-                            ? "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}"
-                            : extraData;
+                        ? "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}"
+                        : extraData;
                 }
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
@@ -534,7 +554,7 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setData(extraData);
                 transaction.setBlockNumber("1");
                 transaction.setBlockHash(
-                        "e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
+                    "e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
                 transaction.setV(v);
                 transaction.setS(s);
@@ -549,28 +569,29 @@ class BesuProcessor extends BlockchainProcessor {
     }
 }
 
+
 class DatabaseProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
 
     private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
-            + "\"extraData" +
-            "\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
-            + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
-            + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
-            + "\"logsBloom" +
-            "\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\","
-            + "\"miner\":\"0x0000000000000000000000000000000000000000\","
-            + "\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\","
-            + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
-            + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
-            + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-            + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
-            + "\"size\":\"0x260\","
-            + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
-            + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
-            + "],"
-            + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-            + "\"uncles\":[  " + "]}";
+        + "\"extraData" +
+        "\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
+        + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
+        + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
+        + "\"logsBloom" +
+        "\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\","
+        + "\"miner\":\"0x0000000000000000000000000000000000000000\","
+        + "\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\","
+        + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
+        + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
+        + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
+        + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
+        + "\"size\":\"0x260\","
+        + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
+        + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
+        + "],"
+        + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
+        + "\"uncles\":[  " + "]}";
 
     public DatabaseProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
@@ -634,9 +655,9 @@ class DatabaseProcessor extends BlockchainProcessor {
 
         try {
             Transaction transaction = crossStorageApi
-                    .find(defaultRepo, Transaction.class)
-                    .by("hexHash", hash)
-                    .getResult();
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", hash)
+                .getResult();
             String transactionDetails = "{\n";
             transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
             transactionDetails += "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
@@ -657,14 +678,14 @@ class DatabaseProcessor extends BlockchainProcessor {
             transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
             transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
             transactionDetails +=
-                    "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
+                "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
             transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
             transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
             transactionDetails += "}";
             LOG.info("res={}" + transactionDetails);
             return createResponse(requestId, transactionDetails);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Resource not found.", e);
             return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
         }
     }
@@ -677,9 +698,9 @@ class DatabaseProcessor extends BlockchainProcessor {
         result = "0x0";
         try {
             existingTransaction = crossStorageApi
-                    .find(defaultRepo, Transaction.class)
-                    .by("hexHash", transactionHash)
-                    .getResult();
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", transactionHash)
+                .getResult();
         } catch (Exception e) {
             // do nothing, we want transaction to be unique
         }
@@ -737,7 +758,7 @@ class DatabaseProcessor extends BlockchainProcessor {
             message = "insufficient balance";
             BigInteger originBalance = new BigInteger(originWallet.getBalance());
             LOG.info("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
-                    originWallet.getBalance());
+                originWallet.getBalance());
             if (value.compareTo(originBalance) <= 0) {
                 BlockForgerScript.addTransaction(transaction);
             } else {
@@ -753,8 +774,8 @@ class DatabaseProcessor extends BlockchainProcessor {
         String transactionHash = retrieveHash(params, 0);
         try {
             int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class)
-                    .by("fromHexHash", transactionHash)
-                    .getResults()).size();
+                                                .by("fromHexHash", transactionHash)
+                                                .getResults()).size();
             return createResponse(requestId, toBigHex(nbTransaction + ""));
         } catch (Exception e) {
             return createResponse(requestId, "0x0");

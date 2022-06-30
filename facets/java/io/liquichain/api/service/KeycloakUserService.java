@@ -1,8 +1,13 @@
 package io.liquichain.api.service;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
@@ -18,20 +23,17 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.admin.impl.RoleService;
 import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
+
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class KeycloakUserService extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(KeycloakUserService.class);
-    private static final Gson gson = new Gson();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
@@ -72,6 +74,27 @@ public class KeycloakUserService extends Script {
         return map != null && !map.isEmpty();
     }
 
+    public static String toJson(Object data) {
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(data);
+        } catch (Exception e) {
+            LOG.error("Failed to convert to json: {}", data, e);
+        }
+        return json;
+    }
+
+    public static <T> T convert(String data) {
+        T value = null;
+        try {
+            value = mapper.readValue(data, new TypeReference<T>() {
+            });
+        } catch (Exception e) {
+            LOG.error("Failed to parse data: {}", data, e);
+        }
+        return value;
+    }
+
     private Set<Role> fetchDefaultRoles() {
         Set<Role> defaultRoles = new HashSet<>();
         defaultRoles.add(roleService.findByName(DefaultRole.EXECUTE_ALL_ENDPOINTS.getRoleName()));
@@ -110,11 +133,6 @@ public class KeycloakUserService extends Script {
         return userDetails;
     }
 
-    private <T> T convertToMap(String data) {
-        return gson.fromJson(data, new TypeToken<T>() {
-        }.getType());
-    }
-
     private String login() {
         LOG.info("login - START");
         String token;
@@ -129,7 +147,7 @@ public class KeycloakUserService extends Script {
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
                              .post(Entity.form(form));
             String loginData = response.readEntity(String.class);
-            Map<String, String> dataMap = convertToMap(loginData);
+            Map<String, String> dataMap = convert(loginData);
             token = dataMap.get("access_token");
         } finally {
             if (response != null) {
@@ -155,7 +173,7 @@ public class KeycloakUserService extends Script {
                 LOG.error("Failed to find keycloak user: " + username + ". Error: " + getResult);
                 throw new BusinessException("Failed to find keycloak user: " + username);
             }
-            dataMap = convertToMap(getResult);
+            dataMap = convert(getResult);
         } finally {
             if (response != null) {
                 response.close();
@@ -220,8 +238,8 @@ public class KeycloakUserService extends Script {
     }
 
     public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
-        Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convertToMap(publicInfo) : null;
-        Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convertToMap(privateInfo) : null;
+        Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convert(publicInfo) : null;
+        Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convert(privateInfo) : null;
 
         String username = null;
         if (isNotEmptyMap(publicMap)) {
@@ -255,12 +273,12 @@ public class KeycloakUserService extends Script {
 
         Map<String, Object> currentPublicInfoMap = null;
         if (StringUtils.isNotBlank(currentPublicInfo)) {
-            currentPublicInfoMap = convertToMap(currentPublicInfo);
+            currentPublicInfoMap = convert(currentPublicInfo);
         }
 
         Map<String, String> currentPrivateInfoMap = null;
         if (StringUtils.isNotBlank(currentPrivateInfo)) {
-            currentPrivateInfoMap = convertToMap(currentPrivateInfo);
+            currentPrivateInfoMap = convert(currentPrivateInfo);
         }
 
         String currentUsername = null;
@@ -279,8 +297,8 @@ public class KeycloakUserService extends Script {
         if (StringUtils.isBlank(currentUsername)) {
             createUser(name, publicInfo, privateInfo);
         } else {
-            Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convertToMap(publicInfo) : null;
-            Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convertToMap(privateInfo) : null;
+            Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convert(publicInfo) : null;
+            Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convert(privateInfo) : null;
 
             String username = "";
             if (isNotEmptyMap(publicMap)) {
@@ -328,7 +346,7 @@ public class KeycloakUserService extends Script {
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
-                    String userDetails = gson.toJson(userMap);
+                    String userDetails = toJson(userMap);
                     String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
                     LOG.info("updateResult: {}", updateResult);
                 } else { // create keycloak user
@@ -382,7 +400,7 @@ public class KeycloakUserService extends Script {
                                            .getResult();
 
 
-            Map<String, Object> privateInfo = convertToMap(wallet.getPrivateInfo());
+            Map<String, Object> privateInfo = convert(wallet.getPrivateInfo());
             String username = "" + privateInfo.get("username");
             String token = login();
             Map<String, Object> userMap = findUser(token, username);
@@ -396,7 +414,7 @@ public class KeycloakUserService extends Script {
                 credentialMap.put("temporary", false);
                 credentials.add(credentialMap);
                 userMap.put("credentials", credentials);
-                String userDetails = gson.toJson(userMap);
+                String userDetails = toJson(userMap);
                 String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
                 LOG.info("updateResult: {}", updateResult);
             } else { // create keycloak user

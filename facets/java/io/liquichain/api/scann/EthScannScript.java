@@ -161,7 +161,7 @@ public class EthScannScript extends Script {
             try {
                 result += sep + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(map);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                LOG.error("Failed to convert map to json", e);
             }
             sep = ",";
         }
