@@ -653,6 +653,6 @@ public class WalletApiScript extends Script {
 
         LOG.info("wallet_info response={}", responseDetails);
 
-        return createResponse(requestId, response.toString());
+        return createResponse(requestId, responseDetails.toString());
     }
 }
