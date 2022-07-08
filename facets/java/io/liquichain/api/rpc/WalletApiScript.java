@@ -545,7 +545,7 @@ public class WalletApiScript extends Script {
 
         Map<String, Object> responseDetails = new HashMap<>();
         responseDetails.put("name", wallet.getName());
-        responseDetails.put("publicInfo", new Gson().toJson(wallet.getPublicInfo()));
+        responseDetails.put("publicInfo", wallet.getPublicInfo());
 
         StringBuilder response = new StringBuilder()
             .append("{")
@@ -636,7 +636,7 @@ public class WalletApiScript extends Script {
             }
 
             if (!privateInfoDetails.isEmpty()) {
-                responseDetails.put("privateInfo", new Gson().toJson(privateInfoDetails));
+                responseDetails.put("privateInfo", privateInfoDetails);
             }
 
             privateInfo.append("}");
