@@ -544,8 +544,9 @@ public class WalletApiScript extends Script {
         }
 
         Map<String, Object> responseDetails = new HashMap<>();
+        Map<String, Object> publicInfoDetails = convert(wallet.getPublicInfo());
         responseDetails.put("name", wallet.getName());
-        responseDetails.put("publicInfo", wallet.getPublicInfo());
+        responseDetails.put("publicInfo", publicInfoDetails);
 
         StringBuilder response = new StringBuilder()
             .append("{")
@@ -653,6 +654,6 @@ public class WalletApiScript extends Script {
 
         LOG.info("wallet_info response={}", responseDetails);
 
-        return createResponse(requestId, new Gson().toJson(responseDetails));
+        return createResponse(requestId, toJson(responseDetails));
     }
 }
