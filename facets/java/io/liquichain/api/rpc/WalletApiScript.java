@@ -651,7 +651,7 @@ public class WalletApiScript extends Script {
         }
         response.append("}");
 
-        LOG.info("wallet_info response={}", new Gson().toJson(responseDetails));
+        LOG.info("wallet_info response={}", responseDetails);
 
         return createResponse(requestId, response.toString());
     }
