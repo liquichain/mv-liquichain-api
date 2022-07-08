@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import io.liquichain.api.service.KeycloakUserService;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -543,18 +542,12 @@ public class WalletApiScript extends Script {
             LOG.info("wallet_info isValidSignature={}", isValidSignature);
         }
 
-        Map<String, Object> responseDetails = new HashMap<>();
-        Map<String, Object> publicInfoDetails = convert(wallet.getPublicInfo());
-        responseDetails.put("name", wallet.getName());
-        responseDetails.put("publicInfo", publicInfoDetails);
+        Map<String, Object> response = new HashMap<>();
+        response.put("name", wallet.getName());
+        response.put("publicInfo", convert(wallet.getPublicInfo()));
 
-        StringBuilder response = new StringBuilder()
-            .append("{")
-            .append(String.format("\"name\":\"%s\",", wallet.getName()))
-            .append(String.format("\"publicInfo\":%s", toJson(wallet.getPublicInfo())));
         if (isValidSignature) {
-            Map<String, Object> privateInfoDetails = new HashMap<>();
-            StringBuilder privateInfo = new StringBuilder("{");
+            Map<String, Object> privateInfo = new HashMap<>();
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
             LOG.info("verifiedEmail={}", verifiedEmail);
             if (verifiedEmail != null) {
@@ -576,15 +569,11 @@ public class WalletApiScript extends Script {
                 }
                 LOG.info("wallet_info emailAddress={}", emailAddress);
                 if (verifiedEmail != null && StringUtils.isNotBlank(emailAddress)) {
-                    Map<String, Object> emailDetails = new HashMap<>();
-                    emailDetails.put("emailAddress", emailAddress);
-                    emailDetails.put("verified", verifiedEmail.getVerified());
-                    emailDetails.put("hash", verifiedEmail.getUuid());
-                    privateInfoDetails.put("email", emailDetails);
-                    privateInfo.append(String.format(
-                        "\"emailAddress\": {\"value\": \"%s\", \"verified\": \"%s\", \"hash\": \"%s\"}",
-                        emailAddress, verifiedEmail.getVerified(),
-                        verifiedEmail.getUuid()));
+                    Map<String, Object> email = new HashMap<>();
+                    email.put("emailAddress", emailAddress);
+                    email.put("verified", verifiedEmail.getVerified());
+                    email.put("hash", verifiedEmail.getUuid());
+                    privateInfo.put("email", email);
                 }
             }
 
@@ -608,52 +597,31 @@ public class WalletApiScript extends Script {
                 }
                 LOG.info("wallet_info phoneNumber={}", phoneNumber);
                 if (verifiedPhoneNumber != null && StringUtils.isNotBlank(phoneNumber)) {
-                    Map<String, Object> phoneDetails = new HashMap<>();
-                    phoneDetails.put("phoneNumber", phoneNumber);
-                    phoneDetails.put("verified", verifiedPhoneNumber.getVerified());
-                    phoneDetails.put("hash", verifiedPhoneNumber.getUuid());
-                    privateInfoDetails.put("phoneNumber", phoneDetails);
-                    if (privateInfo.indexOf("emailAddress") > 0) {
-                        privateInfo.append(",");
-                    }
-                    privateInfo.append(String.format(
-                        "\"phoneNumber\": {\"value\": \"%s\", \"verified\": \"%s\", \"hash\": \"%s\"}",
-                        phoneNumber, verifiedPhoneNumber.getVerified(),
-                        verifiedPhoneNumber.getUuid()));
+                    Map<String, Object> phone = new HashMap<>();
+                    phone.put("phoneNumber", phoneNumber);
+                    phone.put("verified", verifiedPhoneNumber.getVerified());
+                    phone.put("hash", verifiedPhoneNumber.getUuid());
+                    privateInfo.put("phoneNumber", phone);
                 }
             }
 
             if (StringUtils.isNotBlank(wallet.getPrivateInfo())) {
-                Map<String, String> privateInfoMap = convert(wallet.getPrivateInfo());
-                if (privateInfo.indexOf("emailAddress") > 0 || privateInfo.indexOf("phoneNumber") > 0) {
-                    privateInfo.append(",");
-                }
-                privateInfo.append(privateInfoMap
-                    .keySet().stream()
-                    .map(key -> String.format("\"%s\": \"%s\"", key, privateInfoMap.get(key)))
-                    .collect(Collectors.joining(",")));
-                privateInfoMap.keySet()
-                              .forEach(key -> privateInfoDetails.put(key, privateInfoMap.get(key)));
+                Map<String, Object> privateInfoMap = convert(wallet.getPrivateInfo());
+                privateInfoMap.keySet().forEach(key -> privateInfo.put(key, privateInfoMap.get(key)));
             }
 
-            if (!privateInfoDetails.isEmpty()) {
-                responseDetails.put("privateInfo", privateInfoDetails);
+            if (!privateInfo.isEmpty()) {
+                response.put("privateInfo", privateInfo);
             }
 
-            privateInfo.append("}");
-            response.append(String.format(",\"privateInfo\": %s", toJson(privateInfo.toString())));
             try {
                 wallet.setLastPrivateInfoRequest(requestTime);
                 crossStorageApi.createOrUpdate(defaultRepo, wallet);
             } catch (Exception e) {
                 LOG.error("wallet_info Error updating wallet last private info request", e);
             }
-
         }
-        response.append("}");
 
-        LOG.info("wallet_info response={}", responseDetails);
-
-        return createResponse(requestId, toJson(responseDetails));
+        return createResponse(requestId, toJson(response));
     }
 }
