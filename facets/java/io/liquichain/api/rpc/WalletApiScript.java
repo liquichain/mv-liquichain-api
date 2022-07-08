@@ -516,8 +516,7 @@ public class WalletApiScript extends Script {
             return createErrorResponse(requestId, INVALID_REQUEST, UNKNOWN_WALLET_ERROR);
         }
 
-        boolean shouldValidate = signature != null && !signature.isEmpty()
-            && message != null && !message.isEmpty();
+        boolean shouldValidate = signature != null && !signature.isEmpty() && message != null && !message.isEmpty();
         boolean isValidSignature = false;
         long requestTime = 0L;
         if (shouldValidate) {
@@ -543,11 +542,16 @@ public class WalletApiScript extends Script {
             LOG.info("wallet_info isValidSignature={}", isValidSignature);
         }
 
+        Map<String, Object> responseDetails = new HashMap<>();
+        responseDetails.put("name", wallet.getName());
+        responseDetails.put("publicInfo", wallet.getPublicInfo());
+
         StringBuilder response = new StringBuilder()
             .append("{")
             .append(String.format("\"name\":\"%s\",", wallet.getName()))
             .append(String.format("\"publicInfo\":%s", toJson(wallet.getPublicInfo())));
         if (isValidSignature) {
+            Map<String, Object> privateInfoDetails = new HashMap<>();
             StringBuilder privateInfo = new StringBuilder("{");
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
             LOG.info("verifiedEmail={}", verifiedEmail);
@@ -569,7 +573,12 @@ public class WalletApiScript extends Script {
                     }
                 }
                 LOG.info("wallet_info emailAddress={}", emailAddress);
-                if (emailAddress != null && !emailAddress.trim().isEmpty()) {
+                if (verifiedEmail != null && StringUtils.isNotBlank(emailAddress)) {
+                    Map<String, Object> emailDetails = new HashMap<>();
+                    emailDetails.put("emailAddress", emailAddress);
+                    emailDetails.put("verified", verifiedEmail.getVerified());
+                    emailDetails.put("hash", verifiedEmail.getUuid());
+                    privateInfoDetails.put("email", emailDetails);
                     privateInfo.append(String.format(
                         "\"emailAddress\": {\"value\": \"%s\", \"verified\": \"%s\", \"hash\": \"%s\"}",
                         emailAddress, verifiedEmail.getVerified(),
@@ -596,7 +605,12 @@ public class WalletApiScript extends Script {
                     }
                 }
                 LOG.info("wallet_info phoneNumber={}", phoneNumber);
-                if (StringUtils.isNotBlank(phoneNumber) && !phoneNumber.trim().isEmpty()) {
+                if (verifiedPhoneNumber != null && StringUtils.isNotBlank(phoneNumber)) {
+                    Map<String, Object> phoneDetails = new HashMap<>();
+                    phoneDetails.put("phoneNumber", phoneNumber);
+                    phoneDetails.put("verified", verifiedPhoneNumber.getVerified());
+                    phoneDetails.put("hash", verifiedPhoneNumber.getUuid());
+                    privateInfoDetails.put("phoneNumber", phoneDetails);
                     if (privateInfo.indexOf("emailAddress") > 0) {
                         privateInfo.append(",");
                     }
@@ -616,6 +630,12 @@ public class WalletApiScript extends Script {
                     .keySet().stream()
                     .map(key -> String.format("\"%s\": \"%s\"", key, privateInfoMap.get(key)))
                     .collect(Collectors.joining(",")));
+                privateInfoMap.keySet()
+                              .forEach(key -> privateInfoDetails.put(key, privateInfoMap.get(key)));
+            }
+
+            if (!privateInfoDetails.isEmpty()) {
+                responseDetails.put("privateInfo", privateInfoDetails);
             }
 
             privateInfo.append("}");
@@ -629,6 +649,8 @@ public class WalletApiScript extends Script {
 
         }
         response.append("}");
+
+        LOG.info("wallet_info response={}", toJson(responseDetails));
 
         return createResponse(requestId, response.toString());
     }
