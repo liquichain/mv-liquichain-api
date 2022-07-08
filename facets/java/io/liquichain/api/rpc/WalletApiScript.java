@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.liquichain.api.service.KeycloakUserService;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -650,7 +651,7 @@ public class WalletApiScript extends Script {
         }
         response.append("}");
 
-        LOG.info("wallet_info response={}", toJson(responseDetails));
+        LOG.info("wallet_info response={}", new Gson().toJson(responseDetails));
 
         return createResponse(requestId, response.toString());
     }
