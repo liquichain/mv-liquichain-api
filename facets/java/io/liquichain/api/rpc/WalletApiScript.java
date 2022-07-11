@@ -227,6 +227,21 @@ public class WalletApiScript extends Script {
         return phoneNumber;
     }
 
+    private Map<String, Object> mergeValues(Map<String, Object> existingValues, Map<String, Object> newValues) {
+        if (existingValues == null) {
+            return newValues;
+        }
+        Map<String, Object> mergedValues = new HashMap<>(existingValues);
+        mergedValues.putAll(newValues);
+        mergedValues.entrySet().stream()
+                    .filter(entry -> entry.getValue() instanceof String && "null".equalsIgnoreCase(
+                        String.valueOf(entry.getValue())))
+                    .forEach(entry -> {
+                        mergedValues.remove(entry.getKey());
+                    });
+        return mergedValues;
+    }
+
     private String createWallet(String requestId, Map<String, Object> parameters) {
         List<String> params = (ArrayList<String>) parameters.get("params");
         String name = params.get(0);
@@ -382,17 +397,44 @@ public class WalletApiScript extends Script {
 
         String emailAddress = null;
         String phoneNumber = null;
-        String sanitizedPrivateInfo = null;
+        String existingPrivateInfo = wallet.getPrivateInfo();
+        String sanitizedPrivateInfo;
         if (StringUtils.isNotBlank(privateInfo)) {
             Map<String, String> privateInfoMap = convert(privateInfo);
             emailAddress = privateInfoMap.get("emailAddress");
             phoneNumber = privateInfoMap.get("phoneNumber");
-            Map<String, String> sanitizedMap = privateInfoMap
+            Map<String, Object> sanitizedMap = privateInfoMap
                 .entrySet()
                 .stream()
                 .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            sanitizedPrivateInfo = toJson(sanitizedMap);
+            if (StringUtils.isNotBlank(existingPrivateInfo)) {
+                Map<String, Object> existingPrivateInfoMap = convert(existingPrivateInfo);
+                sanitizedPrivateInfo = toJson(mergeValues(existingPrivateInfoMap, sanitizedMap));
+            } else {
+                sanitizedPrivateInfo = toJson(sanitizedMap);
+            }
+        } else {
+            sanitizedPrivateInfo = existingPrivateInfo;
+        }
+
+        String existingPublicInfo = wallet.getPublicInfo();
+        String sanitizedPublicInfo;
+        if (StringUtils.isNotBlank(publicInfo)) {
+            Map<String, String> publicInfoMap = convert(publicInfo);
+            Map<String, Object> sanitizedMap = publicInfoMap
+                .entrySet()
+                .stream()
+                .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            if (StringUtils.isNotBlank(existingPublicInfo)) {
+                Map<String, Object> existingPublicInfoMap = convert(existingPublicInfo);
+                sanitizedPublicInfo = toJson(mergeValues(existingPublicInfoMap, sanitizedMap));
+            } else {
+                sanitizedPublicInfo = toJson(sanitizedMap);
+            }
+        } else {
+            sanitizedPublicInfo = existingPublicInfo;
         }
 
         LOG.info("wallet_update received email: {}", emailAddress);
@@ -473,7 +515,7 @@ public class WalletApiScript extends Script {
 
         try {
             wallet.setName(name);
-            wallet.setPublicInfo(publicInfo);
+            wallet.setPublicInfo(sanitizedPublicInfo);
             wallet.setPrivateInfo(sanitizedPrivateInfo);
             if (verifiedEmail != null) {
                 wallet.setEmailAddress(verifiedEmail);
