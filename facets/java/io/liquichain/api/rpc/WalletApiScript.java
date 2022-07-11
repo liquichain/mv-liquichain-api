@@ -421,16 +421,19 @@ public class WalletApiScript extends Script {
         String existingPublicInfo = wallet.getPublicInfo();
         String sanitizedPublicInfo;
         if (StringUtils.isNotBlank(publicInfo)) {
-            Map<String, String> publicInfoMap = convert(publicInfo);
-            publicInfoMap.entrySet().stream()
-                         .forEach(entry -> {
-                             LOG.info("entry, key: {}, value: {}", entry.getKey(), entry.getValue());
-                         });
-            Map<String, Object> sanitizedMap = publicInfoMap
-                .entrySet()
-                .stream()
-                .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, Object> publicInfoMap = convert(publicInfo);
+            Map<String, Object> sanitizedMap = new HashMap<>();
+            for (Map.Entry<String, Object> entry : publicInfoMap.entrySet()) {
+                LOG.info("entry, key: {}, value: {}", entry.getKey(), entry.getValue());
+                if (!FILTERED_KEYS.contains(entry.getKey())) {
+                    sanitizedMap.put(entry.getKey(), entry.getValue());
+                }
+            }
+//            Map<String, Object> sanitizedMap = publicInfoMap
+//                .entrySet()
+//                .stream()
+//                .filter(entry -> !FILTERED_KEYS.contains(entry.getKey()))
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             if (StringUtils.isNotBlank(existingPublicInfo)) {
                 Map<String, Object> existingPublicInfoMap = convert(existingPublicInfo);
                 sanitizedPublicInfo = toJson(mergeValues(existingPublicInfoMap, sanitizedMap));
