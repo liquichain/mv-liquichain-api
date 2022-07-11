@@ -422,6 +422,10 @@ public class WalletApiScript extends Script {
         String sanitizedPublicInfo;
         if (StringUtils.isNotBlank(publicInfo)) {
             Map<String, String> publicInfoMap = convert(publicInfo);
+            publicInfoMap.entrySet().stream()
+                         .forEach(entry -> {
+                             LOG.info("entry, key: {}, value: {}", entry.getKey(), entry.getValue());
+                         });
             Map<String, Object> sanitizedMap = publicInfoMap
                 .entrySet()
                 .stream()
