@@ -233,12 +233,12 @@ public class WalletApiScript extends Script {
         }
         Map<String, Object> mergedValues = new HashMap<>(existingValues);
         mergedValues.putAll(newValues);
-        mergedValues.entrySet().stream()
-                    .filter(entry -> entry.getValue() instanceof String && "null".equalsIgnoreCase(
-                        String.valueOf(entry.getValue())))
-                    .forEach(entry -> {
-                        mergedValues.remove(entry.getKey());
-                    });
+        Map<String, Object> itemsToRemove = mergedValues
+            .entrySet().stream()
+            .filter(entry -> entry.getValue() instanceof String
+                && "null".equalsIgnoreCase(String.valueOf(entry.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        itemsToRemove.forEach((key, value) -> mergedValues.remove(key));
         return mergedValues;
     }
 
