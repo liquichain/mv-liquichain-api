@@ -27,9 +27,9 @@ public class EthScannScript extends Script {
 
     private static final Logger LOG = LoggerFactory.getLogger(EthScannScript.class);
 
-    private CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-    private RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-    private Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
 
     private String result;
 
@@ -94,6 +94,16 @@ public class EthScannScript extends Script {
         return "0x" + new BigInteger(i).toString(16).toLowerCase();
     }
 
+    private static String normalizeHash(String hash) {
+        if (hash == null) {
+            return null;
+        }
+        if (hash.startsWith("0x")) {
+            return hash.substring(2).toLowerCase();
+        }
+        return hash.toLowerCase();
+    }
+
     private String createResponse(String status, String message, String result) {
         String res = "{\n";
         res += "  \"status\": " + 1 + ",\n";
@@ -108,7 +118,7 @@ public class EthScannScript extends Script {
         try {
             Wallet wallet = crossStorageApi.find(defaultRepo, hash.toLowerCase(), Wallet.class);
             return createResponse("1", "OK-Missing/Invalid API Key, rate limit of 1/5sec applied",
-                    "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
+                "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
         } catch (Exception e) {
             return createResponse("0", "Resource not found", e.getMessage());
         }
@@ -116,19 +126,22 @@ public class EthScannScript extends Script {
 
     public String getTransactionList(String hash) {
         ObjectMapper mapper = new ObjectMapper();
+        String walletId = normalizeHash(hash);
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
-                .by("fromHexHash", hash.toLowerCase())
-                // .limit(offset + limit)
-                .getResults();
+                                                        .by("fromHexHash", walletId)
+                                                        .getResults();
         List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class)
-                .by("toHexHash", hash.toLowerCase())
-                // .limit(offset + limit)
-                .getResults();
+                                                          .by("toHexHash", walletId)
+                                                          .getResults();
+        List<Transaction> transactionsInitiated = crossStorageApi.find(defaultRepo, Transaction.class)
+                                                                 .by("initiator", walletId)
+                                                                 .getResults();
         transactions.addAll(transactionsTo);
-      	// we order by date descending
+        transactions.addAll(transactionsInitiated);
+        // we order by newest to oldest
         transactions = transactions.stream()
-                .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
-                .collect(Collectors.toList());
+                                   .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
+                                   .collect(Collectors.toList());
         // check offset and limit
         if (transactions.size() <= offset) {
             transactions = new ArrayList<>();
