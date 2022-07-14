@@ -106,7 +106,7 @@ public class EthScannScript extends Script {
 
     private String createResponse(String status, String message, String result) {
         String res = "{\n";
-        res += "  \"status\": " + status + ",\n";
+        res += "  \"status\": \"" + status + "\",\n";
         res += " \"message\" : \"" + message + "\",\n";
         res += " \"result\" : " + result + "\n";
         res += "}";
