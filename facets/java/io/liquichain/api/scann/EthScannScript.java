@@ -123,10 +123,10 @@ public class EthScannScript extends Script {
         }
     }
 
-    private <T> T convert(Object data) {
+    private <T> T convert(String data) {
         T value = null;
         try {
-            value = mapper.readValue(mapper.writeValueAsString(data), new TypeReference<T>() {
+            value = mapper.readValue(data, new TypeReference<T>() {
             });
         } catch (Exception e) {
             LOG.error("Failed to parse data: {}", data, e);
