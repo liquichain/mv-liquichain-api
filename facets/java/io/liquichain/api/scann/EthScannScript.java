@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.math.BigInteger;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
@@ -22,14 +23,13 @@ import org.meveo.api.persistence.CrossStorageApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 public class EthScannScript extends Script {
-
     private static final Logger LOG = LoggerFactory.getLogger(EthScannScript.class);
 
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private String result;
 
@@ -106,26 +106,46 @@ public class EthScannScript extends Script {
 
     private String createResponse(String status, String message, String result) {
         String res = "{\n";
-        res += "  \"status\": " + 1 + ",\n";
+        res += "  \"status\": " + status + ",\n";
         res += " \"message\" : \"" + message + "\",\n";
         res += " \"result\" : " + result + "\n";
         res += "}";
-        // LOG.info("response:{}", res);
         return res;
     }
 
     private String getBalance(String hash) {
         try {
             Wallet wallet = crossStorageApi.find(defaultRepo, hash.toLowerCase(), Wallet.class);
-            return createResponse("1", "OK-Missing/Invalid API Key, rate limit of 1/5sec applied",
+            return createResponse("success", "OK-Missing/Invalid API Key, rate limit of 1/5sec applied",
                 "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
         } catch (Exception e) {
-            return createResponse("0", "Resource not found", e.getMessage());
+            return createResponse("fail", "Resource not found", e.getMessage());
         }
     }
 
+    private <T> T convert(Object data) {
+        T value = null;
+        try {
+            value = mapper.readValue(mapper.writeValueAsString(data), new TypeReference<T>() {
+            });
+        } catch (Exception e) {
+            LOG.error("Failed to parse data: {}", data, e);
+        }
+        return value;
+    }
+
+    private String toJson(Object data) {
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(data);
+        } catch (Exception e) {
+            LOG.error("Failed to convert to json: {}", data, e);
+        }
+        return json;
+    }
+
     public String getTransactionList(String hash) {
-        ObjectMapper mapper = new ObjectMapper();
+
         String walletId = normalizeHash(hash);
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
                                                         .by("fromHexHash", walletId)
@@ -148,22 +168,26 @@ public class EthScannScript extends Script {
         } else {
             transactions = transactions.subList(offset, Math.min(offset + limit, transactions.size()));
         }
-        String result = "[";
-        String sep = "";
-        for (Transaction transac : transactions) {
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (Transaction transaction : transactions) {
             Map<String, Object> map = new HashMap<>();
-            map.put("blockNumber", transac.getBlockNumber());
-            map.put("timeStamp", transac.getCreationDate());
-            map.put("hash", transac.getHexHash());
-            map.put("nonce", this.toBigHex(transac.getNonce()));
-            map.put("blockHash", transac.getBlockHash());
-            map.put("transactionIndex", transac.getTransactionIndex());
-            map.put("from", "0x" + transac.getFromHexHash());
-            map.put("to", "0x" + transac.getToHexHash());
-            map.put("value", "0x" + (new BigInteger(transac.getValue())).toString(16));
-            map.put("data", transac.getData());
+            boolean hasCreationDate = transaction.getCreationDate() != null;
+            Long creationDate = hasCreationDate? transaction.getCreationDate().toEpochMilli() : null;
+            Map<String, Object> data = convert(transaction.getData());
+            map.put("blockNumber", transaction.getBlockNumber());
+            map.put("timeStamp", creationDate);
+            map.put("hash", transaction.getHexHash());
+            map.put("nonce", this.toBigHex(transaction.getNonce()));
+            map.put("blockHash", transaction.getBlockHash());
+            map.put("transactionIndex", transaction.getTransactionIndex());
+            map.put("from", "0x" + transaction.getFromHexHash());
+            map.put("to", "0x" + transaction.getToHexHash());
+            map.put("initiatedBy", "0x" + transaction.getInitiator());
+            map.put("value", "0x" + (new BigInteger(transaction.getValue())).toString(16));
+            map.put("data",  data);
             map.put("gas", "0");
-            map.put("gasPrice", "0x" + transac.getGasPrice());
+            map.put("gasPrice", "0x" + transaction.getGasPrice());
             map.put("isError", "0");
             map.put("txreceipt_status", "1");
             map.put("input", "0x");
@@ -171,14 +195,8 @@ public class EthScannScript extends Script {
             map.put("cumulativeGasUsed", "");
             map.put("gasUsed", "");
             map.put("confirmations", "1");
-            try {
-                result += sep + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(map);
-            } catch (JsonProcessingException e) {
-                LOG.error("Failed to convert map to json", e);
-            }
-            sep = ",";
+            results.add(map);
         }
-        result += "]";
-        return createResponse("1", "OK", result);
+        return createResponse("success", "Balance history retrieved.", toJson(results));
     }
 }
