@@ -499,6 +499,20 @@ class BesuProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
+        LOG.info("data: {}", rawTransaction.getData());
+        if (rawTransaction.getData() != null) {
+            String extraData = rawTransaction.getData();
+            String to = extraData.substring(34, 74);
+            String receiver = normalizeHash(rawTransaction.getTo());
+            BigInteger value = new BigInteger(extraData.substring(74), 16);
+            BigInteger gasLimit = rawTransaction.getGasLimit();
+            BigInteger gasPrice = rawTransaction.getGasPrice();
+
+            LOG.info("receiver: {}", receiver);
+            LOG.info("to:{} , value:{}", to, value);
+            LOG.info("gasLimit:{} , gasPrice:{}", gasLimit, gasPrice);
+        }
+
         result = callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
         if (hasError) {
@@ -553,8 +567,7 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setSignedHash(data);
                 transaction.setData(extraData);
                 transaction.setBlockNumber("1");
-                transaction.setBlockHash(
-                    "e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
+                transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
                 transaction.setV(v);
                 transaction.setS(s);
