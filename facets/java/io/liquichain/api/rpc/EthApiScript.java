@@ -508,6 +508,7 @@ class BesuProcessor extends BlockchainProcessor {
             BigInteger gasLimit = rawTransaction.getGasLimit();
             BigInteger gasPrice = rawTransaction.getGasPrice();
 
+            LOG.info("RawTransaction: {}", rawTransaction);
             LOG.info("receiver: {}", receiver);
             LOG.info("to:{} , value:{}", to, value);
             LOG.info("gasLimit:{} , gasPrice:{}", gasLimit, gasPrice);
