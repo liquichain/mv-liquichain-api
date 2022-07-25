@@ -503,14 +503,13 @@ class BesuProcessor extends BlockchainProcessor {
         if (rawTransaction.getData() != null) {
             String extraData = rawTransaction.getData();
             String to = extraData.substring(34, 74);
-            String receiver = normalizeHash(rawTransaction.getTo());
+            String receiver = rawTransaction.getTo();
             BigInteger value = new BigInteger(extraData.substring(74), 16);
             BigInteger gasLimit = rawTransaction.getGasLimit();
             BigInteger gasPrice = rawTransaction.getGasPrice();
 
-            LOG.info("RawTransaction: {}", rawTransaction);
             LOG.info("receiver: {}", receiver);
-            LOG.info("to:{} , value:{}", to, value);
+            LOG.info("to:{}, value:{}", to, value);
             LOG.info("gasLimit:{} , gasPrice:{}", gasLimit, gasPrice);
         }
 
