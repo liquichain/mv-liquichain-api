@@ -13,5 +13,11 @@
   "serializeResult" : false,
   "contentType" : "application/json",
   "basePath" : "jsonrpc",
-  "path" : "/"
+  "path" : "/",
+  "pool" : {
+    "usePool" : true,
+    "min" : "5",
+    "max" : "20",
+    "maxIdleTime" : "60"
+  }
 }
