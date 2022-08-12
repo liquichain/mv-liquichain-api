@@ -1,0 +1,20 @@
+{
+  "code" : "checkPhoneNumber",
+  "description" : "Check if phone number exists",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.verification.CheckVerifiedPhoneNumber",
+  "synchronous" : true,
+  "method" : "GET",
+  "parameterMappings" : [ ],
+  "pathParameters" : [ "phoneNumber" ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : false,
+  "contentType" : "application/json",
+  "basePath" : "checkPhoneNumber",
+  "path" : "/{phoneNumber}",
+  "pool" : {
+    "usePool" : false
+  }
+}
