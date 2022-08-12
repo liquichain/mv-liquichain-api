@@ -1,8 +1,14 @@
 {
   "code" : "io.liquichain.api.verification.CheckVerifiedPhoneNumber",
   "description" : "Check if phone number is already registered",
-  "inputs" : [ ],
-  "outputs" : [ ],
+  "inputs" : [ {
+    "name" : "phoneNumber",
+    "type" : "String"
+  } ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
