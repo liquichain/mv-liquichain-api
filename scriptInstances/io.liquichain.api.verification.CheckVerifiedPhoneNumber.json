@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.verification.CheckVerifiedPhoneNumber",
+  "description" : "Check if phone number is already registered",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
