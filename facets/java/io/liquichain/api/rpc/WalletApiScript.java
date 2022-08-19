@@ -511,6 +511,7 @@ public class WalletApiScript extends Script {
 
         try {
             keycloakUserService.updateUser(name, publicInfo, privateInfo, wallet);
+
         } catch (BusinessException e) {
             return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
         }

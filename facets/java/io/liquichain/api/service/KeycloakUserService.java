@@ -208,7 +208,7 @@ public class KeycloakUserService extends Script {
         String updateResult;
         try {
             String requestUrl = USERS_URL + "/" + userId;
-            LOG.info("requestUrl: {}", requestUrl);
+            LOG.info("update url: {}", requestUrl);
             LOG.info("userDetails: {}", userDetails);
             response = client.target(requestUrl)
                              .request(MediaType.APPLICATION_JSON)
