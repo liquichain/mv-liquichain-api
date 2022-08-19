@@ -224,7 +224,7 @@ public class KeycloakUserService extends Script {
                 response.close();
             }
         }
-        return postResult;
+        return updateResult;
     }
 
     public void createMeveoUser(String name, String username, String emailAddress) throws BusinessException {
