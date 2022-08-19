@@ -286,13 +286,14 @@ public class KeycloakUserService extends Script {
         if (isNotEmptyMap(currentPublicInfoMap)) {
             currentUsername = String.valueOf(currentPublicInfoMap.get("username"));
         }
-        LOG.info("public info currentUsername: {}", currentUsername);
 
         if (isNotEmptyMap(currentPrivateInfoMap)) {
             currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
                 ? currentPrivateInfoMap.get("username")
                 : currentUsername;
         }
+
+        LOG.info("currentUsername: {}", currentUsername);
 
         if (StringUtils.isBlank(currentUsername)) {
             createUser(name, publicInfo, privateInfo);
@@ -346,6 +347,17 @@ public class KeycloakUserService extends Script {
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
+                    if(!StringUtils.isBlank(password)){
+                        LOG.info("new password: {}", password);
+                        List<Map<String, Object>> credentials = new ArrayList<>();
+                        Map<String, Object> credentialMap = new HashMap<>();
+                        credentialMap.put("type", "password");
+                        credentialMap.put("value", password);
+                        credentialMap.put("temporary", false);
+                        credentials.add(credentialMap);
+                        userMap.put("credentials", credentials);
+                    }
+
                     String userDetails = toJson(userMap);
                     String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
                     LOG.info("updateResult: {}", updateResult);
