@@ -294,7 +294,6 @@ public class KeycloakUserService extends Script {
         }
 
         LOG.info("currentUsername: {}", currentUsername);
-
         if (StringUtils.isBlank(currentUsername)) {
             createUser(name, publicInfo, privateInfo);
         } else {
