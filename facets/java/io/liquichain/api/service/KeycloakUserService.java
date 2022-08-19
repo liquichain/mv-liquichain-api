@@ -205,15 +205,18 @@ public class KeycloakUserService extends Script {
 
     public String updateKeycloakUser(String token, String userId, String userDetails) throws BusinessException {
         Response response = null;
-        String postResult;
+        String updateResult;
         try {
-            response = client.target(USERS_URL + "/" + userId)
+            String requestUrl = USERS_URL + "/" + userId;
+            LOG.info("requestUrl: {}", requestUrl);
+            LOG.info("userDetails: {}", userDetails);
+            response = client.target(requestUrl)
                              .request(MediaType.APPLICATION_JSON)
                              .header("Authorization", "Bearer " + token)
                              .put(Entity.json(userDetails));
-            postResult = response.readEntity(String.class);
-            if (postResult != null && postResult.contains("error")) {
-                LOG.error("Failed to update keycloak user: " + postResult);
+            updateResult = response.readEntity(String.class);
+            if (updateResult != null && updateResult.contains("error")) {
+                LOG.error("Failed to update keycloak user: " + updateResult);
                 throw new BusinessException("Failed to update keycloak user.");
             }
         } finally {
