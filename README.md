@@ -1646,6 +1646,8 @@ For this to work follow the steps below to setup `keycloak` and `meveo` to allow
 13. Click `Realm Settings` at the sidebar menu.
 14. Select `Login` tab and select:
     - **Edit username**: `on`
+    - **Login with email**: `off`
+    - **Duplicate emails**: `on`
 
 ### Configure password rules in `keycloak`
 1. Login to keycloak administration console.
