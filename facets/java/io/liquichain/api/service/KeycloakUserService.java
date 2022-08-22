@@ -322,13 +322,16 @@ public class KeycloakUserService extends Script {
             }
             String currentEmailAddress = verifiedEmail != null ? verifiedEmail.getEmail() : null;
 
-            boolean hasUsername = !"null".equalsIgnoreCase(username) && StringUtils.isNotBlank(username);
+            boolean hasPassword = !("null".equalsIgnoreCase(password) || StringUtils.isBlank(password));
+            boolean hasUsername = !("null".equalsIgnoreCase(username) || StringUtils.isBlank(username));
             boolean differentName = !String.valueOf(name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
 
-            boolean shouldUpdateUser = hasUsername && (differentName || differentEmailAddress || differentUsername);
+            boolean shouldUpdateUser = hasPassword || hasUsername
+                && (differentName || differentEmailAddress || differentUsername);
 
+            LOG.info("hasPassword: {}", hasPassword);
             LOG.info("hasUsername: {}", hasUsername);
             LOG.info("name: {} => {}", wallet.getName(), name);
             LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
@@ -349,8 +352,7 @@ public class KeycloakUserService extends Script {
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
-                    if(!StringUtils.isBlank(password)){
-                        LOG.info("new password: {}", password);
+                    if (!StringUtils.isBlank(password)) {
                         List<Map<String, Object>> credentials = new ArrayList<>();
                         Map<String, Object> credentialMap = new HashMap<>();
                         credentialMap.put("type", "password");
