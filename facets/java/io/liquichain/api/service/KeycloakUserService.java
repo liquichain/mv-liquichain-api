@@ -327,7 +327,6 @@ public class KeycloakUserService extends Script {
             boolean differentName = !String.valueOf(name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
-
             boolean shouldUpdateUser = hasPassword || hasUsername
                 && (differentName || differentEmailAddress || differentUsername);
 
