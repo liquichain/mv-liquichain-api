@@ -3,7 +3,7 @@
   "description" : "eth json rpc api",
   "secured" : false,
   "checkPathParams" : true,
-  "serviceCode" : "io.liquichain.api.rpc.EthApiScript",
+  "serviceCode" : "io.liquichain.api.rpc.EthApiProxyKlubcoinScript",
   "synchronous" : true,
   "method" : "POST",
   "parameterMappings" : [ ],
@@ -13,5 +13,8 @@
   "serializeResult" : false,
   "contentType" : "application/json",
   "basePath" : "jsonrpc",
-  "path" : "/"
+  "path" : "/",
+  "pool" : {
+    "usePool" : false
+  }
 }
