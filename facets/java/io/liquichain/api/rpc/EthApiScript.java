@@ -17,11 +17,11 @@ import io.liquichain.api.rpc.BlockchainProcessor;
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     protected ParamBean config = paramBeanFactory.getInstance();
 
-    private String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
-    private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
+    private final String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
+    private final BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
 
     protected String result;
 

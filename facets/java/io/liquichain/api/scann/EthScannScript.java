@@ -27,9 +27,9 @@ public class EthScannScript extends Script {
 
     private static final Logger LOG = LoggerFactory.getLogger(EthScannScript.class);
 
-    private CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-    private RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-    private Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
 
     private String result;
 

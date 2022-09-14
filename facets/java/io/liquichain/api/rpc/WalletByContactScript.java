@@ -33,7 +33,7 @@ public class WalletByContactScript extends Script {
                     .by("inList phoneNumber", this.contactHashes)
                     .getResults()
                     .stream()
-                    .map(wallet -> wallet.getUuid())
+                    .map(Wallet::getUuid)
                     .collect(Collectors.toList());
 
             result = new Gson().toJson(walletHashes);

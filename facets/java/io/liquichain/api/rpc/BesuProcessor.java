@@ -9,7 +9,6 @@ import java.math.BigInteger;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
-import javax.ws.rs.ext.*;
 
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.model.customEntities.Transaction;
@@ -22,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.web3j.crypto.*;
-import org.web3j.utils.*;
 
 import io.liquichain.api.rpc.BlockchainProcessor;
 
@@ -30,8 +28,8 @@ public class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
     private static final Client client = ClientBuilder.newClient();
 
-    private String BESU_API_URL =
-            config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+    private final String BESU_API_URL =
+        config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
     public final String ORIGIN_WALLET = "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623".toLowerCase();
     // config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
 
@@ -67,8 +65,8 @@ public class BesuProcessor extends BlockchainProcessor {
         String responseBody = null;
         try {
             response = client.target(BESU_API_URL)
-                    .request(MediaType.APPLICATION_JSON)
-                    .post(Entity.json(body));
+                             .request(MediaType.APPLICATION_JSON)
+                             .post(Entity.json(body));
             responseBody = response.readEntity(String.class);
         } finally {
             if (response != null) {
@@ -82,15 +80,15 @@ public class BesuProcessor extends BlockchainProcessor {
     private synchronized String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         Object id = parameters.get("id");
         String idFormat =
-                id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
+            id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
         String requestBody = new StringBuilder()
-                .append("{")
-                .append(String.format(idFormat, id))
-                .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
-                .append(String.format("\"method\":\"%s\",", parameters.get("method")))
-                .append(String.format("\"params\":%s", new Gson().toJson(parameters.get("params"))))
-                .append("}")
-                .toString();
+            .append("{")
+            .append(String.format(idFormat, id))
+            .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
+            .append(String.format("\"method\":\"%s\",", parameters.get("method")))
+            .append(String.format("\"params\":%s", new Gson().toJson(parameters.get("params"))))
+            .append("}")
+            .toString();
         try {
             return callProxy(requestBody);
         } catch (Exception e) {
@@ -119,13 +117,13 @@ public class BesuProcessor extends BlockchainProcessor {
         String transactionHash = normalizeHash(Hash.sha3(data));
         try {
             Transaction existingTransaction = crossStorageApi
-                    .find(defaultRepo, Transaction.class)
-                    .by("hexHash", transactionHash).getResult();
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", transactionHash).getResult();
             if (existingTransaction != null) {
                 return createErrorResponse(
-                        requestId,
-                        TRANSACTION_REJECTED,
-                        String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
+                    requestId,
+                    TRANSACTION_REJECTED,
+                    String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
             }
         } catch (Exception e) {
             return createErrorResponse(requestId, RESOURCE_NOT_FOUND, e.getMessage());
@@ -174,8 +172,8 @@ public class BesuProcessor extends BlockchainProcessor {
                 } else {
                     type = extractJsonValue(extraData, "type", "transfer");
                     extraData = "transfer".equals(type)
-                            ? "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}"
-                            : extraData;
+                        ? "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}"
+                        : extraData;
                 }
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
@@ -190,7 +188,7 @@ public class BesuProcessor extends BlockchainProcessor {
                 transaction.setData(extraData);
                 transaction.setBlockNumber("1");
                 transaction.setBlockHash(
-                        "e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
+                    "e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
                 transaction.setV(v);
                 transaction.setS(s);

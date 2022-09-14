@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class BlockchainProcessor extends Script {
     private static final Map<String, Object[]> TRANSACTION_HOOKS = new HashMap<>();
 
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-    private ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
 
     protected final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     protected final Repository defaultRepo = repositoryService.findDefaultRepository();
@@ -52,7 +51,7 @@ public class BlockchainProcessor extends Script {
         isHookAdded = !TRANSACTION_HOOKS.containsKey(key);
         if (isHookAdded) {
             Pattern pattern = Pattern.compile(regex);
-            TRANSACTION_HOOKS.put(key, new Object[]{pattern, script});
+            TRANSACTION_HOOKS.put(key, new Object[] {pattern, script});
         }
         return isHookAdded;
     }
@@ -88,7 +87,7 @@ public class BlockchainProcessor extends Script {
                 LOG.info("detected orderId:{}", data);
             }
         } catch (Exception ex) {
-            LOG.info("error while detecting order:{}", ex);
+            LOG.info("error while detecting order", ex);
         }
     }
 
@@ -127,9 +126,9 @@ public class BlockchainProcessor extends Script {
         Wallet walletWithSameName = null;
         try {
             walletWithSameName = crossStorageApi
-                    .find(defaultRepo, Wallet.class)
-                    .by("name", name)
-                    .getResult();
+                .find(defaultRepo, Wallet.class)
+                .by("name", name)
+                .getResult();
         } catch (Exception e) {
             // do nothing, we want wallet name to be unique
         }
@@ -149,10 +148,10 @@ public class BlockchainProcessor extends Script {
             VerifiedEmail existingEmail = null;
             try {
                 existingEmail = crossStorageApi
-                        .find(defaultRepo, VerifiedEmail.class)
-                        .by("email", email)
-                        .by("not-inList walletId", Arrays.asList(walletId))
-                        .getResult();
+                    .find(defaultRepo, VerifiedEmail.class)
+                    .by("email", email)
+                    .by("not-inList walletId", List.of(walletId))
+                    .getResult();
             } catch (Exception e) {
                 // do nothing, we want email address to be unique
             }
@@ -166,17 +165,17 @@ public class BlockchainProcessor extends Script {
     }
 
     protected String validatePhoneNumber(String phoneNumber, String walletId)
-            throws BusinessException {
+        throws BusinessException {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
             throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
         }
         VerifiedPhoneNumber existingPhoneNumber = null;
         try {
             existingPhoneNumber = crossStorageApi
-                    .find(defaultRepo, VerifiedPhoneNumber.class)
-                    .by("phoneNumber", phoneNumber)
-                    .by("not-inList walletId", Arrays.asList(walletId))
-                    .getResult();
+                .find(defaultRepo, VerifiedPhoneNumber.class)
+                .by("phoneNumber", phoneNumber)
+                .by("not-inList walletId", List.of(walletId))
+                .getResult();
         } catch (Exception e) {
             // do nothing, we want wallet phoneNumber to be unique
         }
@@ -195,15 +194,15 @@ public class BlockchainProcessor extends Script {
         String s = "0x" + signature.substring(66, 130);
         String v = "0x" + signature.substring(130, 132);
         String publicKey = Sign
-                .signedMessageHashToKey(
-                        messageHash,
-                        new Sign.SignatureData(
-                                Numeric.hexStringToByteArray(v)[0],
-                                Numeric.hexStringToByteArray(r),
-                                Numeric.hexStringToByteArray(s)
-                        )
+            .signedMessageHashToKey(
+                messageHash,
+                new Sign.SignatureData(
+                    Numeric.hexStringToByteArray(v)[0],
+                    Numeric.hexStringToByteArray(r),
+                    Numeric.hexStringToByteArray(s)
                 )
-                .toString(16);
+            )
+            .toString(16);
         String address = Keys.getAddress(publicKey);
         LOG.info("address: " + address);
         return address;
