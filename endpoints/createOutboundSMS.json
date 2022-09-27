@@ -1,0 +1,30 @@
+{
+  "code" : "createOutboundSMS",
+  "description" : "Create Outbound SMS Entity for Testing",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.verification.CreateOutboundSMS",
+  "synchronous" : true,
+  "method" : "POST",
+  "parameterMappings" : [ {
+    "serviceParameter" : "otp",
+    "multivalued" : false,
+    "parameterName" : "otp",
+    "valueRequired" : false
+  }, {
+    "serviceParameter" : "to",
+    "multivalued" : false,
+    "parameterName" : "to",
+    "valueRequired" : false
+  } ],
+  "pathParameters" : [ ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : false,
+  "contentType" : "application/json",
+  "basePath" : "createOutboundSMS",
+  "path" : "/",
+  "pool" : {
+    "usePool" : false
+  }
+}

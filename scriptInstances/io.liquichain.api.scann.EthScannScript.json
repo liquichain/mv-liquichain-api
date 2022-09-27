@@ -25,9 +25,9 @@
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ {
     "groupId" : "org.web3j",
-    "artifactId" : "core",
+    "artifactId" : "crypto",
     "version" : "4.8.9",
-    "coordinates" : "org.web3j:core:4.8.9"
+    "coordinates" : "org.web3j:crypto:4.8.9"
   } ],
   "importScriptInstances" : [ ]
 }

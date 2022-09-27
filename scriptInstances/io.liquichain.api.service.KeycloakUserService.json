@@ -1,5 +1,5 @@
 {
-  "code" : "io.liquichain.api.rpc.EthApiUtils",
+  "code" : "io.liquichain.api.service.KeycloakUserService",
   "inputs" : [ ],
   "outputs" : [ ],
   "generateOutputs" : false,

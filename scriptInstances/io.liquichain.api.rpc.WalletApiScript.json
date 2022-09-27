@@ -1,5 +1,6 @@
 {
-  "code" : "io.liquichain.api.rpc.BesuProcessor",
+  "code" : "io.liquichain.api.rpc.WalletApiScript",
+  "description" : "json rpc for wallet ops",
   "inputs" : [ ],
   "outputs" : [ {
     "name" : "result",
@@ -8,8 +9,8 @@
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
-  "executionRoles" : [ ],
+  "executionRoles" : [ "APP_USER" ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ "io.liquichain.api.rpc.BlockchainProcessor" ]
+  "importScriptInstances" : [ "io.liquichain.api.service.KeycloakUserService" ]
 }
