@@ -1,52 +1,65 @@
-const verifyOtpForPasswordReset = async (parameters) =>  {
-	const baseUrl = window.location.origin;
-	const url = new URL(`${window.location.pathname.split('/')[1]}/rest/verifyOtpForPasswordReset/${parameters.to}`, baseUrl);
-	return fetch(url.toString(), {
-		method: 'POST', 
-		headers : new Headers({
- 			'Content-Type': 'application/json'
-		}),
-		body: JSON.stringify({
-			otp : parameters.otp,
-			password : parameters.password
-		})
-	});
+import EndpointInterface from "#{API_BASE_URL}/api/rest/endpoint/EndpointInterface.js";
+
+// the request schema, this should be updated
+// whenever changes to the endpoint parameters are made
+// this is important because this is used to validate and parse the request parameters
+const requestSchema = {
+  "title" : "verifyOtpForPasswordResetRequest",
+  "id" : "verifyOtpForPasswordResetRequest",
+  "default" : "Schema definition for verifyOtpForPasswordReset",
+  "$schema" : "http://json-schema.org/draft-07/schema",
+  "type" : "object",
+  "properties" : {
+    "password" : {
+      "title" : "password",
+      "type" : "string",
+      "minLength" : 1
+    },
+    "otp" : {
+      "title" : "otp",
+      "type" : "string",
+      "minLength" : 1
+    }
+  }
 }
 
-const verifyOtpForPasswordResetForm = (container) => {
-	const html = `<form id='verifyOtpForPasswordReset-form'>
-		<div id='verifyOtpForPasswordReset-to-form-field'>
-			<label for='to'>to</label>
-			<input type='text' id='verifyOtpForPasswordReset-to-param' name='to'/>
-		</div>
-		<div id='verifyOtpForPasswordReset-otp-form-field'>
-			<label for='otp'>otp</label>
-			<input type='text' id='verifyOtpForPasswordReset-otp-param' name='otp'/>
-		</div>
-		<div id='verifyOtpForPasswordReset-password-form-field'>
-			<label for='password'>password</label>
-			<input type='text' id='verifyOtpForPasswordReset-password-param' name='password'/>
-		</div>
-		<button type='button'>Test</button>
-	</form>`;
-
-	container.insertAdjacentHTML('beforeend', html)
-
-	const to = container.querySelector('#verifyOtpForPasswordReset-to-param');
-	const otp = container.querySelector('#verifyOtpForPasswordReset-otp-param');
-	const password = container.querySelector('#verifyOtpForPasswordReset-password-param');
-
-	container.querySelector('#verifyOtpForPasswordReset-form button').onclick = () => {
-		const params = {
-			to : to.value !== "" ? to.value : undefined,
-			otp : otp.value !== "" ? otp.value : undefined,
-			password : password.value !== "" ? password.value : undefined
-		};
-
-		verifyOtpForPasswordReset(params).then(r => r.text().then(
-				t => alert(t)
-			));
-	};
+// the response schema, this should be updated
+// whenever changes to the endpoint parameters are made
+// this is important because this could be used to parse the result
+const responseSchema = {
+  "title" : "verifyOtpForPasswordResetResponse",
+  "id" : "verifyOtpForPasswordResetResponse",
+  "default" : "Schema definition for verifyOtpForPasswordReset",
+  "$schema" : "http://json-schema.org/draft-07/schema",
+  "type" : "object",
+  "properties" : {
+    "result" : {
+      "title" : "result",
+      "type" : "string",
+      "minLength" : 1
+    }
+  }
 }
 
-export { verifyOtpForPasswordReset, verifyOtpForPasswordResetForm };
+// should contain offline mock data, make sure it adheres to the response schema
+const mockResult = {};
+
+class verifyOtpForPasswordReset extends EndpointInterface {
+	constructor() {
+		// name and http method, these are inserted when code is generated
+		super("verifyOtpForPasswordReset", "POST");
+		this.requestSchema = requestSchema;
+		this.responseSchema = responseSchema;
+		this.mockResult = mockResult;
+	}
+
+	getRequestSchema() {
+		return this.requestSchema;
+	}
+
+	getResponseSchema() {
+		return this.responseSchema;
+	}
+}
+
+export default new verifyOtpForPasswordReset();
