@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.verification.GetUsername",
+  "description" : "Get username based on email address",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
