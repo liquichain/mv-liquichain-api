@@ -37,6 +37,7 @@ public class WalletByContactScript extends Script {
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         LOG.debug("contactHashes: {}", this.contactHashes);
+
         if (contactHashes != null && contactHashes.size() > 0) {
             List<Wallet> wallets = crossStorageApi
                 .find(defaultRepo, Wallet.class)
@@ -48,6 +49,7 @@ public class WalletByContactScript extends Script {
                 .map(this::mapWalletHashAndContact)
                 .collect(Collectors.toList());
         }
+
     }
 
     private Map<String, String> mapWalletHashAndContact(Wallet wallet){
