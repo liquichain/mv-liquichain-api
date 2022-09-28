@@ -1,6 +1,5 @@
 package io.liquichain.api.rpc;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,7 +11,6 @@ import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
 
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +21,10 @@ public class WalletByContactScript extends Script {
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
 
-    private List<Map<String, String>> result;
+    private Map<String, String> result = null;
     private List<String> contactHashes;
 
-    public List<Map<String, String>> getResult() {
+    public Map<String, String> getResult() {
         return result;
     }
 
@@ -39,23 +37,12 @@ public class WalletByContactScript extends Script {
         LOG.debug("contactHashes: {}", this.contactHashes);
 
         if (contactHashes != null && contactHashes.size() > 0) {
-            List<Wallet> wallets = crossStorageApi
+            result = crossStorageApi
                 .find(defaultRepo, Wallet.class)
                 .by("inList phoneNumber", this.contactHashes)
-                .getResults();
-            LOG.debug("wallets: {}", new Gson().toJson(wallets));
-            result = wallets
+                .getResults()
                 .stream()
-                .map(this::mapWalletHashAndContact)
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
         }
-
-    }
-
-    private Map<String, String> mapWalletHashAndContact(Wallet wallet){
-        return new HashMap<>(){{
-            put("wallet", wallet.getUuid());
-            put("phone", wallet.getPhoneNumber().getUuid());
-        }};
     }
 }
