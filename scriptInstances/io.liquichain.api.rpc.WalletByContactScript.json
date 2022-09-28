@@ -6,7 +6,7 @@
   } ],
   "outputs" : [ {
     "name" : "result",
-    "type" : "List<Map<String,String>>"
+    "type" : "Map<String,String>"
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
