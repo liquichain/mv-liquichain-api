@@ -22,11 +22,11 @@ public class WalletByContactScript extends Script {
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
 
-    private String result;
+    private Map<String, String> result;
     private List<String> contactHashes;
 
-    public String getResult() {
-        return this.result;
+    public Map<String, String> getResult() {
+        return result;
     }
 
     public void setContactHashes(List<String> contactHashes) {
@@ -37,14 +37,15 @@ public class WalletByContactScript extends Script {
     public void execute(Map<String, Object> parameters) throws BusinessException {
         LOG.info("contactHashes: {}", this.contactHashes);
         if (contactHashes != null && contactHashes.size() > 0) {
-            Map<String, String> walletHashes = crossStorageApi
+            List<Wallet> wallets = crossStorageApi
                 .find(defaultRepo, Wallet.class)
                 .by("inList phoneNumber", this.contactHashes)
-                .getResults()
+                .getResults();
+            LOG.info("wallets: {}", new Gson().toJson(wallets));
+            result = wallets
                 .stream()
                 .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
-
-            result = new Gson().toJson(walletHashes);
+            LOG.info("result map: {}", new Gson().toJson(result));
         }
     }
 }
