@@ -12,7 +12,7 @@
   "returnedVariableName" : "result",
   "serializeResult" : true,
   "contentType" : "application/json",
-  "basePath" : "getUserWalletInfo",
+  "basePath" : "user-wallet-info",
   "path" : "/",
   "pool" : {
     "usePool" : false
