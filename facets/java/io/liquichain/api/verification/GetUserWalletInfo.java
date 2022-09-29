@@ -3,6 +3,8 @@ package io.liquichain.api.verification;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.Wallet;
@@ -51,12 +53,25 @@ public class GetUserWalletInfo extends Script {
             if (StringUtils.isBlank(privateInfo)) {
                 throw new RuntimeException("Private info is empty");
             }
+            Map<String, Object> privateInfoMap = convert(privateInfo);
             result.put("status", "success");
-            result.put("result", privateInfo);
+            result.put("result", privateInfoMap);
         } catch (Exception e) {
             mapError(e);
         }
 
+    }
+
+    public static <T> T convert(String data) {
+        T value = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            value = mapper.readValue(data, new TypeReference<T>() {
+            });
+        } catch (Exception e) {
+            LOG.error("Failed to parse data: {}", data, e);
+        }
+        return value;
     }
 
     private void mapError(Throwable e) {
