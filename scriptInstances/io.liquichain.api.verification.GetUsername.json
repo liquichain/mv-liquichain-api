@@ -1,8 +1,14 @@
 {
   "code" : "io.liquichain.api.verification.GetUsername",
   "description" : "Get username based on email address",
-  "inputs" : [ ],
-  "outputs" : [ ],
+  "inputs" : [ {
+    "name" : "emailAddress",
+    "type" : "String"
+  } ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "Map<String,Object>"
+  } ],
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
