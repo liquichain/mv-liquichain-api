@@ -3,7 +3,6 @@ package io.liquichain.api.verification;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.Wallet;
@@ -53,7 +52,7 @@ public class GetUserWalletInfo extends Script {
                 throw new RuntimeException("Private info is empty");
             }
             result.put("status", "success");
-            result.put("result", new Gson().toJson(privateInfo));
+            result.put("result", privateInfo);
         } catch (Exception e) {
             mapError(e);
         }
