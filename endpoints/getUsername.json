@@ -1,0 +1,20 @@
+{
+  "code" : "getUsername",
+  "description" : "Retrieve username based on email address",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.verification.GetUsername",
+  "synchronous" : true,
+  "method" : "GET",
+  "parameterMappings" : [ ],
+  "pathParameters" : [ "emailAddress" ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : true,
+  "contentType" : "application/json",
+  "basePath" : "username",
+  "path" : "/{emailAddress}",
+  "pool" : {
+    "usePool" : false
+  }
+}
