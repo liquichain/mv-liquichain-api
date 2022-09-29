@@ -1,0 +1,20 @@
+{
+  "code" : "getUserWalletInfo",
+  "description" : "Retrieve user wallet info",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.verification.GetUserWalletInfo",
+  "synchronous" : true,
+  "method" : "GET",
+  "parameterMappings" : [ ],
+  "pathParameters" : [ ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : true,
+  "contentType" : "application/json",
+  "basePath" : "getUserWalletInfo",
+  "path" : "/",
+  "pool" : {
+    "usePool" : false
+  }
+}
