@@ -65,6 +65,8 @@ public class GetUsername extends Script {
             if (StringUtils.isBlank(username)) {
                 throw new RuntimeException("Username not found.");
             }
+            result.put("status", "success");
+            result.put("result", username);
         } catch (Exception e) {
             mapError(e);
         }
