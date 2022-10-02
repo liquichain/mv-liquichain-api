@@ -356,7 +356,7 @@ public class KeycloakUserService extends Script {
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
-                    if (!StringUtils.isBlank(password)) {
+                    if (hasPassword) {
                         List<Map<String, Object>> credentials = new ArrayList<>();
                         Map<String, Object> credentialMap = new HashMap<>();
                         credentialMap.put("type", "password");
