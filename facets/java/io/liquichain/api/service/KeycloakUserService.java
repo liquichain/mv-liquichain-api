@@ -192,8 +192,10 @@ public class KeycloakUserService extends Script {
                              .post(Entity.json(userDetails));
             saveResult = response.readEntity(String.class);
             if (saveResult != null && saveResult.contains("error")) {
+                Map<String, Object> resultMap = convert(saveResult);
                 LOG.error("Failed to save new keycloak user: " + saveResult);
-                throw new BusinessException("Failed to save new keycloak user.");
+                String errorMessage = "" + resultMap.get("errorMessage");
+                throw new BusinessException("Failed to save new keycloak user. Cause: " + errorMessage);
             }
         } finally {
             if (response != null) {
