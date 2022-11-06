@@ -1,9 +1,10 @@
 {
-  "code" : "io.liquichain.api.rpc.WalletProcessor",
+  "code" : "io.liquichain.api.verification.GetUserWalletInfo",
+  "description" : "Retrieve user wallet info ",
   "inputs" : [ ],
   "outputs" : [ {
     "name" : "result",
-    "type" : "String"
+    "type" : "Map<String,Object>"
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
@@ -11,5 +12,5 @@
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ "io.liquichain.api.rpc.BlockchainProcessor" ]
+  "importScriptInstances" : [ ]
 }

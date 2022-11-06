@@ -1,17 +1,18 @@
 {
-  "code" : "io.liquichain.api.rpc.WalletByContactScript",
+  "code" : "io.liquichain.api.verification.GetUsername",
+  "description" : "Get username based on email address",
   "inputs" : [ {
-    "name" : "contactHashes",
-    "type" : "List<String>"
+    "name" : "emailAddress",
+    "type" : "String"
   } ],
   "outputs" : [ {
     "name" : "result",
-    "type" : "String"
+    "type" : "Map<String,Object>"
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
-  "executionRoles" : [ "APP_USER" ],
+  "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
   "importScriptInstances" : [ ]

@@ -1,6 +1,6 @@
 {
   "code" : "etherscan",
-  "secured" : false,
+  "secured" : true,
   "checkPathParams" : false,
   "serviceCode" : "io.liquichain.api.scann.EthScannScript",
   "synchronous" : true,

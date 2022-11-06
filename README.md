@@ -41,6 +41,17 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_syncing](#eth_syncing)
 - [eth_uninstallFilter](#eth_uninstallfilter)
 
+## Setup `meveo` and `keycloak` for keycloak user creation
+- [Configure keycloak](#configure-keycloak)
+- [Configure pasword rules in keycloak](#configure-password-rules-in-keycloak)
+- [Update meveo settings](#update-meveo-settings)
+
+## Wallet operations (not part of Ethereum API)
+The wallet API endpoint is at: **POST /meveo/rest/wallet_jsonrpc** and it has the following methods.
+- [wallet_creation](#wallet_creation)
+- [wallet_update](#wallet_update)
+- [wallet_info](#wallet_info)
+
 ## Not supported:
 - eth_getProof
 - eth_getWork
@@ -405,7 +416,7 @@ Returns information about a block by block number.
 **Sample Request**
 ```json
 {
-  "id": 1,
+  "id": 1
   "jsonrpc": "2.0",
   "method": "eth_getBlockByNumber",
   "params": [
@@ -1513,7 +1524,7 @@ Submits the mining hashrate.
 **Sample Request**
 ```json
 {
-  "id": 1,
+  "id": 1
   "jsonrpc": "2.0",
   "method": "eth_submitHashrate",
   "params": [
@@ -1609,6 +1620,187 @@ Filters time out when not requested by [`eth_getFilterChanges`](#eth_getfilterch
 }
 ```
 
+## Setup `meveo` and `keycloak`
+When creating or updating a wallet using the Wallet API, it is also possible to automatically create and update a corresponding keycloak and meveo user as well.
+For this to work follow the steps below to setup `keycloak` and `meveo` to allow this functionality.
+
+### Configure `keycloak`
+1. Login to keycloak administration console.
+2. Select `Master` realm at the top left of the admin page.
+3. Click `Clients` at the sidebar menu.
+4. Select `admin-cli` client.
+5. Under the `Settings` tab select:
+    - **Access Type**: `confidential`
+    - **Service Accounts**: `enabled`
+6. Under the `Credentials` tab copy the generated `secret` credentials, this will be needed later on when configuring `meveo` settings.
+7. Select the `Service Account Roles` tab.
+8. Type in and select `meveo-realm` in `Client Roles`.
+9. Assign the following roles:
+    - `manage-users`
+    - `view-users`
+10. Switch to the `Meveo` realm at the top left of the admin page.
+11. Click `Roles` at the sidebar menu.
+12. Select `Default Roles` tab and set the following roles:
+    - **meveo-web**: `apiAccess`, `userSelfManagement`
+    - **endpoints**: `Execute_All_Endpoints`
+13. Click `Realm Settings` at the sidebar menu.
+14. Select `Login` tab and select:
+    - **Edit username**: `on`
+    - **Login with email**: `off`
+    - **Duplicate emails**: `on`
+
+### Configure password rules in `keycloak`
+1. Login to keycloak administration console.
+2. Select `Meveo` realm.
+3. Click `Authentication` at the sidebar menu.
+4. Click `Password Policy` tab.
+5. Click `Add policy...` dropdown at the top right of the table and set the following policies:
+    - **Minimum Length** - `8`
+    - **Not Recently Used** - `1`
+    - **Special Characters** - `1`
+    - **Uppercase Characters** - `1`
+    - **Digits** - `1`
+6. Click `Save`.
+
+> **Note**: `Maximum Length` password policy is only implemented in `Keycloak 15` or higher.  If available, set its value to 16
+
+### Update `meveo` settings
+1. Login to `meveo` admin.
+2. Select `Configuration` > `Settings` > `System settings`
+3. Create or replace the following setting:
+    - **keycloak.client.secret**:  enter the `secret` copied from `step 6` in [Configure keyloak](#configure-keycloak) above.
+4. Click or tab out of the new setting then click `Save`
+
+
+## wallet_creation
+This request is made via POST method to json rpc method **wallet_creation** with the following parameters in this order **[name, address, accountHash, signature, publicInfo, privateInfo]** where:
+- **name** (required): is combination of firstname and lastname OR username only
+- **address** (required): is the wallet's hash (not lowercase)
+    - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **accountHash** (required): the account hash
+- **signature** (required): the signature generated from the **privateInfo** details
+- **publicInfo** (required): string escaped json data containing public profile and other information
+- **privateInfo** (required): string escaped json data containing emailAddress(required), and phoneNumber(optional)
+    - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
+
+> **Note** -  It is possible to create a `keycloak` and `meveo` user automatically when a wallet is created.  To accomplish that, the **username** can be included in the **publicInfo** or in the **privateInfo** data and make sure that the **password** is included in the **privateInfo**.  See [Setup meveo and keycloak](#setup-meveo-and-keycloak) to setup `keycloak` and `meveo` properly for this functionality to work. 
+
+**Sample Request**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "wallet_creation",
+  "params": [
+    "Test Wallet",
+    "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+    "3ea21960cc11bb3d82bcf47d2992e39935e182a401385720f842cbdddc97a408",
+    "0x42d1db7d16c111e62a8725371eb04e98ef353de88d11be7faef6768d18f0603851e4cfed4fd7d5130a70be022f8f96d6e280dedbcf190d9804d1540e95f0939c1c",
+    "{\"shippingAddress\":{\"email\":\"testwallet1@telecelplay.io\",\"phone\":\"+639991234567\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+    "{\"username\": \"walletuser\", \"emailAddress\":\"testwallet1@telecelplay.io\", \"password\": \"walletuser\",\"phoneNumber\":\"+639991234567\"}"
+  ]
+}
+```
+**Sample Response**
+```json
+{
+    "id": "null",
+    "jsonrpc": "2.0",
+    "result": "ac08e612d1318bc9c0aa671a1b90199bb12bd876"
+}
+```
+
+## wallet_update
+This request is made via POST method to json rpc method **wallet_update** with the following parameters in this order **[name, address, signature, publicInfo, privateInfo]** where:
+- **name** (required): is combination of firstname and lastname OR username only
+- **address** (required): is the wallet's hash (not lowercase)
+    - **e.g.** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **signature** (required): the signature generated from the **publicInfo**
+- **publicInfo** (required): string escaped json data containing public profile and other information
+- **privateInfo** (optional): string escaped json data containing emailAddress(required), and phoneNumber(optional)
+    - **e.g.** `{\"emailAddress\":\"account1@gmail.com\", \"phoneNumber\":\"+639991234567\"}`
+
+> **Note** -  It is possible to update `keycloak` and `meveo` user details when a wallet is updated.  To accomplish that, the **username** can be included in the **publicInfo** or in the **privateInfo**.  See [Setup meveo and keycloak](#setup-meveo-and-keycloak) to setup `keycloak` and `meveo` properly for this functionality to work.
+
+**Sample Request**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "wallet_update",
+  "params": [
+    "Test Wallet",
+    "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+    "0x80682b0d9f06cec1797c8d303eb0ee5b42129eed9d5d3aa7118c3b924cd23cf5539831ad585e90db545356c7db3ee18461aff0301ca2d64c922f685fc664b6be1c",
+    "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+    "{\"emailAddress\":\"account2@telecelplay.io\", \"phoneNumber\":\"+639997654321\"}"
+  ]
+}
+```
+**Sample Response**
+```json
+{
+  "id": "null",
+  "jsonrpc": "2.0",
+  "result": "Test Wallet"
+}
+```
+
+## wallet_info
+This request is made via POST method to json rpc method **wallet_info** with the following parameters in this order **[address, signature, message]** where:
+- **address** (required): is the wallet's hash (not lowercase)
+    - **e.g** 0x307E27AA863E5dccdF8979FB9F5AF32539101421
+- **signature** (optional, required only when retrieving privateInfo): is signed signature of the message
+- **message** (optional, required only when retrieving privateInfo): is a comma separated value string containing the string **"walletInfo"**, the **address** (wallet hash in hex), and the **timestamp** (in millis) of the request
+    - **e.g.**  walletInfo,0x307e27aa863e5dccdf8979fb9f5af32539101421,1648456123780
+
+**Sample Request**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "wallet_info",
+  "params": [
+    "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
+    "0x82a0faa065ce169afbd63c5bd36543fb56d9bb6b4f693ae5a41fbbabfa3bb1b709b5b5a7f9cef140cb6134d50b4005e2054fd8ca351f53498702aebd8330c8561c",
+    "walletInfo,0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876,1654238475264"
+  ]
+}
+```
+**Sample Response**
+```json
+{
+  "id": "null",
+  "jsonrpc": "2.0",
+  "result": {
+    "name": "Test Wallet",
+    "publicInfo": "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}"
+  }
+}
+```
+
+## Password reset process
+To reset password, OTP verification is required.  Follow the steps below for proper password reset process.
+1. Send an OTP to the wallet's verified phone number using either [`mv-twilio`](https://github.com/telecelplay/mv-twilio) or [`mv-smstelecel`](https://github.com/telecelplay/mv-smstelecel) module.
+2. Verify the OTP using the `verifyOtpForPasswordReset` endpoint with the following details:
+**POST - /rest/verifyOtpForPasswordReset/{phoneNumber}**
+- **phoneNumber** - is the verified phone number associated with the user wallet
+- **otp** - the otp code
+- **password** - the new password
+
+**Sample Request**
+```json
+{
+    "otp": "123456",
+    "password": "verifiedPassword"
+}
+```
+
+**Sample Response**
+```json
+{
+  "status": "success",
+  "result": "password_updated"
+}
+```
+
 ## Block parameter 
 
 The block parameter can have the following values:
@@ -1616,7 +1808,7 @@ The block parameter can have the following values:
 - `blockNumber` : `quantity` - The block number, specified in hexadecimal or decimal. 0 represents the genesis block.
 - `earliest` : `tag` - The earliest (genesis) block.
 - `latest` : `tag` - The last block mined.
-- `pending` : `tag` - The last block mined plus pending transactions. Use only with [eth_getTransactionCount](#eth_gettransactioncount).
+- `pending` : `tag` - The last block mined plus pending transactions. Use only with [eth_getTransactionCount](#eth_getTransactionCount).
 
 ## Postman Collections
 [Postman](https://www.postman.com/) collections with sample requests are available in the [**/facets/postman**](https://github.com/telecelplay/mv-liquichain-api/tree/master/facets/postman) folder. 

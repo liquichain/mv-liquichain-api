@@ -1,8 +1,12 @@
 {
-  "code" : "io.liquichain.api.rpc.WalletByContactScript",
+  "code" : "io.liquichain.api.verification.CreateOutboundSMS",
+  "description" : "Create OutboundSMS Entity for testing",
   "inputs" : [ {
-    "name" : "contactHashes",
-    "type" : "List<String>"
+    "name" : "to",
+    "type" : "String"
+  }, {
+    "name" : "otp",
+    "type" : "String"
   } ],
   "outputs" : [ {
     "name" : "result",

@@ -1,9 +1,9 @@
 {
-  "code" : "jsonrpc",
-  "description" : "eth json rpc api",
-  "secured" : false,
+  "code" : "wallet_jsonrpc",
+  "description" : "wallet json rpc api",
+  "secured" : true,
   "checkPathParams" : true,
-  "serviceCode" : "io.liquichain.api.rpc.EthApiScript",
+  "serviceCode" : "io.liquichain.api.rpc.WalletApiScript",
   "synchronous" : true,
   "method" : "POST",
   "parameterMappings" : [ ],
@@ -12,7 +12,7 @@
   "returnedVariableName" : "result",
   "serializeResult" : false,
   "contentType" : "application/json",
-  "basePath" : "jsonrpc",
+  "basePath" : "wallet_jsonrpc",
   "path" : "/",
   "pool" : {
     "usePool" : true,
