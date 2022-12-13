@@ -11,6 +11,7 @@ import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
 
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +22,11 @@ public class WalletByContactScript extends Script {
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
 
-    private Map<String, String> result = null;
+    private String result;
     private List<String> contactHashes;
 
-    public Map<String, String> getResult() {
-        return result;
+    public String getResult() {
+        return this.result;
     }
 
     public void setContactHashes(List<String> contactHashes) {
@@ -34,15 +35,16 @@ public class WalletByContactScript extends Script {
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
-        LOG.debug("contactHashes: {}", this.contactHashes);
-
+        LOG.info("contactHashes: {}", this.contactHashes);
         if (contactHashes != null && contactHashes.size() > 0) {
-            result = crossStorageApi
+            Map<String, String> walletHashes = crossStorageApi
                 .find(defaultRepo, Wallet.class)
                 .by("inList phoneNumber", this.contactHashes)
                 .getResults()
                 .stream()
                 .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
+
+            result = new Gson().toJson(walletHashes);
         }
     }
 }

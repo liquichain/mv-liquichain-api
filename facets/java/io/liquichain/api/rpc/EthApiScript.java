@@ -556,9 +556,8 @@ class BesuProcessor extends BlockchainProcessor {
                         : extraData;
                 }
                 Transaction transaction = new Transaction();
-                String fromHash = normalizeHash(signedTransaction.getFrom());
                 transaction.setHexHash(transactionHash);
-                transaction.setFromHexHash(fromHash);
+                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
                 transaction.setToHexHash(to);
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
@@ -570,7 +569,6 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setBlockNumber("1");
                 transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
-                transaction.setInitiator(fromHash);
                 transaction.setV(v);
                 transaction.setS(s);
                 transaction.setR(r);

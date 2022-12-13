@@ -1,17 +1,15 @@
 {
-  "code" : "io.liquichain.api.rpc.WalletByContactScript",
-  "inputs" : [ {
-    "name" : "contactHashes",
-    "type" : "List<String>"
-  } ],
+  "code" : "io.liquichain.api.verification.GetUserWalletInfo",
+  "description" : "Retrieve user wallet info ",
+  "inputs" : [ ],
   "outputs" : [ {
     "name" : "result",
-    "type" : "String"
+    "type" : "Map<String,Object>"
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
-  "executionRoles" : [ "APP_USER" ],
+  "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
   "importScriptInstances" : [ ]

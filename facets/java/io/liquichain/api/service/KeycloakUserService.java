@@ -192,10 +192,8 @@ public class KeycloakUserService extends Script {
                              .post(Entity.json(userDetails));
             saveResult = response.readEntity(String.class);
             if (saveResult != null && saveResult.contains("error")) {
-                Map<String, Object> resultMap = convert(saveResult);
                 LOG.error("Failed to save new keycloak user: " + saveResult);
-                String errorMessage = "" + resultMap.get("errorMessage");
-                throw new BusinessException("Failed to save new keycloak user. Cause: " + errorMessage);
+                throw new BusinessException("Failed to save new keycloak user.");
             }
         } finally {
             if (response != null) {
@@ -326,18 +324,23 @@ public class KeycloakUserService extends Script {
 
             boolean hasPassword = !("null".equalsIgnoreCase(password) || StringUtils.isBlank(password));
             boolean hasUsername = !("null".equalsIgnoreCase(username) || StringUtils.isBlank(username));
+            boolean hasEmailAddress = !("null".equalsIgnoreCase(emailAddress) || StringUtils.isBlank(emailAddress));
             boolean differentName = !String.valueOf(name).equals(wallet.getName());
             boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
             boolean differentUsername = !username.equals(currentUsername);
-            boolean shouldUpdateUser = hasPassword || hasUsername
+            boolean shouldUpdateUser = (hasPassword || hasUsername || hasEmailAddress)
                 && (differentName || differentEmailAddress || differentUsername);
 
             LOG.info("hasPassword: {}", hasPassword);
             LOG.info("hasUsername: {}", hasUsername);
+            LOG.info("hasEmailAddress: {}", hasEmailAddress);
             LOG.info("name: {} => {}", wallet.getName(), name);
             LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
             LOG.info("username: {} => {}", currentUsername, username);
             LOG.info("shouldUpdateUser: {}", shouldUpdateUser);
+
+            username = hasUsername ? username : currentUsername;
+            emailAddress = hasEmailAddress ? emailAddress : currentEmailAddress;
 
             if (shouldUpdateUser) {
                 String token = login();
@@ -353,7 +356,7 @@ public class KeycloakUserService extends Script {
                     if (differentUsername) {
                         userMap.put("username", username);
                     }
-                    if (!StringUtils.isBlank(password)) {
+                    if (hasPassword) {
                         List<Map<String, Object>> credentials = new ArrayList<>();
                         Map<String, Object> credentialMap = new HashMap<>();
                         credentialMap.put("type", "password");
