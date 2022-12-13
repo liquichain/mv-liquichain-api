@@ -11,5 +11,4 @@ public class CheckVerifiedEmail extends Script {
     public void execute(Map<String, Object> parameters) throws BusinessException {
         super.execute(parameters);
     }
-
 }
