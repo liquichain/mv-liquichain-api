@@ -1,0 +1,19 @@
+{
+  "code" : "io.liquichain.api.verification.CheckVerifiedEmail",
+  "description" : "Check if email is already registered",
+  "inputs" : [ {
+    "name" : "email",
+    "type" : "String"
+  } ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
