@@ -4,6 +4,7 @@
   "license" : "GPL",
   "currentVersion" : "0.20",
   "isInDraft" : true,
+  "autoCommit" : false,
   "moduleDependencies" : [ ],
   "moduleFiles" : [ ]
 }
