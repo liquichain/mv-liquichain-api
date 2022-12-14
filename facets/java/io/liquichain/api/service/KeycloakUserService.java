@@ -381,6 +381,9 @@ public class KeycloakUserService extends Script {
                       	if(attributesMap == null){
                       		LOG.info("attributes are null");  
                       	} else {
+                          	LOG.info("attributes size == {}",attributesMap.size());
+                          	LOG.info("attributes json == {}",toJson(attributesMap));
+                          	LOG.info("attributes locale == {}",attributesMap.get("locale"));
                         	String currLocale = String.valueOf(attributesMap.get("locale"));
                           	LOG.info("found existing locale = {}",currentLocale);
                         }
