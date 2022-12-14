@@ -388,7 +388,8 @@ public class KeycloakUserService extends Script {
                             	String currLocale = String.valueOf(((List)attributesMap.get("locale")).get(0));
                                 LOG.info("currLocale == {}",currLocale);
                               	List localeList = new ArrayList<String>();
-                              	attributesMap.put("locale",localeList.add(locale));
+                              	localeList.add(locale);
+                              	attributesMap.put("locale",localeList);
                               	userMap.put("attributes",attributesMap);
                             }
                         }
