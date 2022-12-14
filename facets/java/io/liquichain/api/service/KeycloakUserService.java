@@ -383,11 +383,12 @@ public class KeycloakUserService extends Script {
                       	} else {
                           	LOG.info("attributes size == {}",attributesMap.size());
                           	LOG.info("attributes json == {}",toJson(attributesMap));
-                          	LOG.info("attributes locale == {}",attributesMap.get("locale"));
+                          	LOG.info("attributes locale ext == {}",attributesMap.get("locale"));
                           	if(attributesMap.get("locale")!=null){
-                            	String currLocale = String.valueOf(((String[])attributesMap.get("locale"))[0]);
+                            	String currLocale = String.valueOf(((List)attributesMap.get("locale")).get(0));
                                 LOG.info("currLocale == {}",currLocale);
-                              	attributesMap.put("locale",new String[]{locale});
+                              	List localeList = new ArrayList<String>();
+                              	attributesMap.put("locale",localeList.add(locale));
                               	userMap.put("attributes",attributesMap);
                             }
                         }
