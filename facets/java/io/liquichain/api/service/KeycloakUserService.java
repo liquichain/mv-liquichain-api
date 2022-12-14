@@ -384,8 +384,12 @@ public class KeycloakUserService extends Script {
                           	LOG.info("attributes size == {}",attributesMap.size());
                           	LOG.info("attributes json == {}",toJson(attributesMap));
                           	LOG.info("attributes locale == {}",attributesMap.get("locale"));
-                        	String currLocale = String.valueOf(attributesMap.get("locale"));
-                          	LOG.info("found existing locale = {}",currentLocale);
+                          	if(attributesMap.get("locale")!=null){
+                            	String currLocale = String.valueOf(((String[])attributesMap.get("locale"))[0]);
+                                LOG.info("currLocale == {}",currLocale);
+                              	attributesMap.put("locale",new String[]{locale});
+                              	userMap.put("attributes",attributesMap);
+                            }
                         }
                     }
 
