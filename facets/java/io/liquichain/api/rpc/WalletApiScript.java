@@ -377,11 +377,11 @@ public class WalletApiScript extends Script {
             privateInfo = params.get(4);
         }
 
-        /*try {
+        try {
             validateSignature(walletHash, signature, publicInfo);
         } catch (BusinessException e) {
             return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
-        }*/
+        }
 
         Wallet wallet;
         try {
