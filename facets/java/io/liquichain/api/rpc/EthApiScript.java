@@ -481,7 +481,9 @@ class BesuProcessor extends BlockchainProcessor {
                 Collections.<org.web3j.abi.TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
             String response = manager.sendCall(smartContract, data, LATEST);
+
             LOG.info("tokenList: {}", response);
+
             return null;
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
