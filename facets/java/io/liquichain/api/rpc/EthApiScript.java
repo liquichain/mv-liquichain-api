@@ -1,20 +1,17 @@
 package io.liquichain.api.rpc;
 
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 
@@ -22,9 +19,7 @@ import io.liquichain.core.BlockForgerScript;
 
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.model.customEntities.Transaction;
-import org.meveo.model.customEntities.VerifiedEmail;
-import org.meveo.model.customEntities.VerifiedPhoneNumber;
+import org.meveo.model.customEntities.*;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
@@ -39,21 +34,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Function;
 import org.web3j.crypto.*;
+import org.web3j.protocol.Web3j;
+import org.web3j.tx.RawTransactionManager;
 import org.web3j.utils.*;
 
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    @Inject
-    private RepositoryService repositoryService;
-    @Inject
-    private ParamBeanFactory paramBeanFactory;
-    @Inject
-    protected CrossStorageApi crossStorageApi;
-
-    protected Repository defaultRepo;
-    protected ParamBean config;
+    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+    private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final ParamBean config = paramBeanFactory.getInstance();
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
 
     protected String result;
@@ -63,8 +58,6 @@ public class EthApiScript extends Script {
     }
 
     private void init() {
-        defaultRepo = repositoryService.findDefaultRepository();
-        config = paramBeanFactory.getInstance();
         String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
         BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
     }
@@ -397,6 +390,8 @@ class BesuProcessor extends BlockchainProcessor {
         .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
         .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
         .build();
+    private String APP = config.getProperty("eth.api.appname", "licoin");
+    private Web3j WEB3J;
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
@@ -410,6 +405,9 @@ class BesuProcessor extends BlockchainProcessor {
         LOG.info("json rpc: {}, parameters:{}", method, parameters);
         String requestId = "" + parameters.get("id");
         switch (method) {
+            case "get_tokenList":
+                result = retrieveTokenList(requestId);
+                break;
             case "get_chainId":
                 result = createResponse(requestId, "0x4c");
                 break;
@@ -466,6 +464,29 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
         }
+    }
+
+    private String retrieveTokenList(String requestId) {
+        try {
+            Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
+            LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
+                                                         .by("name", APP)
+                                                         .getResult();
+            String smartContract = liquichainApp.getHexCode();
+            String privateKey = origin.getPrivateKey();
+            Credentials credentials = Credentials.create(privateKey);
+            RawTransactionManager manager = new RawTransactionManager(WEB3J, credentials);
+            Function function = new Function("listTokenInfos", null,
+                Collections.<org.web3j.abi.TypeReference<?>>emptyList());
+            String data = FunctionEncoder.encode(function);
+            String response = manager.sendCall(smartContract, data, LATEST);
+            LOG.info("tokenList: {}", response);
+            return null;
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+
     }
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
