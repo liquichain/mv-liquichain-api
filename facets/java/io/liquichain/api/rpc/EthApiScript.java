@@ -402,8 +402,10 @@ class BesuProcessor extends BlockchainProcessor {
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
-        LOG.info("json rpc: {}, parameters:{}", method, parameters);
         String requestId = "" + parameters.get("id");
+
+        LOG.info("json rpc: {}, parameters:{}", method, parameters);
+
         switch (method) {
             case "get_tokenList":
                 result = retrieveTokenList(requestId);
