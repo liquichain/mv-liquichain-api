@@ -35,9 +35,13 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.utils.*;
 
@@ -399,6 +403,13 @@ class BesuProcessor extends BlockchainProcessor {
         // ORIGIN_WALLET = config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
     }
 
+    private String toHexHash(String hash) {
+        if (hash.startsWith("0x")) {
+            return hash.toLowerCase();
+        }
+        return "0x" + hash.toLowerCase();
+    }
+
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
@@ -412,6 +423,9 @@ class BesuProcessor extends BlockchainProcessor {
                 break;
             case "get_chainId":
                 result = createResponse(requestId, "0x4c");
+                break;
+            case "eth_getBalance":
+                result = getBalance(requestId, parameters);
                 break;
             case "eth_sendSignedTransaction":
             case "eth_sendRawTransaction":
@@ -461,6 +475,38 @@ class BesuProcessor extends BlockchainProcessor {
             .toString();
         try {
             return callProxy(requestBody);
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
+
+    private String getBalance(String requestId, Map<String, Object> parameters) {
+        try {
+            Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
+            LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
+                                                         .by("name", APP)
+                                                         .getResult();
+            String smartContract = liquichainApp.getHexCode();
+            String privateKey = origin.getPrivateKey();
+            Credentials credentials = Credentials.create(privateKey);
+            RawTransactionManager manager = new RawTransactionManager(WEB3J, credentials);
+
+            List<String> params = (List<String>) parameters.get("params");
+            String address = (String) params.get(0);
+            String blockParam = (String) params.get(1);
+            DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
+
+            Function function = new Function("balanceOf",
+                Arrays.asList(
+                    new Address(toHexHash(address))
+                ),
+                Collections.<org.web3j.abi.TypeReference<?>>emptyList());
+            String data = FunctionEncoder.encode(function);
+            LOG.info("smart contract: {}", smartContract);
+            String response = manager.sendCall(smartContract, data, blockParameter);
+            LOG.info("balance: {}", response);
+            return null;
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
