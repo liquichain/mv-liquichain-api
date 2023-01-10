@@ -477,7 +477,7 @@ class BesuProcessor extends BlockchainProcessor {
             String privateKey = origin.getPrivateKey();
             Credentials credentials = Credentials.create(privateKey);
             RawTransactionManager manager = new RawTransactionManager(WEB3J, credentials);
-            Function function = new Function("listTokenInfos", null,
+            Function function = new Function("listTokenInfos", new ArrayList<>(),
                 Collections.<org.web3j.abi.TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
             String response = manager.sendCall(smartContract, data, LATEST);
