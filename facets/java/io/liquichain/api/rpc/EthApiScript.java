@@ -434,7 +434,6 @@ class BesuProcessor extends BlockchainProcessor {
         String result = null;
         Response response = null;
         try {
-
             response = client.target(BESU_API_URL)
                              .request(MediaType.APPLICATION_JSON)
                              .post(Entity.json(body));
