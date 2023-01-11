@@ -4,7 +4,10 @@ import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -37,11 +40,11 @@ import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
+import org.web3j.protocol.Service;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.utils.*;
 
@@ -384,8 +387,10 @@ abstract class BlockchainProcessor {
 class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
-    private String BESU_API_URL = null;
-    public final String ORIGIN_WALLET = "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623".toLowerCase();
+    private final Web3j WEB3J;
+    private final String APP;
+    private final String BESU_API_URL;
+    private final String ORIGIN_WALLET;
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
@@ -394,13 +399,15 @@ class BesuProcessor extends BlockchainProcessor {
         .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
         .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
         .build();
-    private String APP = config.getProperty("eth.api.appname", "licoin");
-    private Web3j WEB3J;
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
-        BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
         // ORIGIN_WALLET = config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
+        ORIGIN_WALLET = "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623".toLowerCase();
+        BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+        APP = config.getProperty("eth.api.appname", "licoin");
+        String BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+        WEB3J = Web3j.build(new HttpService(BESU_API_URL));
     }
 
     private String toHexHash(String hash) {
@@ -465,14 +472,12 @@ class BesuProcessor extends BlockchainProcessor {
         Object id = parameters.get("id");
         String idFormat =
             id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
-        String requestBody = new StringBuilder()
-            .append("{")
-            .append(String.format(idFormat, id))
-            .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
-            .append(String.format("\"method\":\"%s\",", parameters.get("method")))
-            .append(String.format("\"params\":%s", toJson(parameters.get("params"))))
-            .append("}")
-            .toString();
+        String requestBody = "{" +
+            String.format(idFormat, id) +
+            String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")) +
+            String.format("\"method\":\"%s\",", parameters.get("method")) +
+            String.format("\"params\":%s", toJson(parameters.get("params"))) +
+            "}";
         try {
             return callProxy(requestBody);
         } catch (Exception e) {
@@ -508,6 +513,7 @@ class BesuProcessor extends BlockchainProcessor {
                 Collections.<org.web3j.abi.TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
             LOG.info("smart contract: {}", smartContract);
+
             String response = manager.sendCall(smartContract, data, blockParameter);
             LOG.info("balance: {}", response);
             return null;
@@ -886,4 +892,110 @@ class DatabaseProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
         }
     }
+}
+
+class HttpService extends Service {
+
+    public static final String DEFAULT_URL = "http://localhost:8545/";
+    private static final Logger LOG = LoggerFactory.getLogger(HttpService.class);
+
+    private Client httpClient;
+    private final String url;
+    private final boolean includeRawResponse;
+    private final Map<String, String> headers = new HashMap<>();
+
+    public HttpService(String url, Client httpClient, boolean includeRawResponse) {
+        super(includeRawResponse);
+        this.url = url;
+        this.httpClient = httpClient;
+        this.includeRawResponse = includeRawResponse;
+    }
+
+    public HttpService(Client httpClient, boolean includeRawResponse) {
+        this(DEFAULT_URL, httpClient, includeRawResponse);
+    }
+
+    public HttpService(String url, Client httpClient) {
+        this(url, httpClient, false);
+    }
+
+    public HttpService(String url) {
+        this(url, createHttpClient());
+    }
+
+    public HttpService(String url, boolean includeRawResponse) {
+        this(url, createHttpClient(), includeRawResponse);
+    }
+
+    public HttpService(Client httpClient) {
+        this(DEFAULT_URL, httpClient);
+    }
+
+    public HttpService(boolean includeRawResponse) {
+        this(DEFAULT_URL, includeRawResponse);
+    }
+
+    public HttpService() {
+        this(DEFAULT_URL);
+    }
+
+    private static Client createHttpClient() {
+        return ClientBuilder.newClient();
+    }
+
+    @Override
+    protected InputStream performIO(String request) throws IOException {
+
+        LOG.debug("Request: {}", request);
+
+        Response response;
+        try {
+            response = httpClient.target(url)
+                                 .request(MediaType.APPLICATION_JSON)
+                                 .headers(convertHeaders())
+                                 .post(Entity.json(request));
+        } catch (ClientConnectionException e) {
+            throw new IOException("Unable to connect to " + url, e);
+        }
+
+        if (response.getStatus() != 200) {
+            throw new IOException(
+                "Error " + response.getStatus() + ": " + response.readEntity(String.class));
+        }
+
+        if (includeRawResponse) {
+            return new BufferedInputStream(response.readEntity(InputStream.class));
+        }
+
+        return new ByteArrayInputStream(response.readEntity(String.class).getBytes());
+    }
+
+    private MultivaluedMap<String, Object> convertHeaders() {
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        for (Map.Entry<String, String> entry : this.headers.entrySet()) {
+            headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
+        }
+        return headers;
+    }
+
+    public void addHeader(String key, String value) {
+        headers.put(key, value);
+    }
+
+    public void addHeaders(Map<String, String> headersToAdd) {
+        headers.putAll(headersToAdd);
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    @Override
+    public void close() throws IOException {
+    }
+
 }
