@@ -481,26 +481,30 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
+    private String getSmartContract() throws Exception {
+        LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
+                                                     .by("name", APP)
+                                                     .getResult();
+        return liquichainApp.getHexCode();
+    }
+
+    private RawTransactionManager getTransactionManager() throws Exception {
+        Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
+        String privateKey = origin.getPrivateKey();
+        Credentials credentials = Credentials.create(privateKey);
+        return new RawTransactionManager(WEB3J, credentials);
+    }
+
     private String getBalance(String requestId, Map<String, Object> parameters) {
         try {
-            Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
-            LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
-                                                         .by("name", APP)
-                                                         .getResult();
-            String smartContract = liquichainApp.getHexCode();
-            String privateKey = origin.getPrivateKey();
-            Credentials credentials = Credentials.create(privateKey);
-            RawTransactionManager manager = new RawTransactionManager(WEB3J, credentials);
-
+            String smartContract = getSmartContract();
+            RawTransactionManager manager = getTransactionManager();
             List<String> params = (List<String>) parameters.get("params");
             String address = (String) params.get(0);
             String blockParam = (String) params.get(1);
             DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
-
             Function function = new Function("balanceOf",
-                Arrays.asList(
-                    new Address(toHexHash(address))
-                ),
+                List.of(new Address(toHexHash(address))),
                 Collections.<org.web3j.abi.TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
             LOG.info("smart contract: {}", smartContract);
@@ -515,14 +519,8 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String retrieveTokenList(String requestId) {
         try {
-            Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
-            LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
-                                                         .by("name", APP)
-                                                         .getResult();
-            String smartContract = liquichainApp.getHexCode();
-            String privateKey = origin.getPrivateKey();
-            Credentials credentials = Credentials.create(privateKey);
-            RawTransactionManager manager = new RawTransactionManager(WEB3J, credentials);
+            String smartContract = getSmartContract();
+            RawTransactionManager manager = getTransactionManager();
             Function function = new Function("listTokenInfos", new ArrayList<>(),
                 Collections.<org.web3j.abi.TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
