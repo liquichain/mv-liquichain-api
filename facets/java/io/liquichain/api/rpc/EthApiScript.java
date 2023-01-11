@@ -431,9 +431,9 @@ class BesuProcessor extends BlockchainProcessor {
             case "get_chainId":
                 result = createResponse(requestId, "0x4c");
                 break;
-            case "eth_getBalance":
-                result = getBalance(requestId, parameters);
-                break;
+//            case "eth_getBalance":
+//                result = getBalance(requestId, parameters);
+//                break;
             case "eth_sendSignedTransaction":
             case "eth_sendRawTransaction":
                 result = sendRawTransaction(requestId, parameters);
