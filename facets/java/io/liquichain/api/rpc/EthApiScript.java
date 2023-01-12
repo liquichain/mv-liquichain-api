@@ -44,6 +44,7 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.tx.RawTransactionManager;
@@ -504,7 +505,15 @@ class BesuProcessor extends BlockchainProcessor {
     private String getBalanceOf(String requestId, String address, int tokenId, String blockParam) throws Exception {
         String smartContract = getSmartContract();
         RawTransactionManager manager = getTransactionManager();
-        DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
+        DefaultBlockParameter blockParameter = null;
+        if(blockParam != null){
+            if(blockParam != null && blockParam.startsWith("0x")){
+                blockParameter = DefaultBlockParameter.valueOf(blockParam);
+            } else {
+                blockParameter = DefaultBlockParameterName.fromString(blockParam);
+            }
+        }
+
         Function function = new Function(
             "balanceOf",
             Arrays.asList(
