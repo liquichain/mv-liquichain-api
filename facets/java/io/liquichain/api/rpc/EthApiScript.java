@@ -1,5 +1,6 @@
 package io.liquichain.api.rpc;
 
+import static io.liquichain.api.rpc.EthApiUtils.createResponse;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
@@ -431,9 +432,9 @@ class BesuProcessor extends BlockchainProcessor {
             case "get_chainId":
                 result = createResponse(requestId, "0x4c");
                 break;
-//            case "eth_getBalance":
-//                result = getBalance(requestId, parameters);
-//                break;
+            case "eth_getBalance":
+                result = getBalance(requestId, parameters);
+                break;
             case "eth_sendSignedTransaction":
             case "eth_sendRawTransaction":
                 result = sendRawTransaction(requestId, parameters);
@@ -516,7 +517,7 @@ class BesuProcessor extends BlockchainProcessor {
 
             String response = manager.sendCall(smartContract, data, blockParameter);
             LOG.info("balance: {}", response);
-            return null;
+            return createResponse(requestId, response);
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
@@ -533,7 +534,7 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
             LOG.info("tokenList: {}", response);
-            return null;
+            return createResponse(requestId, response);
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
