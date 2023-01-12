@@ -507,7 +507,7 @@ class BesuProcessor extends BlockchainProcessor {
         RawTransactionManager manager = getTransactionManager();
         DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
         Function function = new Function("balanceOf",
-            List.of(new Address(toHexHash(address)), new Uint256(tokenId)),
+            Arrays.asList(new Address(toHexHash(address)), new Uint256(tokenId)),
             Collections.<org.web3j.abi.TypeReference<?>>emptyList());
         String data = FunctionEncoder.encode(function);
         LOG.info("smart contract: {}", smartContract);
