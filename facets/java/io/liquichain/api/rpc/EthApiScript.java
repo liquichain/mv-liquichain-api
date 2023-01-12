@@ -20,7 +20,6 @@ import javax.ws.rs.core.*;
 
 import io.liquichain.core.BlockForgerScript;
 
-import org.jetbrains.annotations.NotNull;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.model.customEntities.*;
@@ -506,12 +505,16 @@ class BesuProcessor extends BlockchainProcessor {
         String smartContract = getSmartContract();
         RawTransactionManager manager = getTransactionManager();
         DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
-        Function function = new Function("balanceOf",
-            Arrays.asList(new Address(toHexHash(address)), new Uint256(tokenId)),
-            Collections.<org.web3j.abi.TypeReference<?>>emptyList());
+        Function function = new Function(
+            "balanceOf",
+            Arrays.asList(
+                new Address(toHexHash(address)),
+                new Uint256(tokenId)
+            ),
+            Collections.<org.web3j.abi.TypeReference<?>>emptyList()
+        );
         String data = FunctionEncoder.encode(function);
         LOG.info("smart contract: {}", smartContract);
-
         String response = manager.sendCall(smartContract, data, blockParameter);
         LOG.info("tokenId: {}, balance: {}", tokenId, response);
         return createResponse(requestId, response);
