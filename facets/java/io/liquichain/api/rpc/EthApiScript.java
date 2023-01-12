@@ -20,6 +20,7 @@ import javax.ws.rs.core.*;
 
 import io.liquichain.core.BlockForgerScript;
 
+import org.jetbrains.annotations.NotNull;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.model.customEntities.*;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
 import org.web3j.protocol.Web3j;
@@ -428,8 +430,8 @@ class BesuProcessor extends BlockchainProcessor {
             case "get_tokenList":
                 result = retrieveTokenList(requestId);
                 break;
-            case "get_chainId":
-                result = createResponse(requestId, "0x4c");
+            case "get_balanceOf":
+                result = getBalanceOf(requestId, parameters);
                 break;
             case "eth_getBalance":
                 result = getBalance(requestId, parameters);
@@ -500,23 +502,40 @@ class BesuProcessor extends BlockchainProcessor {
         return new RawTransactionManager(WEB3J, credentials);
     }
 
+    private String getBalanceOf(String requestId, String address, int tokenId, String blockParam) throws Exception {
+        String smartContract = getSmartContract();
+        RawTransactionManager manager = getTransactionManager();
+        DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
+        Function function = new Function("balanceOf",
+            List.of(new Address(toHexHash(address)), new Uint256(tokenId)),
+            Collections.<org.web3j.abi.TypeReference<?>>emptyList());
+        String data = FunctionEncoder.encode(function);
+        LOG.info("smart contract: {}", smartContract);
+
+        String response = manager.sendCall(smartContract, data, blockParameter);
+        LOG.info("tokenId: {}, balance: {}", tokenId, response);
+        return createResponse(requestId, response);
+    }
+
     private String getBalance(String requestId, Map<String, Object> parameters) {
         try {
-            String smartContract = getSmartContract();
-            RawTransactionManager manager = getTransactionManager();
             List<String> params = (List<String>) parameters.get("params");
             String address = (String) params.get(0);
             String blockParam = (String) params.get(1);
-            DefaultBlockParameterName blockParameter = DefaultBlockParameterName.fromString(blockParam);
-            Function function = new Function("balanceOf",
-                List.of(new Address(toHexHash(address))),
-                Collections.<org.web3j.abi.TypeReference<?>>emptyList());
-            String data = FunctionEncoder.encode(function);
-            LOG.info("smart contract: {}", smartContract);
+            return getBalanceOf(requestId, address, 0, blockParam);
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
 
-            String response = manager.sendCall(smartContract, data, blockParameter);
-            LOG.info("balance: {}", response);
-            return createResponse(requestId, response);
+    private String getBalanceOf(String requestId, Map<String, Object> parameters) {
+        try {
+            List<String> params = (List<String>) parameters.get("params");
+            String address = (String) params.get(0);
+            int tokenId = Integer.parseInt((String) params.get(1), 10);
+            String blockParam = (String) params.get(2);
+            return getBalanceOf(requestId, address, tokenId, blockParam);
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
@@ -893,6 +912,7 @@ class DatabaseProcessor extends BlockchainProcessor {
         }
     }
 }
+
 
 class HttpService extends Service {
 
