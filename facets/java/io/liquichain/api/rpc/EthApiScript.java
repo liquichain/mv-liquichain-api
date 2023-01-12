@@ -508,7 +508,7 @@ class BesuProcessor extends BlockchainProcessor {
         DefaultBlockParameter blockParameter = null;
         if(blockParam != null){
             if(blockParam != null && blockParam.startsWith("0x")){
-                blockParameter = DefaultBlockParameter.valueOf(blockParam);
+                blockParameter = DefaultBlockParameter.valueOf(new BigInteger(blockParam.substring(2), 16));
             } else {
                 blockParameter = DefaultBlockParameterName.fromString(blockParam);
             }
