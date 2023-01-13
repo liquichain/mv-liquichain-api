@@ -38,6 +38,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.AbiTypes;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -509,8 +510,8 @@ class BesuProcessor extends BlockchainProcessor {
         String smartContract = getSmartContract();
         RawTransactionManager manager = getTransactionManager();
         DefaultBlockParameter blockParameter = null;
-        if(blockParam != null){
-            if(blockParam != null && blockParam.startsWith("0x")){
+        if (blockParam != null) {
+            if (blockParam != null && blockParam.startsWith("0x")) {
                 blockParameter = DefaultBlockParameter.valueOf(new BigInteger(blockParam.substring(2), 16));
             } else {
                 blockParameter = DefaultBlockParameterName.fromString(blockParam);
@@ -562,7 +563,13 @@ class BesuProcessor extends BlockchainProcessor {
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
             Function function = new Function("listTokenInfos", new ArrayList<>(),
-                Collections.<org.web3j.abi.TypeReference<?>>emptyList());
+                List.of(
+                    org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // id
+                    org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // totalSupply
+                    org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // name
+                    org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // symbol
+                    org.web3j.abi.TypeReference.create(AbiTypes.getType("uint8")) // decimals
+                ));
             String data = FunctionEncoder.encode(function);
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
