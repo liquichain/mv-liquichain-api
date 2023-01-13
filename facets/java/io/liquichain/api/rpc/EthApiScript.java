@@ -37,10 +37,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.abi.DefaultFunctionReturnDecoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.AbiTypes;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
@@ -562,19 +564,20 @@ class BesuProcessor extends BlockchainProcessor {
         try {
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
-            Function function = new Function("listTokenInfos", new ArrayList<>(),
-                List.of(
-                    org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // id
-                    org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // totalSupply
-                    org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // name
-                    org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // symbol
-                    org.web3j.abi.TypeReference.create(AbiTypes.getType("uint8")) // decimals
-                ));
+            Function function = new Function("listTokenInfos", new ArrayList<>(), Collections.<org.web3j.abi.TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
-            LOG.info("tokenList: {}", response);
-            return createResponse(requestId, response);
+            DefaultFunctionReturnDecoder decoder = new DefaultFunctionReturnDecoder();
+            List<Type> result = decoder.decodeFunctionResult(response, List.of(
+                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // id
+                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // totalSupply
+                org.web3j.abi.TypeReference.makeTypeReference("string"), // name
+                org.web3j.abi.TypeReference.makeTypeReference("string"), // symbol
+                org.web3j.abi.TypeReference.makeTypeReference("uint8") // decimals
+            ));
+            LOG.info("tokenList: {}", result);
+            return createResponse(requestId, result.toString());
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
