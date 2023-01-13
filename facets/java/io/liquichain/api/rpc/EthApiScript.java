@@ -433,6 +433,9 @@ class BesuProcessor extends BlockchainProcessor {
             case "get_balanceOf":
                 result = getBalanceOf(requestId, parameters);
                 break;
+            case "net_version":
+                result = createResponse(requestId, "1662");
+                break;
             case "eth_getBalance":
                 result = getBalance(requestId, parameters);
                 break;
