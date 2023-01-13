@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
@@ -577,7 +578,7 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
             List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-            LOG.info("tokenList: {}", results.stream().map(Type::getValue));
+            LOG.info("tokenList: {}", results.stream().map(Type::getValue).collect(Collectors.toList()));
             return createResponse(requestId, response);
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
