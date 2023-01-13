@@ -624,7 +624,6 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
         }
-
     }
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
