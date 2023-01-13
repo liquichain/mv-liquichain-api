@@ -618,7 +618,7 @@ class BesuProcessor extends BlockchainProcessor {
                 .stream()
                 .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
                 .map(tokenDetails -> {
-                    LOG.info("tokenDetails: {}", tokenDetails.toMap());
+                    LOG.info("tokenDetails: {}", tokenDetails);
                     return tokenDetails.toMap();
                 })
                 .collect(Collectors.toList());
