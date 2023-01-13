@@ -134,7 +134,7 @@ class EthApiUtils {
         String idFormat = requestId == null || NumberUtils.isParsable(requestId)
             ? "  \"id\": %s,"
             : "  \"id\": \"%s\",";
-        String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
+        String resultFormat = result.startsWith("{") || result.startsWith("[") ? "%s" : "\"%s\"";
         String response = "{\n" +
             String.format(idFormat, requestId) + "\n" +
             "  \"jsonrpc\": \"2.0\",\n" +
@@ -587,14 +587,14 @@ class BesuProcessor extends BlockchainProcessor {
             this.decimals = decimals.getValue();
         }
 
-        @Override public String toString() {
-            return "TokenDetails{" +
-                "id=" + id +
-                ", totalSupply=" + totalSupply +
-                ", name='" + name + '\'' +
-                ", symbol='" + symbol + '\'' +
-                ", decimals=" + decimals +
-                '}';
+        public Map<String, Object> toMap() {
+            return new LinkedHashMap<>(){{
+                put("id", id);
+                put("totalSupply", totalSupply);
+                put("name", name);
+                put("symbol", symbol);
+                put("decimals", decimals);
+            }};
         }
     }
 
@@ -614,9 +614,10 @@ class BesuProcessor extends BlockchainProcessor {
             results.forEach(result -> {
                 LOG.info("result: {}", result.getValue());
             });
-            List<TokenDetails> decodedResults = results
+            List<Map<String, Object>> decodedResults = results
                 .stream()
                 .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
+                .map(TokenDetails::toMap)
                 .collect(Collectors.toList());
             return createResponse(requestId, toJson(decodedResults));
         } catch (Exception e) {
