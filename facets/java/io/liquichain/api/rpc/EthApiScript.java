@@ -44,6 +44,7 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
 import org.web3j.protocol.Web3j;
@@ -560,17 +561,37 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
+    public static class TokenDetails extends DynamicStruct {
+        public BigInteger id;
+        public BigInteger totalSupply;
+        public String name;
+        public String symbol;
+        public BigInteger decimals;
+
+        public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
+            super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
+                new Uint256(decimals));
+            this.id = id;
+            this.totalSupply = totalSupply;
+            this.name = name;
+            this.symbol = symbol;
+            this.decimals = decimals;
+        }
+
+        public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
+            super(id, totalSupply, name, symbol, decimals);
+            this.id = id.getValue();
+            this.totalSupply = totalSupply.getValue();
+            this.name = name.getValue();
+            this.symbol = symbol.getValue();
+            this.decimals = decimals.getValue();
+        }
+    }
+
     private String retrieveTokenList(String requestId) {
         try {
-            DynamicStruct struct = new DynamicStruct(List.of(
-                (Type) TypeReference.create(AbiTypes.getType("uint256")), // id
-                (Type) TypeReference.create(AbiTypes.getType("uint256")), // totalSupply
-                (Type) TypeReference.create(AbiTypes.getType("string")), // name
-                (Type) TypeReference.create(AbiTypes.getType("string")), // symbol
-                (Type) TypeReference.create(AbiTypes.getType("uint8")) // decimals
-            ));
             List<TypeReference<?>> outputParameters = List.of(
-                new TypeReference<DynamicArray<DynamicStruct>>(){}
+                new TypeReference<DynamicArray<TokenDetails>>() {}
             );
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
