@@ -41,10 +41,8 @@ import org.slf4j.LoggerFactory;
 import org.web3j.abi.DefaultFunctionReturnDecoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.datatypes.AbiTypes;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
@@ -565,11 +563,7 @@ class BesuProcessor extends BlockchainProcessor {
     private String retrieveTokenList(String requestId) {
         try {
             List<org.web3j.abi.TypeReference<?>> outputParameters = List.of(
-                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // id
-                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // totalSupply
-                org.web3j.abi.TypeReference.makeTypeReference("string"), // name
-                org.web3j.abi.TypeReference.makeTypeReference("string"), // symbol
-                org.web3j.abi.TypeReference.makeTypeReference("uint8") // decimals
+                new org.web3j.abi.TypeReference<DynamicArray<?>>(){}
             );
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
