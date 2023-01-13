@@ -611,7 +611,9 @@ class BesuProcessor extends BlockchainProcessor {
             String response = manager.sendCall(smartContract, data, LATEST);
             List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
             results.forEach(result -> {LOG.info("result: {}", result.getValue());});
-            List<Object> decodedResults = results.stream().map(result -> result.getValue()).collect(Collectors.toList());
+            List<Object> decodedResults = results.stream()
+                                                 .map(result -> result.getValue())
+                                                 .collect(Collectors.toList());
             return createResponse(requestId, toJson(decodedResults));
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
