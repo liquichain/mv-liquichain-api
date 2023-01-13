@@ -565,11 +565,11 @@ class BesuProcessor extends BlockchainProcessor {
     private String retrieveTokenList(String requestId) {
         try {
             List<org.web3j.abi.TypeReference<?>> outputParameters = List.of(
-                org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // id
-                org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // totalSupply
-                org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // name
-                org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // symbol
-                org.web3j.abi.TypeReference.create(AbiTypes.getType("uint8")) // decimals
+                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // id
+                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // totalSupply
+                org.web3j.abi.TypeReference.makeTypeReference("string"), // name
+                org.web3j.abi.TypeReference.makeTypeReference("string"), // symbol
+                org.web3j.abi.TypeReference.makeTypeReference("uint8") // decimals
             );
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
