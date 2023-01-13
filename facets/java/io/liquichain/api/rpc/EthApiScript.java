@@ -588,7 +588,7 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         public Map<String, Object> toMap() {
-            return new LinkedHashMap<>(){{
+            return new LinkedHashMap<>() {{
                 put("id", id);
                 put("totalSupply", totalSupply);
                 put("name", name);
@@ -617,7 +617,10 @@ class BesuProcessor extends BlockchainProcessor {
             List<Map<String, Object>> decodedResults = results
                 .stream()
                 .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
-                .map(TokenDetails::toMap)
+                .map(tokenDetails -> {
+                    LOG.info("tokenDetails: {}", tokenDetails.toMap());
+                    return tokenDetails.toMap();
+                })
                 .collect(Collectors.toList());
             return createResponse(requestId, toJson(decodedResults));
         } catch (Exception e) {
