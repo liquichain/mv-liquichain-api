@@ -32,7 +32,6 @@ import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.storage.RepositoryService;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.math.NumberUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.web3j.abi.DefaultFunctionReturnDecoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.generated.Uint256;
@@ -192,7 +192,7 @@ class EthApiUtils {
     public static <T> T convert(String data) {
         T value = null;
         try {
-            value = mapper.readValue(data, new TypeReference<T>() {
+            value = mapper.readValue(data, new com.fasterxml.jackson.core.type.TypeReference<T>() {
             });
         } catch (Exception e) {
             LOG.error("Failed to parse data: {}", data, e);
@@ -526,7 +526,7 @@ class BesuProcessor extends BlockchainProcessor {
                 new Address(toHexHash(address)),
                 new Uint256(tokenId)
             ),
-            Collections.<org.web3j.abi.TypeReference<?>>emptyList()
+            Collections.<TypeReference<?>>emptyList()
         );
         String data = FunctionEncoder.encode(function);
         LOG.info("smart contract: {}", smartContract);
@@ -562,8 +562,15 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String retrieveTokenList(String requestId) {
         try {
-            List<org.web3j.abi.TypeReference<?>> outputParameters = List.of(
-                new org.web3j.abi.TypeReference<DynamicArray<?>>(){}
+            DynamicStruct struct = new DynamicStruct(List.of(
+                (Type) TypeReference.create(AbiTypes.getType("uint256")), // id
+                (Type) TypeReference.create(AbiTypes.getType("uint256")), // totalSupply
+                (Type) TypeReference.create(AbiTypes.getType("string")), // name
+                (Type) TypeReference.create(AbiTypes.getType("string")), // symbol
+                (Type) TypeReference.create(AbiTypes.getType("uint8")) // decimals
+            ));
+            List<TypeReference<?>> outputParameters = List.of(
+                new TypeReference<DynamicArray<DynamicStruct>>(){}
             );
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
