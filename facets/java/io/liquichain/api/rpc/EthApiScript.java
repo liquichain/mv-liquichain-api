@@ -586,6 +586,16 @@ class BesuProcessor extends BlockchainProcessor {
             this.symbol = symbol.getValue();
             this.decimals = decimals.getValue();
         }
+
+        @Override public String toString() {
+            return "TokenDetails{" +
+                "id=" + id +
+                ", totalSupply=" + totalSupply +
+                ", name='" + name + '\'' +
+                ", symbol='" + symbol + '\'' +
+                ", decimals=" + decimals +
+                '}';
+        }
     }
 
     private String retrieveTokenList(String requestId) {
