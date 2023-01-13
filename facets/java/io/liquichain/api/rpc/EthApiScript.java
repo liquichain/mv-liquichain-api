@@ -601,7 +601,8 @@ class BesuProcessor extends BlockchainProcessor {
     private String retrieveTokenList(String requestId) {
         try {
             List<TypeReference<?>> outputParameters = List.of(
-                new TypeReference<DynamicArray<TokenDetails>>() {}
+                new TypeReference<DynamicArray<TokenDetails>>() {
+                }
             );
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
@@ -610,10 +611,13 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
             List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-            results.forEach(result -> {LOG.info("result: {}", result.getValue());});
-            List<Object> decodedResults = (List<Object>) results.stream()
-                                                                .flatMap(result -> ((List)result.getValue()).stream())
-                                                                .collect(Collectors.toList());
+            results.forEach(result -> {
+                LOG.info("result: {}", result.getValue());
+            });
+            List<TokenDetails> decodedResults = results
+                .stream()
+                .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
+                .collect(Collectors.toList());
             return createResponse(requestId, toJson(decodedResults));
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
