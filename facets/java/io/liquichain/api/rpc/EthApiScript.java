@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.DefaultFunctionReturnDecoder;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.AbiTypes;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Function;
@@ -562,22 +563,22 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String retrieveTokenList(String requestId) {
         try {
+            List<org.web3j.abi.TypeReference<?>> outputParameters = List.of(
+                org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // id
+                org.web3j.abi.TypeReference.create(AbiTypes.getType("uint256")), // totalSupply
+                org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // name
+                org.web3j.abi.TypeReference.create(AbiTypes.getType("string")), // symbol
+                org.web3j.abi.TypeReference.create(AbiTypes.getType("uint8")) // decimals
+            );
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
-            Function function = new Function("listTokenInfos", new ArrayList<>(), Collections.<org.web3j.abi.TypeReference<?>>emptyList());
+            Function function = new Function("listTokenInfos", new ArrayList<>(), outputParameters);
             String data = FunctionEncoder.encode(function);
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
-            DefaultFunctionReturnDecoder decoder = new DefaultFunctionReturnDecoder();
-            List<Type> result = decoder.decodeFunctionResult(response, List.of(
-                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // id
-                org.web3j.abi.TypeReference.makeTypeReference("uint256"), // totalSupply
-                org.web3j.abi.TypeReference.makeTypeReference("string"), // name
-                org.web3j.abi.TypeReference.makeTypeReference("string"), // symbol
-                org.web3j.abi.TypeReference.makeTypeReference("uint8") // decimals
-            ));
-            LOG.info("tokenList: {}", result);
-            return createResponse(requestId, result.toString());
+            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
+            LOG.info("tokenList: {}", results.stream().map(Type::getValue));
+            return createResponse(requestId, response);
         } catch (Exception e) {
             LOG.error(PROXY_REQUEST_ERROR, e);
             return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
