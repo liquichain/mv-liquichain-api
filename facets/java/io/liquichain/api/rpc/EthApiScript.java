@@ -406,6 +406,44 @@ class BesuProcessor extends BlockchainProcessor {
         .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
         .build();
 
+
+    public static class TokenDetails extends DynamicStruct {
+        public BigInteger id;
+        public BigInteger totalSupply;
+        public String name;
+        public String symbol;
+        public BigInteger decimals;
+
+        public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
+            super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
+                new Uint256(decimals));
+            this.id = id;
+            this.totalSupply = totalSupply;
+            this.name = name;
+            this.symbol = symbol;
+            this.decimals = decimals;
+        }
+
+        public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
+            super(id, totalSupply, name, symbol, decimals);
+            this.id = id.getValue();
+            this.totalSupply = totalSupply.getValue();
+            this.name = name.getValue();
+            this.symbol = symbol.getValue();
+            this.decimals = decimals.getValue();
+        }
+
+        public Map<String, Object> toMap() {
+            return new LinkedHashMap<>() {{
+                put("id", id);
+                put("totalSupply", totalSupply);
+                put("name", name);
+                put("symbol", symbol);
+                put("decimals", decimals);
+            }};
+        }
+    }
+
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
         // ORIGIN_WALLET = config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
@@ -431,12 +469,6 @@ class BesuProcessor extends BlockchainProcessor {
         LOG.info("json rpc: {}, parameters:{}", method, parameters);
 
         switch (method) {
-            case "get_tokenList":
-                result = retrieveTokenList(requestId);
-                break;
-            case "get_balanceOf":
-                result = getBalanceOf(requestId, parameters);
-                break;
             case "net_version":
                 result = createResponse(requestId, "1662");
                 break;
@@ -453,6 +485,30 @@ class BesuProcessor extends BlockchainProcessor {
             case "eea_sendRawTransaction":
                 result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
                 break;
+            case "contract_listTokenInfos":
+                result = contractListTokenInfos(requestId);
+                break;
+            case "contract_getToken":
+                result = contractGetToken(requestId, parameters);
+                break;
+            case "contract_balanceOf":
+                result = contractBalanceOf(requestId, parameters);
+                break;
+//            case "contract_balanceOfBatch":
+//                result = contractBalanceOfBatch(requestId, parameters);
+//                break;
+//            case "contract_transfer":
+//                result = contractTransfer(requestId, parameters);
+//                break;
+//            case "contract_batchTransfer":
+//                result = contractBatchTransfer(requestId, parameters);
+//                break;
+//            case "contract_safeTransferFrom":
+//                result = contractSafeTransferFrom(requestId, parameters);
+//                break;
+//            case "contract_safeBatchTransferFrom":
+//                result = contractSafeBatchTransferFrom(requestId, parameters);
+//                break;
             default:
                 result = callEthJsonRpc(requestId, parameters);
                 break;
@@ -514,7 +570,7 @@ class BesuProcessor extends BlockchainProcessor {
         RawTransactionManager manager = getTransactionManager();
         DefaultBlockParameter blockParameter = null;
         if (blockParam != null) {
-            if (blockParam != null && blockParam.startsWith("0x")) {
+            if (blockParam.startsWith("0x")) {
                 blockParameter = DefaultBlockParameter.valueOf(new BigInteger(blockParam.substring(2), 16));
             } else {
                 blockParameter = DefaultBlockParameterName.fromString(blockParam);
@@ -548,7 +604,7 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
-    private String getBalanceOf(String requestId, Map<String, Object> parameters) {
+    private String contractBalanceOf(String requestId, Map<String, Object> parameters) {
         try {
             List<String> params = (List<String>) parameters.get("params");
             String address = (String) params.get(0);
@@ -561,49 +617,33 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
-    public static class TokenDetails extends DynamicStruct {
-        public BigInteger id;
-        public BigInteger totalSupply;
-        public String name;
-        public String symbol;
-        public BigInteger decimals;
-
-        public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
-            super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
-                new Uint256(decimals));
-            this.id = id;
-            this.totalSupply = totalSupply;
-            this.name = name;
-            this.symbol = symbol;
-            this.decimals = decimals;
-        }
-
-        public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
-            super(id, totalSupply, name, symbol, decimals);
-            this.id = id.getValue();
-            this.totalSupply = totalSupply.getValue();
-            this.name = name.getValue();
-            this.symbol = symbol.getValue();
-            this.decimals = decimals.getValue();
-        }
-
-        public Map<String, Object> toMap() {
-            return new LinkedHashMap<>() {{
-                put("id", id);
-                put("totalSupply", totalSupply);
-                put("name", name);
-                put("symbol", symbol);
-                put("decimals", decimals);
-            }};
+    private String contractGetToken(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        int tokenId = Integer.parseInt((String) params.get(0), 10);
+        try {
+            List<TypeReference<?>> outputParameters = List.of(new TypeReference<TokenDetails>() {});
+            String smartContract = getSmartContract();
+            RawTransactionManager manager = getTransactionManager();
+            Function function = new Function("getToken", List.of(new Uint256(tokenId)), outputParameters);
+            String data = FunctionEncoder.encode(function);
+            LOG.info("smart contract: {}", smartContract);
+            String response = manager.sendCall(smartContract, data, LATEST);
+            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
+            List<Map<String, Object>> decodedResults = results
+                .stream()
+                .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
+                .map(TokenDetails::toMap)
+                .collect(Collectors.toList());
+            return createResponse(requestId, toJson(decodedResults));
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
         }
     }
 
-    private String retrieveTokenList(String requestId) {
+    private String contractListTokenInfos(String requestId) {
         try {
-            List<TypeReference<?>> outputParameters = List.of(
-                new TypeReference<DynamicArray<TokenDetails>>() {
-                }
-            );
+            List<TypeReference<?>> outputParameters = List.of(new TypeReference<DynamicArray<TokenDetails>>() {});
             String smartContract = getSmartContract();
             RawTransactionManager manager = getTransactionManager();
             Function function = new Function("listTokenInfos", new ArrayList<>(), outputParameters);
@@ -611,9 +651,6 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.info("smart contract: {}", smartContract);
             String response = manager.sendCall(smartContract, data, LATEST);
             List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-            results.forEach(result -> {
-                LOG.info("result: {}", result.getValue());
-            });
             List<Map<String, Object>> decodedResults = results
                 .stream()
                 .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
