@@ -1,0 +1,447 @@
+{
+	"info": {
+		"_postman_id": "baf82ab9-289a-4c4b-ad5e-cba119497be1",
+		"name": "Multi-Account API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30784"
+	},
+	"item": [
+		{
+			"name": "Create wallet",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_creation\",\n\t\"params\": [\n\t\t\"Wallet User\",\n\t\t\"{{walletId}}\",\n\t\t\"8f66f7a6391b814a5d4f13edd0482180cdfb88194733342c1831628fab137620\",\n\t\t\"0x0414d83991d91f25b67cb453ed30ab1854f527cbc7b836d0da02db19c6273ba17df40c7bf86d64d775a1547fa3705a6d0a6f2d40d0de723845e14fa92c9594021c\",\n\t\t\"{}\",\n\t\t\"{\\\"username\\\": \\\"wallet.user\\\", \\\"password\\\": \\\"Pa$sw0rd\\\", \\\"emailAddress\\\":\\\"wallet.user@telecelplay.com\\\", \\\"phoneNumber\\\":\\\"+639991234567\\\"}\"\n\t]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/wallet_jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"wallet_jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Currency Conversion",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"if(jsonData != null){\r",
+							"    var currencies = jsonData.data;\r",
+							"    var euroConversion = currencies.find(currency => \r",
+							"        currency.from.currency === \"EUR\" && currency.to.currency === \"CFA\"\r",
+							"    );\r",
+							"    var transferAmount = pm.collectionVariables.get(\"transferAmount\");\r",
+							"    pm.collectionVariables.set(\"convertedAmount\", (euroConversion.to.value * parseFloat(transferAmount)).toPrecision(9));\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/currconv",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"currconv"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create paypal order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"orderId\", jsonData.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"from\": { \"currency\": \"EUR\", \"amount\": {{transferAmount}} },\r\n  \"to\": { \"currency\": \"CFA\", \"amount\": {{convertedAmount}} },\r\n  \"toWallet\": \"0x7f199D803B2b2B8996110b927bD29739f7251D34\",\r\n  \"fromWallet\": \"0x7f199D803B2b2B8996110b927bD29739f7251D34\"\r\n}"
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/payment",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Capture order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/payment-capture/{{orderId}}",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"payment-capture",
+						"{{orderId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Balance",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"eth_getBalance\",\n    \"params\": [\n        \"{{walletId}}\",\n        \"latest\"\n    ],\n    \"id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Contract listTokenInfos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"if(jsonData != null){\r",
+							"    var tokens = jsonData.result;\r",
+							"    pm.collectionVariables.set(\"tokenId\", tokens[0].id);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_listTokenInfos\",\n    \"params\": [],\n    \"id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Contract getToken",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_getToken\",\n    \"params\": [1],\n    \"id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Contract balanceOf",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_balanceOf\",\n    \"params\": [\n        \"{{walletId}}\",\n        {{tokenId}},\n        \"latest\"\n    ],\n    \"id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Wallet Balance History",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/etherscan/api?action=balancehistory&address={{walletId}}",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"etherscan",
+						"api"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "balancehistory"
+						},
+						{
+							"key": "address",
+							"value": "{{walletId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{meveo.password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{meveo.user}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "orderId",
+			"value": ""
+		},
+		{
+			"key": "walletId",
+			"value": "0x7f199D803B2b2B8996110b927bD29739f7251D34",
+			"type": "string"
+		},
+		{
+			"key": "transferAmount",
+			"value": "10.0",
+			"type": "string"
+		},
+		{
+			"key": "convertedAmount",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tokenId",
+			"value": ""
+		}
+	]
+}
