@@ -606,9 +606,9 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String contractBalanceOf(String requestId, Map<String, Object> parameters) {
         try {
-            List<String> params = (List<String>) parameters.get("params");
+            List<Object> params = (List<Object>) parameters.get("params");
             String address = (String) params.get(0);
-            int tokenId = Integer.parseInt(params.get(1), 10);
+            int tokenId = (Integer)params.get(1);
             String blockParam = (String) params.get(2);
             return getBalanceOf(requestId, address, tokenId, blockParam);
         } catch (Exception e) {
@@ -618,8 +618,8 @@ class BesuProcessor extends BlockchainProcessor {
     }
 
     private String contractGetToken(String requestId, Map<String, Object> parameters) {
-        List<String> params = (List<String>) parameters.get("params");
-        int tokenId = Integer.parseInt(params.get(1), 10);
+        List<Object> params = (List<Object>) parameters.get("params");
+        int tokenId = (Integer)params.get(0);
         try {
             List<TypeReference<?>> outputParameters = List.of(new TypeReference<TokenDetails>() {});
             String smartContract = getSmartContract();
