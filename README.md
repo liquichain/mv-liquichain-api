@@ -41,6 +41,12 @@ The ETH API endpoint is at: **POST /meveo/rest/jsonrpc** and it is compatible wi
 - [eth_syncing](#eth_syncing)
 - [eth_uninstallFilter](#eth_uninstallfilter)
 
+## Multi-account operations (not part of Ethereum API)
+The multi-account API endpoint is at: **POST /meveo/rest/jsonrpc** and it has the following methods.
+- [contract_listTokenInfos](#contract_listtokeninfos)
+- [contract_getToken](#contract_gettoken)
+- [contract_balanceOf](#contract_balanceof)
+
 ## Setup `meveo` and `keycloak` for keycloak user creation
 - [Configure keycloak](#configure-keycloak)
 - [Configure pasword rules in keycloak](#configure-password-rules-in-keycloak)
@@ -306,7 +312,7 @@ None
 
 ### eth_getBalance
 
-Returns the account balance of the specified address.
+Returns the account balance of the specified address, for the default token (id: 0).
 
 **Parameters**
 
@@ -416,7 +422,7 @@ Returns information about a block by block number.
 **Sample Request**
 ```json
 {
-  "id": 1
+  "id": 1,
   "jsonrpc": "2.0",
   "method": "eth_getBlockByNumber",
   "params": [
@@ -1524,7 +1530,7 @@ Submits the mining hashrate.
 **Sample Request**
 ```json
 {
-  "id": 1
+  "id": 1,
   "jsonrpc": "2.0",
   "method": "eth_submitHashrate",
   "params": [
@@ -1617,6 +1623,147 @@ Filters time out when not requested by [`eth_getFilterChanges`](#eth_getfilterch
   "id": 1,
   "jsonrpc": "2.0",
   "result": true
+}
+```
+
+## Multi-account operations
+
+### contract_listTokenInfos
+
+Lists all available tokens on the smart contract.
+
+> **Note** - This is not implemented when using database backend
+
+**Parameters**
+
+None
+
+**Returns**
+
+`result` : List - list of token details with the following information:
+
+- `id` : quantity - Index of the token.
+- `symbol` : String - The token's symbol.
+- `name` : String - Name of the token.
+- `decimals` : quantity - The number of decimal places used by the token.
+- `totalSupply` : quantity - The total supply of tokens that exist when all tokens on the contract are combined.
+
+
+**Sample Request**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "method": "contract_listTokenInfos",
+  "params": []
+}
+```
+**Sample Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": [
+    {
+      "id": 0,
+      "totalSupply": 250000000000000000000000000,
+      "name": "MyCoin",
+      "symbol": "MCN",
+      "decimals": 18
+    },
+    {
+      "id": 1,
+      "totalSupply": 150000000000000000000000000,
+      "name": "'TheirCoin'",
+      "symbol": "'TCN'",
+      "decimals": 18
+    }
+  ]
+}
+```
+
+### contract_getToken
+
+Retrieves details of the desired token on the smart contract.
+
+> **Note** - This is not implemented when using database backend
+
+**Parameters**
+
+`DATA` - Token ID.
+
+**Returns**
+
+`result` : Object - The token details with the following information:
+
+- `id` : quantity - Index of the token.
+- `symbol` : String - The token's symbol.
+- `name` : String - Name of the token.
+- `decimals` : quantity - The number of decimal places used by the token.
+- `totalSupply` : quantity - The total supply of tokens that exist when all tokens on the contract are combined.
+
+
+**Sample Request**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "method": "contract_getToken",
+  "params": [
+    0
+  ]
+}
+```
+**Sample Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+      "id": 0,
+      "totalSupply": 250000000000000000000000000,
+      "name": "MyCoin",
+      "symbol": "MCN",
+      "decimals": 18
+    }
+}
+```
+
+### contract_balanceOf
+
+Returns the account balance of the specified address, for the desired token using its token id.
+
+**Parameters**
+
+`DATA` - 20-byte account address from which to retrieve the balance.
+
+`DATA` - Token ID.
+
+`QUANTITY`|`TAG` - Integer representing a block number or one of the string tags `latest`, `earliest`, or `pending`, as described in [Block Parameter](#block-parameter).
+
+**Returns**
+
+`result` : QUANTITY - Current balance, in wei, as a hexadecimal value.
+
+**Sample Request**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "method": "eth_getBalance",
+  "params": [
+    "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73",
+    0,
+    "latest"
+  ]
+}
+```
+**Sample Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": "0x000000000000000000000000000000000000000000295ee05f6b8d996f437000"
 }
 ```
 
