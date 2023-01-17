@@ -166,6 +166,60 @@
 			"response": []
 		},
 		{
+			"name": "Send Transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"if(jsonData != null){\r",
+							"    var tokens = jsonData.result;\r",
+							"    pm.collectionVariables.set(\"tokenId\", tokens[0].id);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"jsonrpc\":\"2.0\",\n\t\"id\":1,\n\t\"method\":\"eth_sendRawTransaction\",\n\t\"params\":[\"0xf8c50d808301d4c09464f782197283d592b9a6cee67038f990fc29225b80b864095bcdb6000000000000000000000000b4bf880bafaf68ec8b5ea83faa394f5133bb962300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008ac7230489e800001ca05096e206631ccb41031589333a3afab7e6453c5d25a2e954c5105b8aaa89b9b0a033a1f537b4978be4a4683be1650b2d1cda401f09b8f4206e763a7d13519fe732\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{webContext}}",
+						"rest",
+						"jsonrpc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get Balance",
 			"request": {
 				"method": "POST",
@@ -282,7 +336,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_getToken\",\n    \"params\": [1],\n    \"id\": 1\n}",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_getToken\",\n    \"params\": [0],\n    \"id\": 1\n}",
 					"options": {
 						"raw": {
 							"language": "json"
