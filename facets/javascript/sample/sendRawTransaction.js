@@ -1,5 +1,4 @@
 import "https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js";
-
 const abi = [
     {
         "anonymous": false,
