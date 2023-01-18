@@ -3,13 +3,13 @@ import abi from "./abi.js";
 
 const web3 = new Web3("https://dev.telecelplay.io/meveo/rest/jsonrpc");
 const mainContainer = document.getElementById("main");
-const contractAddress = "0x64F782197283D592B9a6ceE67038f990fc29225B"
+const contractAddress = "0xContractAddress"; // fetch the contractAddress from server
 
 const contract = new web3.eth.Contract(abi, contractAddress);
 
 (async () => {
-    const senderPrivateKey = "807a0dee7e890b72976f4be47e7f25204e656d25954f38234cc04c4c01fab223";
-    const recipient = "0xb4bF880BAfaF68eC8B5ea83FaA394f5133BB9623";
+    const senderPrivateKey = "0xSenderPrivateKey" // replace with valid private key ;
+    const recipient = "0xRecipientWalletAddress" //replace with valid recipient wallet address;
     const tokenId = 0;
     const transferAmount = web3.utils.toWei("1", "ether");
 
