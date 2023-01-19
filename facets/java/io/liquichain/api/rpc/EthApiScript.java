@@ -387,8 +387,8 @@ abstract class BlockchainProcessor {
 class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
-    private String BESU_API_URL = null;
-    public final String ORIGIN_WALLET = "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623".toLowerCase();
+    private String BESU_API_URL;
+    private String ORIGIN_WALLET;
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
@@ -401,7 +401,8 @@ class BesuProcessor extends BlockchainProcessor {
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
         BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
-        // ORIGIN_WALLET = config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
+        String paymentWallet = config.getProperty("payment.wallet", "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623");
+        ORIGIN_WALLET = paymentWallet.toLowerCase();
     }
 
     @Override
