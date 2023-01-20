@@ -67,8 +67,8 @@ public class KeycloakUserService extends Script {
         String REALM = System.getProperty("meveo.keycloak.realm");
         CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
         CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
-        LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
-        String CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
+        LOGIN_URL = AUTH_URL + "realms/master/protocol/openid-connect/token";
+        String CLIENT_REALM_URL = AUTH_URL + "admin/realms/" + REALM;
         USERS_URL = CLIENT_REALM_URL + "/users";
     }
 
