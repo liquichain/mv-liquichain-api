@@ -62,7 +62,8 @@ public class KeycloakUserService extends Script {
         this.roleService = roleService;
 
         String AUTH_URL = System.getProperty("meveo.keycloak.url");
-        AUTH_URL = AUTH_URL!=null && AUTH_URL.endsWith("/") ? AUTH_URL : AUTH_URL + "/";
+        AUTH_URL = AUTH_URL != null && AUTH_URL.endsWith("/") ? AUTH_URL : AUTH_URL + "/";
+        LOG.info("auth url: {}", AUTH_URL);
         String REALM = System.getProperty("meveo.keycloak.realm");
         CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
         CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
