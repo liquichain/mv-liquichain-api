@@ -772,7 +772,6 @@ class BesuProcessor extends BlockchainProcessor {
         if (receiver == null) {
             return createErrorResponse(requestId, INVALID_REQUEST, "No recipient in raw transaction data.");
         }
-
         String smartContract = toHexHash(getSmartContract());
         LOG.info("smartContract: {}", smartContract);
         boolean isSmartContractCall = receiver.equals(smartContract);
