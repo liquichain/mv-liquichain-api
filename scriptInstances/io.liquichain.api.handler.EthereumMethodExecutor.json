@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.handler.EthereumMethodExecutor",
+  "description" : "Ethereum method executor",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
