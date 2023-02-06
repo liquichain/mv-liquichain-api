@@ -3,13 +3,12 @@ package io.liquichain.api.rpc;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
-import static io.liquichain.api.rpc.EthApiScript.*;
+import static io.liquichain.api.handler.ContractMethodExecutor.*;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -21,6 +20,7 @@ import java.util.stream.Collectors;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 
+import io.liquichain.api.handler.ContractMethodExecutor;
 import io.liquichain.core.BlockForgerScript;
 
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -63,75 +63,6 @@ public class EthApiScript extends Script {
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final ParamBean config = paramBeanFactory.getInstance();
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
-
-
-    public static class MethodHandlerInput {
-        private RawTransaction rawTransaction;
-        private String smartContractAddress;
-
-        public MethodHandlerInput(RawTransaction rawTransaction, String smartContractAddress) {
-            this.rawTransaction = rawTransaction;
-            this.smartContractAddress = smartContractAddress;
-        }
-
-        public RawTransaction getRawTransaction() {
-            return rawTransaction;
-        }
-
-        public void setRawTransaction(RawTransaction rawTransaction) {
-            this.rawTransaction = rawTransaction;
-        }
-
-        public String getSmartContractAddress() {
-            return smartContractAddress;
-        }
-
-        public void setSmartContractAddress(String smartContractAddress) {
-            this.smartContractAddress = smartContractAddress;
-        }
-    }
-
-
-    public static class MethodHandlerResult {
-        private String transactionType;
-        private String extraData;
-        private BigInteger value;
-
-        public MethodHandlerResult(String transactionType, String extraData, BigInteger value) {
-            this.transactionType = transactionType;
-            this.extraData = extraData;
-            this.value = value;
-        }
-
-        public String getTransactionType() {
-            return transactionType;
-        }
-
-        public void setTransactionType(String transactionType) {
-            this.transactionType = transactionType;
-        }
-
-        public String getExtraData() {
-            return extraData;
-        }
-
-        public void setExtraData(String extraData) {
-            this.extraData = extraData;
-        }
-
-        public BigInteger getValue() {
-            return value;
-        }
-
-        public void setValue(BigInteger value) {
-            this.value = value;
-        }
-    }
-
-
-    public interface ContractMethodHandler {
-        MethodHandlerResult validateRule(MethodHandlerInput input);
-    }
 
 
     protected String result;
@@ -455,10 +386,9 @@ class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
     private final Web3j WEB3J;
-    private final String APP;
     private final String BESU_API_URL;
     private final String ORIGIN_WALLET;
-    private final LiquichainApp liquichainApp;
+    private final LiquichainApp LIQUICHAIN_APP;
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
@@ -508,15 +438,14 @@ class BesuProcessor extends BlockchainProcessor {
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
-        // ORIGIN_WALLET = config.getProperty("wallet.origin.account", "deE0d5bE78E1Db0B36d3C1F908f4165537217333");
-        ORIGIN_WALLET = "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623".toLowerCase();
+        String paymentWallet = config.getProperty("payment.wallet", "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623");
+        String app = config.getProperty("eth.api.appname", "licoin");
         BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
-        APP = config.getProperty("eth.api.appname", "licoin");
-        String BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+        ORIGIN_WALLET = normalizeHash(paymentWallet);
         WEB3J = Web3j.build(new HttpService(BESU_API_URL));
-        liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
-                                       .by("name", APP)
-                                       .getResult();
+        LIQUICHAIN_APP = crossStorageApi.find(defaultRepo, LiquichainApp.class)
+                                        .by("name", app)
+                                        .getResult();
     }
 
     private String toHexHash(String hash) {
@@ -617,7 +546,7 @@ class BesuProcessor extends BlockchainProcessor {
     }
 
     private String getSmartContract() {
-        return liquichainApp.getHexCode();
+        return LIQUICHAIN_APP.getHexCode();
     }
 
     private RawTransactionManager getTransactionManager() throws Exception {
@@ -724,6 +653,29 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
+    private MethodHandlerResult processContractMethods(MethodHandlerInput input) {
+        if (input.isSmartContract()) {
+            Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
+            if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
+                ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers);
+                return executor.execute(input);
+            }
+        }
+        RawTransaction rawTransaction = input.getRawTransaction();
+        return new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
+    }
+
+    private void validateRecipient(String recipient) {
+        try {
+            Wallet recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(recipient), Wallet.class);
+            if (recipientWallet == null) {
+                throw new RuntimeException(RECIPIENT_NOT_FOUND);
+            }
+        } catch (EntityDoesNotExistsException e) {
+            throw new RuntimeException(RECIPIENT_NOT_FOUND);
+        }
+    }
+
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
         String data = (String) params.get(0);
@@ -743,81 +695,32 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
-        LOG.debug("to:{} , value:{}", rawTransaction.getTo(), rawTransaction.getValue());
+        String rawRecipient = rawTransaction.getTo();
+        String rawData = rawTransaction.getData();
+        LOG.debug("RawTransaction recipient: {},  data: {}", rawRecipient, rawData);
 
         // as per besu documentation
         // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
         // to - address of the receiver. To deploy a contract, set to null.
         // or it can also be set to 0x0 or 0x80 as per:
         // (https://stackoverflow.com/questions/48219716/what-is-address0-in-solidity)
-        String recipient = rawTransaction.getTo();
-        if (recipient == null || "0x0".equals(recipient) || "0x80".equals(recipient)) {
+        if (rawRecipient == null || "0x0".equals(rawRecipient) || "0x80".equals(rawRecipient)) {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
-        LOG.info("data: {}", rawTransaction.getData());
-        String receiver = null;
-        if (rawTransaction.getData() != null) {
-            String extraData = rawTransaction.getData();
-            String to = extraData.substring(34, 74);
-            receiver = rawTransaction.getTo();
-            BigInteger value = new BigInteger(extraData.substring(74), 16);
-            BigInteger gasLimit = rawTransaction.getGasLimit();
-            BigInteger gasPrice = rawTransaction.getGasPrice();
+        BigInteger value = rawTransaction.getValue();
+        LOG.info("RawTransaction value: {}", value);
 
-            LOG.info("receiver: {}", receiver);
-            LOG.info("to:{}, value:{}", to, value);
-            LOG.info("gasLimit:{} , gasPrice:{}", gasLimit, gasPrice);
-        }
-        if (receiver == null) {
-            return createErrorResponse(requestId, INVALID_REQUEST, "No recipient in raw transaction data.");
-        }
         String smartContract = toHexHash(getSmartContract());
         LOG.info("smartContract: {}", smartContract);
-        boolean isSmartContractCall = receiver.equals(smartContract);
-        if (!isSmartContractCall) {
-            try {
-                Wallet recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(receiver), Wallet.class);
-                if (recipientWallet == null) {
-                    return createErrorResponse(requestId, INVALID_REQUEST, RECIPIENT_NOT_FOUND);
-                }
-            } catch (EntityDoesNotExistsException e) {
-                return createErrorResponse(requestId, INVALID_REQUEST, RECIPIENT_NOT_FOUND);
-            }
-        } else {
-            Map<String, String> contractMethodHandlers = liquichainApp.getContractMethodHandlers();
-            List<MethodHandlerResult> handlerResults;
-            try {
-                handlerResults = contractMethodHandlers.entrySet().stream().map(entry -> {
-                    LOG.info("handler: {}", entry);
-                    String className = entry.getValue();
-                    Class<ContractMethodHandler> handlerClass;
-                    try {
-                        handlerClass = (Class<ContractMethodHandler>) Class.forName(className);
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException("Unable to load smart contract handler: " + className, e);
-                    }
-                    ContractMethodHandler contractMethodHandler;
-                    try {
-                        contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
-                    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-                             InvocationTargetException e) {
-                        throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
-                    }
-                    return contractMethodHandler.validateRule(new MethodHandlerInput(rawTransaction, recipient));
-                }).collect(Collectors.toList());
-            } catch (Exception e) {
-                LOG.error("Encountered error running smart contract method handler.", e.getCause());
-                return createErrorResponse(requestId, INTERNAL_ERROR, e.getMessage());
-            }
+        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
+
+        try {
+            validateRecipient(input.getRecipient());
+        } catch (Exception e) {
+            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
         }
 
-        // TODO - lookup liquichain application
-        // - check if the smart contract address is equal to receiver l:698
-        // - and trigger method scripts
-        //   - map with filter method hash and script
-        // - run method scripts if there are any
-        //
         result = callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
         if (hasError) {
@@ -831,46 +734,21 @@ class BesuProcessor extends BlockchainProcessor {
                 String v = toHex(signatureData.getV());
                 String s = toHex(signatureData.getS());
                 String r = toHex(signatureData.getR());
-                // LOG.debug("from:{} chainId:{} , v:{} , r:{} , s:{}",
-                // signedTransaction.getFrom(), signedTransaction.getChainId(), v, r, s);
-                String extraData = rawTransaction.getData();
-                String to = normalizeHash(rawTransaction.getTo());
-                BigInteger value = rawTransaction.getValue();
-                LOG.debug("extraData:{} to:{}", extraData, to);
-                String type = "transfer";
-                if (extraData == null || extraData.isEmpty()) {
-                    extraData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
-                } else if (extraData.startsWith("0xa9059cbb") || extraData.startsWith("a9059cbb")) {
-                    if (extraData.startsWith("a9059cbb")) {
-                        extraData = "0x" + extraData;
-                    }
-                    to = extraData.substring(34, 74);
-                    value = new BigInteger(extraData.substring(74), 16);
-                    extraData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
-                    if (ORIGIN_WALLET.equals(to)) {
-                        type = "purchase";
-                        extraData = "{\"type\":\"purchase\",\"description\":\"Shop purchase\"}";
-                    }
-                } else {
-                    Map extraDataMap = convert(extraData);
-                    if (extraDataMap != null) {
-                        type = extraDataMap.get("type").toString();
-                    }
-                    extraData = "transfer".equals(type)
-                        ? "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}"
-                        : extraData;
-                }
+                LOG.debug("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
+                MethodHandlerResult handlerResult = processContractMethods(input);
+                LOG.debug("Handler result: {}", handlerResult);
+
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
                 transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
-                transaction.setToHexHash(to);
+                transaction.setToHexHash(normalizeHash(rawRecipient));
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
                 transaction.setValue("" + value);
-                transaction.setType("" + type);
+                transaction.setType("" + handlerResult.getTransactionType());
                 transaction.setSignedHash(data);
-                transaction.setData(extraData);
+                transaction.setData(handlerResult.getExtraData());
                 transaction.setBlockNumber("1");
                 transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
