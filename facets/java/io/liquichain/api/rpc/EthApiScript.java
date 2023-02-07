@@ -3,7 +3,6 @@ package io.liquichain.api.rpc;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
-import static io.liquichain.api.handler.ContractMethodExecutor.*;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -653,7 +652,8 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
-    private MethodHandlerResult processContractMethods(MethodHandlerInput input) {
+    private ContractMethodExecutor.MethodHandlerResult processContractMethods(
+        ContractMethodExecutor.MethodHandlerInput input) {
         if (input.isSmartContract()) {
             Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
             if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
@@ -662,7 +662,8 @@ class BesuProcessor extends BlockchainProcessor {
             }
         }
         RawTransaction rawTransaction = input.getRawTransaction();
-        return new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
+        return new ContractMethodExecutor.MethodHandlerResult("transfer", rawTransaction.getData(),
+            rawTransaction.getValue());
     }
 
     private void validateRecipient(String recipient) {
@@ -713,7 +714,8 @@ class BesuProcessor extends BlockchainProcessor {
 
         String smartContract = toHexHash(getSmartContract());
         LOG.info("smartContract: {}", smartContract);
-        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
+        ContractMethodExecutor.MethodHandlerInput input =
+            new ContractMethodExecutor.MethodHandlerInput(rawTransaction, getSmartContract());
 
         try {
             validateRecipient(input.getRecipient());
@@ -735,7 +737,7 @@ class BesuProcessor extends BlockchainProcessor {
                 String s = toHex(signatureData.getS());
                 String r = toHex(signatureData.getR());
                 LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
-                MethodHandlerResult handlerResult = processContractMethods(input);
+                ContractMethodExecutor.MethodHandlerResult handlerResult = processContractMethods(input);
                 LOG.info("Handler result: {}", handlerResult);
 
                 Transaction transaction = new Transaction();
