@@ -101,10 +101,9 @@ public class ContractMethodExecutor extends Script {
         }
 
         public boolean isSmartContract() {
-            String rawRecipient = lowercaseHash(rawTransaction.getTo());
-            return rawRecipient != null
+            return rawTransaction != null
                 && smartContractAddress != null
-                && lowercaseHash(rawRecipient).equals(lowercaseHash(smartContractAddress));
+                && lowercaseHash(rawTransaction.getTo()).equals(lowercaseHash(smartContractAddress));
         }
 
         @Override public String toString() {
