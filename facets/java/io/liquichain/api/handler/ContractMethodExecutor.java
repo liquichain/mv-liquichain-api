@@ -50,14 +50,15 @@ public class ContractMethodExecutor extends Script {
         private String smartContractAddress;
         private String recipient;
         private BigInteger value;
+        private boolean isContract;
 
         public MethodHandlerInput(RawTransaction rawTransaction, String smartContractAddress) {
             this.rawTransaction = rawTransaction;
             this.smartContractAddress = smartContractAddress;
         }
 
-        public boolean hasRawData() {
-            return rawTransaction != null && rawTransaction.getData() != null;
+        public boolean noRawData() {
+            return rawTransaction == null || rawTransaction.getData() == null;
         }
 
         public RawTransaction getRawTransaction() {
@@ -77,7 +78,7 @@ public class ContractMethodExecutor extends Script {
         }
 
         public String getRecipient() {
-            if (!hasRawData()) {
+            if (noRawData()) {
                 return null;
             }
             if (isSmartContract()) {
@@ -85,11 +86,12 @@ public class ContractMethodExecutor extends Script {
             } else {
                 recipient = rawTransaction.getTo();
             }
+            LOG.info("MethodHandlerInput getRecipient: {}", recipient);
             return recipient;
         }
 
         public BigInteger getValue() {
-            if (!hasRawData()) {
+            if (noRawData()) {
                 return null;
             }
             if (isSmartContract()) {
@@ -97,13 +99,16 @@ public class ContractMethodExecutor extends Script {
             } else {
                 value = rawTransaction.getValue();
             }
+            LOG.info("MethodHandlerInput value: {}", value);
             return value;
         }
 
         public boolean isSmartContract() {
-            return rawTransaction != null
+            boolean isContract = rawTransaction != null
                 && smartContractAddress != null
                 && lowercaseHash(rawTransaction.getTo()).equals(lowercaseHash(smartContractAddress));
+            LOG.info("MethodHandlerInput isSmartContract: {}", isContract);
+            return isContract;
         }
 
         @Override public String toString() {
