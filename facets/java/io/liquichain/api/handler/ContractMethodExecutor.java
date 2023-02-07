@@ -108,6 +108,7 @@ public class ContractMethodExecutor extends Script {
                 && smartContractAddress != null
                 && lowercaseHash(rawTransaction.getTo()).equals(lowercaseHash(smartContractAddress));
             LOG.info("MethodHandlerInput isSmartContract: {}", isContract);
+
             return isContract;
         }
 
