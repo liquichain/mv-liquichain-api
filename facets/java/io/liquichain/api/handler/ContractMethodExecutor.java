@@ -40,7 +40,7 @@ public class ContractMethodExecutor extends Script {
         this.functionSignatures = contractFunctions
             .stream()
             .filter(contractFunction -> "function".equals(contractFunction.getType()))
-            .map(ContractFunctionSignature::new)
+            .map(ContractFunctionSignature::parse)
             .collect(Collectors.toList());
     }
 
@@ -112,19 +112,19 @@ class ContractFunctionSignature {
     private List<TypeReference<?>> inputParameters;
     private List<TypeReference<?>> outputParameters;
 
-    public ContractFunctionSignature() {
-    }
+    public static ContractFunctionSignature parse(ContractFunction contractFunction) {
+        ContractFunctionSignature contractFunctionSignature = new ContractFunctionSignature();
+        String name = contractFunction.getName();
+        contractFunctionSignature.name = name;
+        List<ContractFunctionParameter> inputs = contractFunction.getInputs();
+        String functionParameters = inputs.stream()
+                                          .map(ContractFunctionParameter::getType)
+                                          .collect(Collectors.joining(","));
+        String functionDefinition = String.format("%s(%s)", name, functionParameters);
+        contractFunctionSignature.signature = Hash.sha3String(functionDefinition);
 
-    public ContractFunctionSignature(ContractFunction contractFunction) {
-        this.name = contractFunction.getName();
-//        List<ContractFunctionParameter> inputs = contractFunction.getInputs();
-//        String functionParameters = inputs.stream()
-//                                          .map(ContractFunctionParameter::getType)
-//                                          .collect(Collectors.joining(","));
-//        String functionDefinition = String.format("%s(%s)", name, functionParameters);
-//        this.signature = Hash.sha3String(functionDefinition);
-//
-//        LOG.info("ContractFunctionSignature: {}", this);
+        LOG.info("ContractFunctionSignature: {}", contractFunctionSignature);
+        return contractFunctionSignature;
     }
 
     public String getSignature() {
