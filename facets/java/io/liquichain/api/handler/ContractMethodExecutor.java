@@ -28,7 +28,7 @@ public class ContractMethodExecutor extends Script {
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
-    private final List<ContractFunctionSignature> functionSignatures = new ArrayList<>();
+    private final List<ContractFunctionSignature> functionSignatures;
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
@@ -36,13 +36,12 @@ public class ContractMethodExecutor extends Script {
         this.abi = abi;
         List<ContractFunction> contractFunctions = convert(abi);
         LOG.info("contractFunctions: {}", contractFunctions);
-        if (contractFunctions != null && !contractFunctions.isEmpty()) {
-            for (ContractFunction contractFunction : contractFunctions) {
-                if ("function".equals(contractFunction.getType())) {
-                    functionSignatures.add(new ContractFunctionSignature(contractFunction));
-                }
-            }
-        }
+
+        this.functionSignatures = contractFunctions
+            .stream()
+            .filter(contractFunction -> "function".equals(contractFunction.getType()))
+            .map(ContractFunctionSignature::new)
+            .collect(Collectors.toList());
     }
 
     public interface ContractMethodHandler {
@@ -117,15 +116,15 @@ class ContractFunctionSignature {
     }
 
     public ContractFunctionSignature(ContractFunction contractFunction) {
-        List<ContractFunctionParameter> inputs = contractFunction.getInputs();
         this.name = contractFunction.getName();
-        String functionParameters = inputs.stream()
-                                          .map(ContractFunctionParameter::getType)
-                                          .collect(Collectors.joining(","));
-        String functionDefinition = String.format("%s(%s)", name, functionParameters);
-        this.signature = Hash.sha3String(functionDefinition);
-
-        LOG.info("ContractFunctionSignature: {}", this);
+//        List<ContractFunctionParameter> inputs = contractFunction.getInputs();
+//        String functionParameters = inputs.stream()
+//                                          .map(ContractFunctionParameter::getType)
+//                                          .collect(Collectors.joining(","));
+//        String functionDefinition = String.format("%s(%s)", name, functionParameters);
+//        this.signature = Hash.sha3String(functionDefinition);
+//
+//        LOG.info("ContractFunctionSignature: {}", this);
     }
 
     public String getSignature() {
