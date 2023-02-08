@@ -557,17 +557,6 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
-    private void validateRecipient(String recipient) {
-        try {
-            Wallet recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(recipient), Wallet.class);
-            if (recipientWallet == null) {
-                throw new RuntimeException(RECIPIENT_NOT_FOUND);
-            }
-        } catch (EntityDoesNotExistsException e) {
-            throw new RuntimeException(RECIPIENT_NOT_FOUND);
-        }
-    }
-
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
         String data = (String) params.get(0);

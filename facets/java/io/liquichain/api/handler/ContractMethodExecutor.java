@@ -5,8 +5,10 @@ import static io.liquichain.api.rpc.EthApiUtils.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
@@ -17,24 +19,25 @@ import io.liquichain.api.handler.MethodHandlerResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.abi.TypeReference;
+import org.web3j.crypto.Hash;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
+    List<ContractFunctionSignature> functionSignatures;
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        loadAbi();
-    }
-
-    private void loadAbi() {
-        LOG.info("ABI loaded: {}", abi);
-        List<ContractFunction> contractFunction = convert(abi);
-        LOG.info("Extracted contract details: {}", contractFunction);
+        List<ContractFunction> contractFunctions = convert(abi);
+        this.functionSignatures = contractFunctions
+            .stream()
+            .map(ContractFunctionSignature::new)
+            .collect(Collectors.toList());
     }
 
     public interface ContractMethodHandler {
@@ -97,12 +100,95 @@ public class ContractMethodExecutor extends Script {
 }
 
 
+class ContractFunctionSignature {
+    private static final Logger LOG = LoggerFactory.getLogger(ContractFunctionSignature.class);
+
+    private String signature;
+    private String name;
+    private List<TypeReference<?>> inputParameters;
+    private List<TypeReference<?>> outputParameters;
+
+    public ContractFunctionSignature() {
+    }
+
+    public ContractFunctionSignature(ContractFunction contractFunction) {
+        if ("function".equals(contractFunction.getType())) {
+            List<ContractFunctionParameter> inputs = contractFunction.getInputs();
+            this.name = contractFunction.getName();
+            String functionParameters = inputs.stream()
+                                              .map(ContractFunctionParameter::getType)
+                                              .collect(Collectors.joining(","));
+            String functionDefinition = String.format("%s(%s)", name, functionParameters);
+            this.signature = Hash.sha3String(functionDefinition);
+
+            LOG.info("ContractFunctionSignature: {}", this);
+        }
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<TypeReference<?>> getInputParameters() {
+        return inputParameters;
+    }
+
+    public void setInputParameters(List<TypeReference<?>> inputParameters) {
+        this.inputParameters = inputParameters;
+    }
+
+    public List<TypeReference<?>> getOutputParameters() {
+        return outputParameters;
+    }
+
+    public void setOutputParameters(List<TypeReference<?>> outputParameters) {
+        this.outputParameters = outputParameters;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ContractFunctionSignature that = (ContractFunctionSignature) o;
+        return Objects.equals(signature, that.signature);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(signature);
+    }
+
+    @Override public String toString() {
+        return "ContractFunctionSignature{" +
+            "signature='" + signature + '\'' +
+            ", name='" + name + '\'' +
+            ", inputParameters=" + inputParameters +
+            ", outputParameters=" + outputParameters +
+            '}';
+    }
+}
+
+
 class ContractFunction {
-    String name;
-    String stateMutability;
-    String type;
-    List<ContractFunctionParameter> inputs;
-    List<ContractFunctionParameter> outputs;
+    private String name;
+    private String stateMutability;
+    private String type;
+    private List<ContractFunctionParameter> inputs;
+    private List<ContractFunctionParameter> outputs;
 
     public String getName() {
         return name;
@@ -144,7 +230,8 @@ class ContractFunction {
         this.outputs = outputs;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "ContractFunction{" +
             "name='" + name + '\'' +
             ", stateMutability='" + stateMutability + '\'' +
@@ -157,9 +244,9 @@ class ContractFunction {
 
 
 class ContractFunctionParameter {
-    String name;
-    String type;
-    String internalType;
+    private String name;
+    private String type;
+    private String internalType;
 
     public String getName() {
         return name;
@@ -185,7 +272,8 @@ class ContractFunctionParameter {
         this.internalType = internalType;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "ContractFunctionParameter{" +
             "name='" + name + '\'' +
             ", type='" + type + '\'' +
