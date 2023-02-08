@@ -23,6 +23,7 @@ import io.liquichain.api.handler.ContractMethodExecutor;
 import io.liquichain.api.handler.MethodHandlerInput;
 import io.liquichain.api.handler.MethodHandlerResult;
 import io.liquichain.core.BlockForgerScript;
+import io.liquichain.api.rpc.EthApiUtils;
 
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
