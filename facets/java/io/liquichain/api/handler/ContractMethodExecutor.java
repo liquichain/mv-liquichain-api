@@ -29,11 +29,12 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        List<ContractFunction> contractFunctions = ((List<ContractFunction>) convert(abi))
-            .stream()
-            .filter(contractFunction -> "function".equals(contractFunction.getType()))
-            .collect(Collectors.toList());
-        LOG.info("contractFunctions: {}", contractFunctions);
+        List<ContractFunction> contractFunctions = convert(abi);
+        for(ContractFunction contractFunction : contractFunctions){
+            if("function".equals(contractFunction.getType())){
+                LOG.info("contractFunction: {}", contractFunction);
+            }
+        }
         //        this.functionSignatures = contractFunctions
         //            .stream()
         //            .filter(contractFunction -> "function".equals(contractFunction.getType()))
