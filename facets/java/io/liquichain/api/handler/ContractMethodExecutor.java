@@ -33,7 +33,6 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-
         List<ContractFunction> contractFunctions = convert(abi);
         this.functionSignatures = contractFunctions
             .stream()
