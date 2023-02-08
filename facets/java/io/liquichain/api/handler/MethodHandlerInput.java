@@ -1,6 +1,6 @@
 package io.liquichain.api.handler;
 
-import static org.web3j.utils.Numeric.*;
+import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -10,7 +10,6 @@ import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.RawTransaction;
-import org.web3j.utils.Numeric;
 
 public class MethodHandlerInput extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandlerInput.class);
@@ -75,7 +74,7 @@ public class MethodHandlerInput extends Script {
     public boolean isSmartContract() {
         boolean isContract = rawTransaction != null
             && smartContractAddress != null
-            && prependHexPrefix(rawTransaction.getData()).equals(prependHexPrefix(smartContractAddress));
+            && lowercaseHex(rawTransaction.getData()).equals(lowercaseHex(smartContractAddress));
         LOG.info("MethodHandlerInput isSmartContract: {}", isContract);
         return isContract;
     }

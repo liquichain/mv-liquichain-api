@@ -610,7 +610,6 @@ class BesuProcessor extends BlockchainProcessor {
         } else {
             handlerResult = new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
         }
-
         LOG.info("Handler result: {}", handlerResult);
 
         //        result = callEthJsonRpc(requestId, parameters);
