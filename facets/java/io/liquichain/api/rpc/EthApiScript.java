@@ -2,6 +2,7 @@ package io.liquichain.api.rpc;
 
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
+import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -18,6 +19,9 @@ import java.util.stream.Collectors;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 
+import io.liquichain.api.handler.ContractMethodExecutor;
+import io.liquichain.api.handler.MethodHandlerInput;
+import io.liquichain.api.handler.MethodHandlerResult;
 import io.liquichain.core.BlockForgerScript;
 
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -32,7 +36,6 @@ import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.storage.RepositoryService;
 
 import org.apache.commons.lang3.math.NumberUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,19 +78,19 @@ public class EthApiScript extends Script {
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
-//        this.init();
-//        String method = "" + parameters.get("method");
-//        BlockchainProcessor processor = null;
-//        switch (BLOCKCHAIN_BACKEND) {
-//            case BESU:
-//                processor = new BesuProcessor(crossStorageApi, defaultRepo, config);
-//                break;
-//            case DATABASE:
-//            default:
-//                processor = new DatabaseProcessor(crossStorageApi, defaultRepo, config);
-//        }
-//        processor.execute(parameters);
-//        result = processor.getResult();
+        this.init();
+        String method = "" + parameters.get("method");
+        BlockchainProcessor processor = null;
+        switch (BLOCKCHAIN_BACKEND) {
+            case BESU:
+                processor = new BesuProcessor(crossStorageApi, defaultRepo, config);
+                break;
+            case DATABASE:
+            default:
+                processor = new DatabaseProcessor(crossStorageApi, defaultRepo, config);
+        }
+        processor.execute(parameters);
+        result = processor.getResult();
     }
 }
 
@@ -281,613 +284,613 @@ abstract class BlockchainProcessor {
     }
 }
 
-//class BesuProcessor extends BlockchainProcessor {
-//    private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
-//
-//    private final Web3j WEB3J;
-//    private final String BESU_API_URL;
-//    private final String ORIGIN_WALLET;
-//    private final LiquichainApp LIQUICHAIN_APP;
-//    private static final int CONNECTION_POOL_SIZE = 50;
-//    private static final int MAX_POOLED_PER_ROUTE = 5;
-//    private static final long CONNECTION_TTL = 5;
-//    private static Client client = new ResteasyClientBuilder()
-//        .connectionPoolSize(CONNECTION_POOL_SIZE)
-//        .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
-//        .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
-//        .build();
-//
-//
-//    public static class TokenDetails extends DynamicStruct {
-//        public BigInteger id;
-//        public BigInteger totalSupply;
-//        public String name;
-//        public String symbol;
-//        public BigInteger decimals;
-//
-//        public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
-//            super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
-//                new Uint256(decimals));
-//            this.id = id;
-//            this.totalSupply = totalSupply;
-//            this.name = name;
-//            this.symbol = symbol;
-//            this.decimals = decimals;
-//        }
-//
-//        public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
-//            super(id, totalSupply, name, symbol, decimals);
-//            this.id = id.getValue();
-//            this.totalSupply = totalSupply.getValue();
-//            this.name = name.getValue();
-//            this.symbol = symbol.getValue();
-//            this.decimals = decimals.getValue();
-//        }
-//
-//        public Map<String, Object> toMap() {
-//            return new LinkedHashMap<>() {{
-//                put("id", id);
-//                put("totalSupply", totalSupply);
-//                put("name", name);
-//                put("symbol", symbol);
-//                put("decimals", decimals);
-//            }};
-//        }
-//    }
-//
-//    public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
-//        super(crossStorageApi, defaultRepo, config);
-//        String paymentWallet = config.getProperty("payment.wallet", "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623");
-//        String app = config.getProperty("eth.api.appname", "licoin");
-//        BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
-//        ORIGIN_WALLET = normalizeHash(paymentWallet);
-//        WEB3J = Web3j.build(new HttpService(BESU_API_URL));
-//        LIQUICHAIN_APP = crossStorageApi.find(defaultRepo, LiquichainApp.class)
-//                                        .by("name", app)
-//                                        .getResult();
-//    }
-//
-//    private String toHexHash(String hash) {
-//        if (hash.startsWith("0x")) {
-//            return hash.toLowerCase();
-//        }
-//        return "0x" + hash.toLowerCase();
-//    }
-//
-//    @Override
-//    public void execute(Map<String, Object> parameters) throws BusinessException {
-//        String method = "" + parameters.get("method");
-//        String requestId = "" + parameters.get("id");
-//
-//        LOG.info("json rpc: {}, parameters:{}", method, parameters);
-//
-//        switch (method) {
-//            case "net_version":
-//                result = createResponse(requestId, "1662");
-//                break;
-//            case "eth_getBalance":
-//                result = getBalance(requestId, parameters);
-//                break;
-//            case "eth_sendSignedTransaction":
-//            case "eth_sendRawTransaction":
-//                result = sendRawTransaction(requestId, parameters);
-//                break;
-//            case "eth_getProof":
-//            case "eth_getWork":
-//            case "eth_submitWork":
-//            case "eea_sendRawTransaction":
-//                result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
-//                break;
-//            case "contract_listTokenInfos":
-//                result = contractListTokenInfos(requestId);
-//                break;
-//            case "contract_getToken":
-//                result = contractGetToken(requestId, parameters);
-//                break;
-//            case "contract_balanceOf":
-//                result = contractBalanceOf(requestId, parameters);
-//                break;
-//            //            case "contract_balanceOfBatch":
-//            //                result = contractBalanceOfBatch(requestId, parameters);
-//            //                break;
-//            //            case "contract_transfer":
-//            //                result = contractTransfer(requestId, parameters);
-//            //                break;
-//            //            case "contract_batchTransfer":
-//            //                result = contractBatchTransfer(requestId, parameters);
-//            //                break;
-//            //            case "contract_safeTransferFrom":
-//            //                result = contractSafeTransferFrom(requestId, parameters);
-//            //                break;
-//            //            case "contract_safeBatchTransferFrom":
-//            //                result = contractSafeBatchTransferFrom(requestId, parameters);
-//            //                break;
-//            default:
-//                result = callEthJsonRpc(requestId, parameters);
-//                break;
-//        }
-//    }
-//
-//    private String callProxy(String body) throws IOException, InterruptedException {
-//        LOG.info("callProxy body={}", body);
-//        String result = null;
-//        Response response = null;
-//        try {
-//            response = client.target(BESU_API_URL)
-//                             .request(MediaType.APPLICATION_JSON)
-//                             .post(Entity.json(body));
-//            result = response.readEntity(String.class);
-//        } finally {
-//            if (response != null) {
-//                response.close();
-//            }
-//        }
-//        LOG.info("callProxy result={}", result);
-//        return result;
-//    }
-//
-//    private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
-//        Object id = parameters.get("id");
-//        String idFormat =
-//            id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
-//        String requestBody = "{" +
-//            String.format(idFormat, id) +
-//            String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")) +
-//            String.format("\"method\":\"%s\",", parameters.get("method")) +
-//            String.format("\"params\":%s", toJson(parameters.get("params"))) +
-//            "}";
-//        try {
-//            return callProxy(requestBody);
-//        } catch (Exception e) {
-//            LOG.error(PROXY_REQUEST_ERROR, e);
-//            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-//        }
-//    }
-//
-//    private String getSmartContract() {
-//        return LIQUICHAIN_APP.getHexCode();
-//    }
-//
-//    private RawTransactionManager getTransactionManager() throws Exception {
-//        Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
-//        String privateKey = origin.getPrivateKey();
-//        Credentials credentials = Credentials.create(privateKey);
-//        return new RawTransactionManager(WEB3J, credentials);
-//    }
-//
-//    private String getBalanceOf(String requestId, String address, int tokenId, String blockParam) throws Exception {
-//        String smartContract = getSmartContract();
-//        RawTransactionManager manager = getTransactionManager();
-//        DefaultBlockParameter blockParameter = null;
-//        if (blockParam != null) {
-//            if (blockParam.startsWith("0x")) {
-//                blockParameter = DefaultBlockParameter.valueOf(new BigInteger(blockParam.substring(2), 16));
-//            } else {
-//                blockParameter = DefaultBlockParameterName.fromString(blockParam);
-//            }
-//        }
-//
-//        Function function = new Function(
-//            "balanceOf",
-//            Arrays.asList(
-//                new Address(toHexHash(address)),
-//                new Uint256(tokenId)
-//            ),
-//            Collections.<TypeReference<?>>emptyList()
-//        );
-//        String data = FunctionEncoder.encode(function);
-//        LOG.info("smart contract: {}", smartContract);
-//        String response = manager.sendCall(smartContract, data, blockParameter);
-//        LOG.info("tokenId: {}, balance: {}", tokenId, response);
-//        return createResponse(requestId, response);
-//    }
-//
-//    private String getBalance(String requestId, Map<String, Object> parameters) {
-//        try {
-//            List<String> params = (List<String>) parameters.get("params");
-//            String address = (String) params.get(0);
-//            String blockParam = (String) params.get(1);
-//            return getBalanceOf(requestId, address, 0, blockParam);
-//        } catch (Exception e) {
-//            LOG.error(PROXY_REQUEST_ERROR, e);
-//            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-//        }
-//    }
-//
-//    private String contractBalanceOf(String requestId, Map<String, Object> parameters) {
-//        try {
-//            List<Object> params = (List<Object>) parameters.get("params");
-//            String address = (String) params.get(0);
-//            int tokenId = (Integer) params.get(1);
-//            String blockParam = (String) params.get(2);
-//            return getBalanceOf(requestId, address, tokenId, blockParam);
-//        } catch (Exception e) {
-//            LOG.error(PROXY_REQUEST_ERROR, e);
-//            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-//        }
-//    }
-//
-//    private String contractGetToken(String requestId, Map<String, Object> parameters) {
-//        List<Object> params = (List<Object>) parameters.get("params");
-//        int tokenId = (Integer) params.get(0);
-//        try {
-//            List<TypeReference<?>> outputParameters = List.of(new TypeReference<TokenDetails>() {});
-//            String smartContract = getSmartContract();
-//            RawTransactionManager manager = getTransactionManager();
-//            Function function = new Function("getToken", List.of(new Uint256(tokenId)), outputParameters);
-//            String data = FunctionEncoder.encode(function);
-//            LOG.info("smart contract: {}", smartContract);
-//            String response = manager.sendCall(smartContract, data, LATEST);
-//            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-//            List<Map<String, Object>> decodedResults = results
-//                .stream()
-//                .map(result -> ((TokenDetails) result).toMap())
-//                .collect(Collectors.toList());
-//            return createResponse(requestId, toJson(decodedResults.get(0)));
-//        } catch (Exception e) {
-//            LOG.error(PROXY_REQUEST_ERROR, e);
-//            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-//        }
-//    }
-//
-//    private String contractListTokenInfos(String requestId) {
-//        try {
-//            List<TypeReference<?>> outputParameters = List.of(new TypeReference<DynamicArray<TokenDetails>>() {});
-//            String smartContract = getSmartContract();
-//            RawTransactionManager manager = getTransactionManager();
-//            Function function = new Function("listTokenInfos", new ArrayList<>(), outputParameters);
-//            String data = FunctionEncoder.encode(function);
-//            LOG.info("smart contract: {}", smartContract);
-//            String response = manager.sendCall(smartContract, data, LATEST);
-//            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-//            List<Map<String, Object>> decodedResults = results
-//                .stream()
-//                .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
-//                .map(TokenDetails::toMap)
-//                .collect(Collectors.toList());
-//            return createResponse(requestId, toJson(decodedResults));
-//        } catch (Exception e) {
-//            LOG.error(PROXY_REQUEST_ERROR, e);
-//            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-//        }
-//    }
-//
-//    private void validateRecipient(String recipient) {
-//        try {
-//            Wallet recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(recipient), Wallet.class);
-//            if (recipientWallet == null) {
-//                throw new RuntimeException(RECIPIENT_NOT_FOUND);
-//            }
-//        } catch (EntityDoesNotExistsException e) {
-//            throw new RuntimeException(RECIPIENT_NOT_FOUND);
-//        }
-//    }
-//
-//    private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
-//        List<String> params = (List<String>) parameters.get("params");
-//        String data = (String) params.get(0);
-//        String transactionHash = normalizeHash(Hash.sha3(data));
-//        try {
-//            Transaction existingTransaction = crossStorageApi
-//                .find(defaultRepo, Transaction.class)
-//                .by("hexHash", transactionHash).getResult();
-//            if (existingTransaction != null) {
-//                return createErrorResponse(
-//                    requestId,
-//                    TRANSACTION_REJECTED,
-//                    String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
-//            }
-//        } catch (Exception e) {
-//            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, e.getMessage());
-//        }
-//
-//        RawTransaction rawTransaction = TransactionDecoder.decode(data);
-//        String rawRecipient = rawTransaction.getTo();
-//        LOG.info("RawTransaction recipient: {}", rawRecipient);
-//
-//        // as per besu documentation
-//        // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
-//        // to - address of the receiver. To deploy a contract, set to null.
-//        // or it can also be set to 0x0 or 0x80 as per:
-//        // (https://stackoverflow.com/questions/48219716/what-is-address0-in-solidity)
-//        if (rawRecipient == null || "0x0".equals(rawRecipient) || "0x80".equals(rawRecipient)) {
-//            return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
-//        }
-////        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
-////        MethodHandlerResult handlerResult = null;
-////        if (input.isSmartContract()) {
-////            Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
-////            String abi = LIQUICHAIN_APP.getAbi();
-////            if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
-////                ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
-////                handlerResult = executor.execute(input);
-////            }
-////        } else {
-////            handlerResult = new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
-////        }
-////
-////        LOG.info("Handler result: {}", handlerResult);
-//
-////        result = callEthJsonRpc(requestId, parameters);
-////        boolean hasError = result.contains("\"error\"");
-////        if (hasError) {
-////            return result;
-////        }
-////
-////        if (rawTransaction instanceof SignedRawTransaction) {
-////            SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
-////            Sign.SignatureData signatureData = signedTransaction.getSignatureData();
-////            try {
-////                String v = toHex(signatureData.getV());
-////                String s = toHex(signatureData.getS());
-////                String r = toHex(signatureData.getR());
-////                LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
-////
-////                Transaction transaction = new Transaction();
-////                transaction.setHexHash(transactionHash);
-////                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
-////                transaction.setToHexHash(normalizeHash(rawRecipient));
-////                transaction.setNonce("" + rawTransaction.getNonce());
-////                transaction.setGasPrice("" + rawTransaction.getGasPrice());
-////                transaction.setGasLimit("" + rawTransaction.getGasLimit());
-////                transaction.setValue("" + rawTransaction.getValue());
-////                transaction.setType("" + handlerResult.getTransactionType());
-////                transaction.setSignedHash(data);
-////                transaction.setData(handlerResult.getExtraData());
-////                transaction.setBlockNumber("1");
-////                transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
-////                transaction.setCreationDate(java.time.Instant.now());
-////                transaction.setV(v);
-////                transaction.setS(s);
-////                transaction.setR(r);
-////                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-////                LOG.info("Created transaction on DB with uuid: {}", uuid);
-////            } catch (Exception e) {
-////                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
-////            }
-////        }
-//        return result;
-//    }
-//}
+class BesuProcessor extends BlockchainProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
+
+    private final Web3j WEB3J;
+    private final String BESU_API_URL;
+    private final String ORIGIN_WALLET;
+    private final LiquichainApp LIQUICHAIN_APP;
+    private static final int CONNECTION_POOL_SIZE = 50;
+    private static final int MAX_POOLED_PER_ROUTE = 5;
+    private static final long CONNECTION_TTL = 5;
+    private static Client client = new ResteasyClientBuilder()
+        .connectionPoolSize(CONNECTION_POOL_SIZE)
+        .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+        .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+        .build();
 
 
-//class DatabaseProcessor extends BlockchainProcessor {
-//    private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
-//
-//    private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
-//        + "\"extraData" +
-//        "\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
-//        + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
-//        + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
-//        + "\"logsBloom" +
-//        "\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\","
-//        + "\"miner\":\"0x0000000000000000000000000000000000000000\","
-//        + "\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\","
-//        + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
-//        + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
-//        + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-//        + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
-//        + "\"size\":\"0x260\","
-//        + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
-//        + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
-//        + "],"
-//        + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-//        + "\"uncles\":[  " + "]}";
-//
-//    public DatabaseProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
-//        super(crossStorageApi, defaultRepo, config);
-//    }
-//
-//    @Override
-//    public void execute(Map<String, Object> parameters) throws BusinessException {
-//        String method = "" + parameters.get("method");
-//        LOG.info("json rpc: {}, parameters:{}", method, parameters);
-//        String requestId = "" + parameters.get("id");
-//        switch (method) {
-//            case "eth_call":
-//                result = createResponse(requestId, "0x");
-//                break;
-//            case "eth_chainId":
-//                result = createResponse(requestId, "0x4c");
-//                break;
-//            case "web3_clientVersion":
-//                result = createResponse(requestId, "liquichainCentral");
-//                break;
-//            case "net_version":
-//                result = createResponse(requestId, "7");
-//                break;
-//            case "eth_blockNumber":
-//                result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
-//                break;
-//            case "eth_getBalance":
-//                result = getBalance(requestId, parameters);
-//                break;
-//            case "eth_getTransactionCount":
-//                result = getTransactionCount(requestId, parameters);
-//                break;
-//            case "eth_getBlockByNumber":
-//                result = createResponse(requestId, SAMPLE_BLOCK);
-//                break;
-//            case "eth_estimateGas":
-//                result = createResponse(requestId, "0x0");
-//                break;
-//            case "eth_gasPrice":
-//                result = createResponse(requestId, "0x0");
-//                break;
-//            case "eth_getCode":
-//                result = getCode(requestId, parameters);
-//                break;
-//            case "eth_sendRawTransaction":
-//                result = sendRawTransaction(requestId, parameters);
-//                break;
-//            case "eth_getTransactionByHash":
-//                result = getTransactionByHash(requestId, parameters);
-//                break;
-//            default:
-//                result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
-//                break;
+    public static class TokenDetails extends DynamicStruct {
+        public BigInteger id;
+        public BigInteger totalSupply;
+        public String name;
+        public String symbol;
+        public BigInteger decimals;
+
+        public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
+            super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
+                new Uint256(decimals));
+            this.id = id;
+            this.totalSupply = totalSupply;
+            this.name = name;
+            this.symbol = symbol;
+            this.decimals = decimals;
+        }
+
+        public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
+            super(id, totalSupply, name, symbol, decimals);
+            this.id = id.getValue();
+            this.totalSupply = totalSupply.getValue();
+            this.name = name.getValue();
+            this.symbol = symbol.getValue();
+            this.decimals = decimals.getValue();
+        }
+
+        public Map<String, Object> toMap() {
+            return new LinkedHashMap<>() {{
+                put("id", id);
+                put("totalSupply", totalSupply);
+                put("name", name);
+                put("symbol", symbol);
+                put("decimals", decimals);
+            }};
+        }
+    }
+
+    public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
+        super(crossStorageApi, defaultRepo, config);
+        String paymentWallet = config.getProperty("payment.wallet", "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623");
+        String app = config.getProperty("eth.api.appname", "licoin");
+        BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+        ORIGIN_WALLET = normalizeHash(paymentWallet);
+        WEB3J = Web3j.build(new HttpService(BESU_API_URL));
+        LIQUICHAIN_APP = crossStorageApi.find(defaultRepo, LiquichainApp.class)
+                                        .by("name", app)
+                                        .getResult();
+    }
+
+    private String toHexHash(String hash) {
+        if (hash.startsWith("0x")) {
+            return hash.toLowerCase();
+        }
+        return "0x" + hash.toLowerCase();
+    }
+
+    @Override
+    public void execute(Map<String, Object> parameters) throws BusinessException {
+        String method = "" + parameters.get("method");
+        String requestId = "" + parameters.get("id");
+
+        LOG.info("json rpc: {}, parameters:{}", method, parameters);
+
+        switch (method) {
+            case "net_version":
+                result = createResponse(requestId, "1662");
+                break;
+            case "eth_getBalance":
+                result = getBalance(requestId, parameters);
+                break;
+            case "eth_sendSignedTransaction":
+            case "eth_sendRawTransaction":
+                result = sendRawTransaction(requestId, parameters);
+                break;
+            case "eth_getProof":
+            case "eth_getWork":
+            case "eth_submitWork":
+            case "eea_sendRawTransaction":
+                result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
+                break;
+            case "contract_listTokenInfos":
+                result = contractListTokenInfos(requestId);
+                break;
+            case "contract_getToken":
+                result = contractGetToken(requestId, parameters);
+                break;
+            case "contract_balanceOf":
+                result = contractBalanceOf(requestId, parameters);
+                break;
+            //            case "contract_balanceOfBatch":
+            //                result = contractBalanceOfBatch(requestId, parameters);
+            //                break;
+            //            case "contract_transfer":
+            //                result = contractTransfer(requestId, parameters);
+            //                break;
+            //            case "contract_batchTransfer":
+            //                result = contractBatchTransfer(requestId, parameters);
+            //                break;
+            //            case "contract_safeTransferFrom":
+            //                result = contractSafeTransferFrom(requestId, parameters);
+            //                break;
+            //            case "contract_safeBatchTransferFrom":
+            //                result = contractSafeBatchTransferFrom(requestId, parameters);
+            //                break;
+            default:
+                result = callEthJsonRpc(requestId, parameters);
+                break;
+        }
+    }
+
+    private String callProxy(String body) throws IOException, InterruptedException {
+        LOG.info("callProxy body={}", body);
+        String result = null;
+        Response response = null;
+        try {
+            response = client.target(BESU_API_URL)
+                             .request(MediaType.APPLICATION_JSON)
+                             .post(Entity.json(body));
+            result = response.readEntity(String.class);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        LOG.info("callProxy result={}", result);
+        return result;
+    }
+
+    private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+        Object id = parameters.get("id");
+        String idFormat =
+            id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
+        String requestBody = "{" +
+            String.format(idFormat, id) +
+            String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")) +
+            String.format("\"method\":\"%s\",", parameters.get("method")) +
+            String.format("\"params\":%s", toJson(parameters.get("params"))) +
+            "}";
+        try {
+            return callProxy(requestBody);
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
+
+    private String getSmartContract() {
+        return LIQUICHAIN_APP.getHexCode();
+    }
+
+    private RawTransactionManager getTransactionManager() throws Exception {
+        Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
+        String privateKey = origin.getPrivateKey();
+        Credentials credentials = Credentials.create(privateKey);
+        return new RawTransactionManager(WEB3J, credentials);
+    }
+
+    private String getBalanceOf(String requestId, String address, int tokenId, String blockParam) throws Exception {
+        String smartContract = getSmartContract();
+        RawTransactionManager manager = getTransactionManager();
+        DefaultBlockParameter blockParameter = null;
+        if (blockParam != null) {
+            if (blockParam.startsWith("0x")) {
+                blockParameter = DefaultBlockParameter.valueOf(new BigInteger(blockParam.substring(2), 16));
+            } else {
+                blockParameter = DefaultBlockParameterName.fromString(blockParam);
+            }
+        }
+
+        Function function = new Function(
+            "balanceOf",
+            Arrays.asList(
+                new Address(toHexHash(address)),
+                new Uint256(tokenId)
+            ),
+            Collections.<TypeReference<?>>emptyList()
+        );
+        String data = FunctionEncoder.encode(function);
+        LOG.info("smart contract: {}", smartContract);
+        String response = manager.sendCall(smartContract, data, blockParameter);
+        LOG.info("tokenId: {}, balance: {}", tokenId, response);
+        return createResponse(requestId, response);
+    }
+
+    private String getBalance(String requestId, Map<String, Object> parameters) {
+        try {
+            List<String> params = (List<String>) parameters.get("params");
+            String address = (String) params.get(0);
+            String blockParam = (String) params.get(1);
+            return getBalanceOf(requestId, address, 0, blockParam);
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
+
+    private String contractBalanceOf(String requestId, Map<String, Object> parameters) {
+        try {
+            List<Object> params = (List<Object>) parameters.get("params");
+            String address = (String) params.get(0);
+            int tokenId = (Integer) params.get(1);
+            String blockParam = (String) params.get(2);
+            return getBalanceOf(requestId, address, tokenId, blockParam);
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
+
+    private String contractGetToken(String requestId, Map<String, Object> parameters) {
+        List<Object> params = (List<Object>) parameters.get("params");
+        int tokenId = (Integer) params.get(0);
+        try {
+            List<TypeReference<?>> outputParameters = List.of(new TypeReference<TokenDetails>() {});
+            String smartContract = getSmartContract();
+            RawTransactionManager manager = getTransactionManager();
+            Function function = new Function("getToken", List.of(new Uint256(tokenId)), outputParameters);
+            String data = FunctionEncoder.encode(function);
+            LOG.info("smart contract: {}", smartContract);
+            String response = manager.sendCall(smartContract, data, LATEST);
+            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
+            List<Map<String, Object>> decodedResults = results
+                .stream()
+                .map(result -> ((TokenDetails) result).toMap())
+                .collect(Collectors.toList());
+            return createResponse(requestId, toJson(decodedResults.get(0)));
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
+
+    private String contractListTokenInfos(String requestId) {
+        try {
+            List<TypeReference<?>> outputParameters = List.of(new TypeReference<DynamicArray<TokenDetails>>() {});
+            String smartContract = getSmartContract();
+            RawTransactionManager manager = getTransactionManager();
+            Function function = new Function("listTokenInfos", new ArrayList<>(), outputParameters);
+            String data = FunctionEncoder.encode(function);
+            LOG.info("smart contract: {}", smartContract);
+            String response = manager.sendCall(smartContract, data, LATEST);
+            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
+            List<Map<String, Object>> decodedResults = results
+                .stream()
+                .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
+                .map(TokenDetails::toMap)
+                .collect(Collectors.toList());
+            return createResponse(requestId, toJson(decodedResults));
+        } catch (Exception e) {
+            LOG.error(PROXY_REQUEST_ERROR, e);
+            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+        }
+    }
+
+    private void validateRecipient(String recipient) {
+        try {
+            Wallet recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(recipient), Wallet.class);
+            if (recipientWallet == null) {
+                throw new RuntimeException(RECIPIENT_NOT_FOUND);
+            }
+        } catch (EntityDoesNotExistsException e) {
+            throw new RuntimeException(RECIPIENT_NOT_FOUND);
+        }
+    }
+
+    private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        String data = (String) params.get(0);
+        String transactionHash = normalizeHash(Hash.sha3(data));
+        try {
+            Transaction existingTransaction = crossStorageApi
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", transactionHash).getResult();
+            if (existingTransaction != null) {
+                return createErrorResponse(
+                    requestId,
+                    TRANSACTION_REJECTED,
+                    String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
+            }
+        } catch (Exception e) {
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, e.getMessage());
+        }
+
+        RawTransaction rawTransaction = TransactionDecoder.decode(data);
+        String rawRecipient = rawTransaction.getTo();
+        LOG.info("RawTransaction recipient: {}", rawRecipient);
+
+        // as per besu documentation
+        // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
+        // to - address of the receiver. To deploy a contract, set to null.
+        // or it can also be set to 0x0 or 0x80 as per:
+        // (https://stackoverflow.com/questions/48219716/what-is-address0-in-solidity)
+        if (rawRecipient == null || "0x0".equals(rawRecipient) || "0x80".equals(rawRecipient)) {
+            return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
+        }
+        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
+        MethodHandlerResult handlerResult = null;
+        if (input.isSmartContract()) {
+            Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
+            String abi = LIQUICHAIN_APP.getAbi();
+            if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
+                ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
+                handlerResult = executor.execute(input);
+            }
+        } else {
+            handlerResult = new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
+        }
+
+        LOG.info("Handler result: {}", handlerResult);
+
+//        result = callEthJsonRpc(requestId, parameters);
+//        boolean hasError = result.contains("\"error\"");
+//        if (hasError) {
+//            return result;
 //        }
-//    }
-//
-//    private String getTransactionByHash(String requestId, Map<String, Object> parameters) {
-//        List<String> params = (List<String>) parameters.get("params");
-//        String hash = retrieveHash(params, 0);
-//        LOG.info("lookup transaction hexHash={}", hash);
-//
-//        try {
-//            Transaction transaction = crossStorageApi
-//                .find(defaultRepo, Transaction.class)
-//                .by("hexHash", hash)
-//                .getResult();
-//            String transactionDetails = "{\n";
-//            transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
-//            transactionDetails += "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
-//            transactionDetails += "\"from\": \"0x" + transaction.getFromHexHash() + "\",\n";
-//            transactionDetails += "\"gas\": \"" + toBigHex(transaction.getGasLimit()) + "\",\n";
-//            transactionDetails += "\"gasPrice\": \"" + toBigHex(transaction.getGasPrice()) + "\",\n";
-//            transactionDetails += "\"hash\": \"" + hash + "\",\n";
-//            transactionDetails += "\"input\": \"\",\n";
-//            transactionDetails += "\"nonce\": \"" + toBigHex(transaction.getNonce()) + "\",\n";
-//            if (transaction.getData() != null) {
-//                if (isJSONValid(transaction.getData())) {
-//                    transactionDetails += "\"data\": " + transaction.getData() + ",\n";
-//                } else {
-//                    transactionDetails += "\"data\": \"" + transaction.getData() + "\",\n";
-//                }
-//            }
-//            transactionDetails += "\"r\": \"" + transaction.getR() + "\",\n";
-//            transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
-//            transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
-//            transactionDetails +=
-//                "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
-//            transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
-//            transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
-//            transactionDetails += "}";
-//            LOG.info("res={}" + transactionDetails);
-//            return createResponse(requestId, transactionDetails);
-//        } catch (Exception e) {
-//            LOG.error("Resource not found.", e);
-//            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
-//        }
-//    }
-//
-//    private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
-//        List<String> params = (List<String>) parameters.get("params");
-//        String transactionData = params.get(0);
-//        String transactionHash = normalizeHash(Hash.sha3(transactionData));
-//        Transaction existingTransaction = null;
-//        result = "0x0";
-//        try {
-//            existingTransaction = crossStorageApi
-//                .find(defaultRepo, Transaction.class)
-//                .by("hexHash", transactionHash)
-//                .getResult();
-//        } catch (Exception e) {
-//            // do nothing, we want transaction to be unique
-//        }
-//        if (existingTransaction != null) {
-//            return createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
-//        }
-//
-//        RawTransaction rawTransaction = TransactionDecoder.decode(transactionData);
 //
 //        if (rawTransaction instanceof SignedRawTransaction) {
-//            SignedRawTransaction signedResult = (SignedRawTransaction) rawTransaction;
-//            Sign.SignatureData signatureData = signedResult.getSignatureData();
+//            SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
+//            Sign.SignatureData signatureData = signedTransaction.getSignatureData();
 //            try {
-//                LOG.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
+//                String v = toHex(signatureData.getV());
+//                String s = toHex(signatureData.getS());
+//                String r = toHex(signatureData.getR());
+//                LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
+//
 //                Transaction transaction = new Transaction();
 //                transaction.setHexHash(transactionHash);
-//                transaction.setFromHexHash(normalizeHash(signedResult.getFrom()));
-//                transaction.setToHexHash(normalizeHash(rawTransaction.getTo()));
+//                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
+//                transaction.setToHexHash(normalizeHash(rawRecipient));
 //                transaction.setNonce("" + rawTransaction.getNonce());
 //                transaction.setGasPrice("" + rawTransaction.getGasPrice());
 //                transaction.setGasLimit("" + rawTransaction.getGasLimit());
 //                transaction.setValue("" + rawTransaction.getValue());
-//                if (rawTransaction.getData() == null || rawTransaction.getData().isEmpty()) {
-//                    transaction.setData("{\"type\":\"transfer\"}");
-//                } else {
-//                    transaction.setData("" + rawTransaction.getData());
-//                }
-//                transaction.setSignedHash(transactionData);
+//                transaction.setType("" + handlerResult.getTransactionType());
+//                transaction.setSignedHash(data);
+//                transaction.setData(handlerResult.getExtraData());
+//                transaction.setBlockNumber("1");
+//                transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
 //                transaction.setCreationDate(java.time.Instant.now());
-//                transaction.setV(toHex(signatureData.getV()));
-//                transaction.setS(toHex(signatureData.getS()));
-//                transaction.setR(toHex(signatureData.getR()));
-//                LOG.info("transaction:{}", transaction);
+//                transaction.setV(v);
+//                transaction.setS(s);
+//                transaction.setR(r);
 //                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-//                transferValue(transaction, rawTransaction.getValue());
-//                result = "0x" + transactionHash;
-//                LOG.info("created transaction with uuid:{}", uuid);
-//                if (rawTransaction.getData() != null && rawTransaction.getData().length() > 0) {
-//                    processTransactionHooks(transaction.getHexHash(), signedResult);
-//                }
+//                LOG.info("Created transaction on DB with uuid: {}", uuid);
 //            } catch (Exception e) {
 //                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
 //            }
 //        }
-//        return createResponse(requestId, result);
-//    }
-//
-//    private void transferValue(Transaction transaction, BigInteger value) throws BusinessException {
-//        String message = "transfer error";
-//        try {
-//            message = "cannot find origin wallet";
-//            Wallet originWallet = crossStorageApi.find(defaultRepo, transaction.getFromHexHash(), Wallet.class);
-//            message = "cannot find destination wallet";
-//            crossStorageApi.find(defaultRepo, transaction.getToHexHash(), Wallet.class);
-//            message = "insufficient balance";
-//            BigInteger originBalance = new BigInteger(originWallet.getBalance());
-//            LOG.info("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
-//                originWallet.getBalance());
-//            if (value.compareTo(originBalance) <= 0) {
-//                BlockForgerScript.addTransaction(transaction);
-//            } else {
-//                throw new BusinessException("insufficient balance");
-//            }
-//        } catch (Exception e) {
-//            throw new BusinessException(message);
-//        }
-//    }
-//
-//    private String getTransactionCount(String requestId, Map<String, Object> parameters) {
-//        List<String> params = (List<String>) parameters.get("params");
-//        String transactionHash = retrieveHash(params, 0);
-//        try {
-//            int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class)
-//                                                .by("fromHexHash", transactionHash)
-//                                                .getResults()).size();
-//            return createResponse(requestId, toBigHex(nbTransaction + ""));
-//        } catch (Exception e) {
-//            return createResponse(requestId, "0x0");
-//        }
-//    }
-//
-//    private String getCode(String requestId, Map<String, Object> parameters) {
-//        List<String> params = (List<String>) parameters.get("params");
-//        String address = retrieveHash(params, 0);
-//        try {
-//            Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
-//            LOG.info("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
-//            return createResponse(requestId, "0x" + wallet.getApplication().getUuid());
-//        } catch (Exception e) {
-//            LOG.error("Wallet address {} not found", address, e);
-//            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
-//        }
-//    }
-//
-//    private String getBalance(String requestId, Map<String, Object> parameters) {
-//        List<String> params = (List<String>) parameters.get("params");
-//        String address = retrieveHash(params, 0);
-//        try {
-//            Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
-//            return createResponse(requestId, toBigHex(wallet.getBalance()));
-//        } catch (Exception e) {
-//
-//            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
-//        }
-//    }
-//}
+        return result;
+    }
+}
+
+
+class DatabaseProcessor extends BlockchainProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
+
+    private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
+        + "\"extraData" +
+        "\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
+        + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
+        + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
+        + "\"logsBloom" +
+        "\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\","
+        + "\"miner\":\"0x0000000000000000000000000000000000000000\","
+        + "\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\","
+        + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
+        + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
+        + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
+        + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
+        + "\"size\":\"0x260\","
+        + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
+        + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
+        + "],"
+        + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
+        + "\"uncles\":[  " + "]}";
+
+    public DatabaseProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
+        super(crossStorageApi, defaultRepo, config);
+    }
+
+    @Override
+    public void execute(Map<String, Object> parameters) throws BusinessException {
+        String method = "" + parameters.get("method");
+        LOG.info("json rpc: {}, parameters:{}", method, parameters);
+        String requestId = "" + parameters.get("id");
+        switch (method) {
+            case "eth_call":
+                result = createResponse(requestId, "0x");
+                break;
+            case "eth_chainId":
+                result = createResponse(requestId, "0x4c");
+                break;
+            case "web3_clientVersion":
+                result = createResponse(requestId, "liquichainCentral");
+                break;
+            case "net_version":
+                result = createResponse(requestId, "7");
+                break;
+            case "eth_blockNumber":
+                result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
+                break;
+            case "eth_getBalance":
+                result = getBalance(requestId, parameters);
+                break;
+            case "eth_getTransactionCount":
+                result = getTransactionCount(requestId, parameters);
+                break;
+            case "eth_getBlockByNumber":
+                result = createResponse(requestId, SAMPLE_BLOCK);
+                break;
+            case "eth_estimateGas":
+                result = createResponse(requestId, "0x0");
+                break;
+            case "eth_gasPrice":
+                result = createResponse(requestId, "0x0");
+                break;
+            case "eth_getCode":
+                result = getCode(requestId, parameters);
+                break;
+            case "eth_sendRawTransaction":
+                result = sendRawTransaction(requestId, parameters);
+                break;
+            case "eth_getTransactionByHash":
+                result = getTransactionByHash(requestId, parameters);
+                break;
+            default:
+                result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
+                break;
+        }
+    }
+
+    private String getTransactionByHash(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        String hash = retrieveHash(params, 0);
+        LOG.info("lookup transaction hexHash={}", hash);
+
+        try {
+            Transaction transaction = crossStorageApi
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", hash)
+                .getResult();
+            String transactionDetails = "{\n";
+            transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
+            transactionDetails += "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
+            transactionDetails += "\"from\": \"0x" + transaction.getFromHexHash() + "\",\n";
+            transactionDetails += "\"gas\": \"" + toBigHex(transaction.getGasLimit()) + "\",\n";
+            transactionDetails += "\"gasPrice\": \"" + toBigHex(transaction.getGasPrice()) + "\",\n";
+            transactionDetails += "\"hash\": \"" + hash + "\",\n";
+            transactionDetails += "\"input\": \"\",\n";
+            transactionDetails += "\"nonce\": \"" + toBigHex(transaction.getNonce()) + "\",\n";
+            if (transaction.getData() != null) {
+                if (isJSONValid(transaction.getData())) {
+                    transactionDetails += "\"data\": " + transaction.getData() + ",\n";
+                } else {
+                    transactionDetails += "\"data\": \"" + transaction.getData() + "\",\n";
+                }
+            }
+            transactionDetails += "\"r\": \"" + transaction.getR() + "\",\n";
+            transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
+            transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
+            transactionDetails +=
+                "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
+            transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
+            transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
+            transactionDetails += "}";
+            LOG.info("res={}" + transactionDetails);
+            return createResponse(requestId, transactionDetails);
+        } catch (Exception e) {
+            LOG.error("Resource not found.", e);
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+        }
+    }
+
+    private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        String transactionData = params.get(0);
+        String transactionHash = normalizeHash(Hash.sha3(transactionData));
+        Transaction existingTransaction = null;
+        result = "0x0";
+        try {
+            existingTransaction = crossStorageApi
+                .find(defaultRepo, Transaction.class)
+                .by("hexHash", transactionHash)
+                .getResult();
+        } catch (Exception e) {
+            // do nothing, we want transaction to be unique
+        }
+        if (existingTransaction != null) {
+            return createErrorResponse(requestId, INVALID_REQUEST, TRANSACTION_EXISTS_ERROR);
+        }
+
+        RawTransaction rawTransaction = TransactionDecoder.decode(transactionData);
+
+        if (rawTransaction instanceof SignedRawTransaction) {
+            SignedRawTransaction signedResult = (SignedRawTransaction) rawTransaction;
+            Sign.SignatureData signatureData = signedResult.getSignatureData();
+            try {
+                LOG.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
+                Transaction transaction = new Transaction();
+                transaction.setHexHash(transactionHash);
+                transaction.setFromHexHash(normalizeHash(signedResult.getFrom()));
+                transaction.setToHexHash(normalizeHash(rawTransaction.getTo()));
+                transaction.setNonce("" + rawTransaction.getNonce());
+                transaction.setGasPrice("" + rawTransaction.getGasPrice());
+                transaction.setGasLimit("" + rawTransaction.getGasLimit());
+                transaction.setValue("" + rawTransaction.getValue());
+                if (rawTransaction.getData() == null || rawTransaction.getData().isEmpty()) {
+                    transaction.setData("{\"type\":\"transfer\"}");
+                } else {
+                    transaction.setData("" + rawTransaction.getData());
+                }
+                transaction.setSignedHash(transactionData);
+                transaction.setCreationDate(java.time.Instant.now());
+                transaction.setV(toHex(signatureData.getV()));
+                transaction.setS(toHex(signatureData.getS()));
+                transaction.setR(toHex(signatureData.getR()));
+                LOG.info("transaction:{}", transaction);
+                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+                transferValue(transaction, rawTransaction.getValue());
+                result = "0x" + transactionHash;
+                LOG.info("created transaction with uuid:{}", uuid);
+                if (rawTransaction.getData() != null && rawTransaction.getData().length() > 0) {
+                    processTransactionHooks(transaction.getHexHash(), signedResult);
+                }
+            } catch (Exception e) {
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+            }
+        }
+        return createResponse(requestId, result);
+    }
+
+    private void transferValue(Transaction transaction, BigInteger value) throws BusinessException {
+        String message = "transfer error";
+        try {
+            message = "cannot find origin wallet";
+            Wallet originWallet = crossStorageApi.find(defaultRepo, transaction.getFromHexHash(), Wallet.class);
+            message = "cannot find destination wallet";
+            crossStorageApi.find(defaultRepo, transaction.getToHexHash(), Wallet.class);
+            message = "insufficient balance";
+            BigInteger originBalance = new BigInteger(originWallet.getBalance());
+            LOG.info("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
+                originWallet.getBalance());
+            if (value.compareTo(originBalance) <= 0) {
+                BlockForgerScript.addTransaction(transaction);
+            } else {
+                throw new BusinessException("insufficient balance");
+            }
+        } catch (Exception e) {
+            throw new BusinessException(message);
+        }
+    }
+
+    private String getTransactionCount(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        String transactionHash = retrieveHash(params, 0);
+        try {
+            int nbTransaction = (crossStorageApi.find(defaultRepo, Transaction.class)
+                                                .by("fromHexHash", transactionHash)
+                                                .getResults()).size();
+            return createResponse(requestId, toBigHex(nbTransaction + ""));
+        } catch (Exception e) {
+            return createResponse(requestId, "0x0");
+        }
+    }
+
+    private String getCode(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        String address = retrieveHash(params, 0);
+        try {
+            Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
+            LOG.info("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
+            return createResponse(requestId, "0x" + wallet.getApplication().getUuid());
+        } catch (Exception e) {
+            LOG.error("Wallet address {} not found", address, e);
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Address not found");
+        }
+    }
+
+    private String getBalance(String requestId, Map<String, Object> parameters) {
+        List<String> params = (List<String>) parameters.get("params");
+        String address = retrieveHash(params, 0);
+        try {
+            Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
+            return createResponse(requestId, toBigHex(wallet.getBalance()));
+        } catch (Exception e) {
+
+            return createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
+        }
+    }
+}
 
 
 class HttpService extends Service {
