@@ -106,18 +106,39 @@ class ContractFunctionSignature {
     private String fullSignature;
     private String signature;
     private String name;
-    private List<TypeReference<?>> inputParameters;
-    private List<TypeReference<?>> outputParameters;
+    private List<TypeReference> inputParameters;
+    private List<TypeReference> outputParameters;
 
     public ContractFunctionSignature(ContractFunction contractFunction) {
         this.name = contractFunction.getName();
         List<ContractFunctionParameter> inputs = contractFunction.getInputs();
+        List<ContractFunctionParameter> outputs = contractFunction.getOutputs();
         String functionParameters = inputs.stream()
                                           .map(ContractFunctionParameter::getType)
                                           .collect(Collectors.joining(","));
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10);
+        this.inputParameters = inputs.stream()
+                                     .map(ContractFunctionParameter::getType)
+                                     .map(type -> {
+                                         try {
+                                             return TypeReference.makeTypeReference(type);
+                                         } catch (ClassNotFoundException e) {
+                                             throw new RuntimeException(e);
+                                         }
+                                     })
+                                     .collect(Collectors.toList());
+        this.outputParameters = outputs.stream()
+                                       .map(ContractFunctionParameter::getType)
+                                       .map(type -> {
+                                           try {
+                                               return TypeReference.makeTypeReference(type);
+                                           } catch (ClassNotFoundException e) {
+                                               throw new RuntimeException(e);
+                                           }
+                                       })
+                                       .collect(Collectors.toList());
         LOG.info("ContractFunctionSignature: {}", this);
     }
 
@@ -137,19 +158,19 @@ class ContractFunctionSignature {
         this.name = name;
     }
 
-    public List<TypeReference<?>> getInputParameters() {
+    public List<TypeReference> getInputParameters() {
         return inputParameters;
     }
 
-    public void setInputParameters(List<TypeReference<?>> inputParameters) {
+    public void setInputParameters(List<TypeReference> inputParameters) {
         this.inputParameters = inputParameters;
     }
 
-    public List<TypeReference<?>> getOutputParameters() {
+    public List<TypeReference> getOutputParameters() {
         return outputParameters;
     }
 
-    public void setOutputParameters(List<TypeReference<?>> outputParameters) {
+    public void setOutputParameters(List<TypeReference> outputParameters) {
         this.outputParameters = outputParameters;
     }
 
