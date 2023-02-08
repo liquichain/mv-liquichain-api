@@ -139,6 +139,7 @@ class ContractFunctionSignature {
                                            }
                                        })
                                        .collect(Collectors.toList());
+
         LOG.info("ContractFunctionSignature: {}", this);
     }
 
