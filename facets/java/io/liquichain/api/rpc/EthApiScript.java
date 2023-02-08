@@ -612,44 +612,44 @@ class BesuProcessor extends BlockchainProcessor {
 
         LOG.info("Handler result: {}", handlerResult);
 
-//        result = callEthJsonRpc(requestId, parameters);
-//        boolean hasError = result.contains("\"error\"");
-//        if (hasError) {
-//            return result;
-//        }
-//
-//        if (rawTransaction instanceof SignedRawTransaction) {
-//            SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
-//            Sign.SignatureData signatureData = signedTransaction.getSignatureData();
-//            try {
-//                String v = toHex(signatureData.getV());
-//                String s = toHex(signatureData.getS());
-//                String r = toHex(signatureData.getR());
-//                LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
-//
-//                Transaction transaction = new Transaction();
-//                transaction.setHexHash(transactionHash);
-//                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
-//                transaction.setToHexHash(normalizeHash(rawRecipient));
-//                transaction.setNonce("" + rawTransaction.getNonce());
-//                transaction.setGasPrice("" + rawTransaction.getGasPrice());
-//                transaction.setGasLimit("" + rawTransaction.getGasLimit());
-//                transaction.setValue("" + rawTransaction.getValue());
-//                transaction.setType("" + handlerResult.getTransactionType());
-//                transaction.setSignedHash(data);
-//                transaction.setData(handlerResult.getExtraData());
-//                transaction.setBlockNumber("1");
-//                transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
-//                transaction.setCreationDate(java.time.Instant.now());
-//                transaction.setV(v);
-//                transaction.setS(s);
-//                transaction.setR(r);
-//                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-//                LOG.info("Created transaction on DB with uuid: {}", uuid);
-//            } catch (Exception e) {
-//                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
-//            }
-//        }
+        //        result = callEthJsonRpc(requestId, parameters);
+        //        boolean hasError = result.contains("\"error\"");
+        //        if (hasError) {
+        //            return result;
+        //        }
+        //
+        //        if (rawTransaction instanceof SignedRawTransaction) {
+        //            SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
+        //            Sign.SignatureData signatureData = signedTransaction.getSignatureData();
+        //            try {
+        //                String v = toHex(signatureData.getV());
+        //                String s = toHex(signatureData.getS());
+        //                String r = toHex(signatureData.getR());
+        //                LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
+        //
+        //                Transaction transaction = new Transaction();
+        //                transaction.setHexHash(transactionHash);
+        //                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
+        //                transaction.setToHexHash(normalizeHash(rawRecipient));
+        //                transaction.setNonce("" + rawTransaction.getNonce());
+        //                transaction.setGasPrice("" + rawTransaction.getGasPrice());
+        //                transaction.setGasLimit("" + rawTransaction.getGasLimit());
+        //                transaction.setValue("" + rawTransaction.getValue());
+        //                transaction.setType("" + handlerResult.getTransactionType());
+        //                transaction.setSignedHash(data);
+        //                transaction.setData(handlerResult.getExtraData());
+        //                transaction.setBlockNumber("1");
+        //                transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
+        //                transaction.setCreationDate(java.time.Instant.now());
+        //                transaction.setV(v);
+        //                transaction.setS(s);
+        //                transaction.setR(r);
+        //                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+        //                LOG.info("Created transaction on DB with uuid: {}", uuid);
+        //            } catch (Exception e) {
+        //                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+        //            }
+        //        }
         return result;
     }
 }
