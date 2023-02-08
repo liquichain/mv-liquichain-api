@@ -31,7 +31,8 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        List<ContractFunction> contractFunctions = convert(abi);
+        List<ContractFunction> contractFunctions = new Gson()
+            .fromJson(abi, new TypeToken<List<ContractFunction>>() {}.getType());
         this.functionSignatures = contractFunctions
             .stream()
             .filter(contractFunction -> "function".equals(contractFunction.getType()))
