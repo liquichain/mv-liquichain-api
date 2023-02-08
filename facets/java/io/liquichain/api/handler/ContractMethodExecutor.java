@@ -3,7 +3,6 @@ package io.liquichain.api.handler;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,10 +12,6 @@ import java.util.stream.Collectors;
 
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
-
-import io.liquichain.api.rpc.EthApiUtils;
-import io.liquichain.api.handler.MethodHandlerInput;
-import io.liquichain.api.handler.MethodHandlerResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -249,6 +244,7 @@ class ContractFunctionParameter {
     private String name;
     private String type;
     private String internalType;
+    private List<ContractFunctionParameter> components;
 
     public String getName() {
         return name;
@@ -274,12 +270,21 @@ class ContractFunctionParameter {
         this.internalType = internalType;
     }
 
+    public List<ContractFunctionParameter> getComponents() {
+        return components;
+    }
+
+    public void setComponents(List<ContractFunctionParameter> components) {
+        this.components = components;
+    }
+
     @Override
     public String toString() {
         return "ContractFunctionParameter{" +
             "name='" + name + '\'' +
             ", type='" + type + '\'' +
             ", internalType='" + internalType + '\'' +
+            ", components=" + components +
             '}';
     }
 }
