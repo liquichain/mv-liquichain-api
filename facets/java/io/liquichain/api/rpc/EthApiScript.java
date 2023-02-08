@@ -590,6 +590,7 @@ class BesuProcessor extends BlockchainProcessor {
 
         String smartContract = getSmartContract();
         boolean isSmartContract = lowercaseHex(rawRecipient).equals(lowercaseHex(rawRecipient));
+
         MethodHandlerResult handlerResult = null;
         if (isSmartContract) {
             Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();

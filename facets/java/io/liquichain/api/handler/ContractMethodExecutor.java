@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 
@@ -20,6 +22,7 @@ import org.web3j.crypto.Hash;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
+    private static final Gson gson = new Gson();
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
@@ -29,9 +32,10 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        List<Map<String, Object>> contractFunctions = convert(abi);
-        for(Map<String, Object> contractFunction : contractFunctions){
-            if("function".equals(contractFunction.get("type"))){
+        List<ContractFunction> contractFunctions = gson
+            .fromJson(abi, new TypeToken<List<ContractFunction>>() {}.getType());
+        for (ContractFunction contractFunction : contractFunctions) {
+            if ("function".equals(contractFunction.getType())) {
                 LOG.info("contractFunction: {}", contractFunction);
             }
         }
