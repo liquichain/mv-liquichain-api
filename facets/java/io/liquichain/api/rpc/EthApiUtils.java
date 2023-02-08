@@ -4,16 +4,19 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EthApiUtils extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
+    private static final Gson gson = new Gson();
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static String createResponse(String requestId, String result) {
@@ -69,7 +72,7 @@ public class EthApiUtils extends Script {
     public static String toJson(Object data) {
         String json = null;
         try {
-            json = mapper.writeValueAsString(data);
+            json = gson.toJson(data);
         } catch (Exception e) {
             LOG.error("Failed to convert to json: {}", data, e);
         }
@@ -79,8 +82,7 @@ public class EthApiUtils extends Script {
     public static <T> T convert(String data) {
         T value = null;
         try {
-            value = mapper.readValue(data, new com.fasterxml.jackson.core.type.TypeReference<T>() {
-            });
+            value = gson.fromJson(data,  new TypeToken<T>() {}.getType());
         } catch (Exception e) {
             LOG.error("Failed to parse data: {}", data, e);
         }

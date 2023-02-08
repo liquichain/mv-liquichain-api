@@ -22,28 +22,21 @@ import org.web3j.crypto.Hash;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
-    private static final Gson gson = new Gson();
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
-    //    private final List<ContractFunctionSignature> functionSignatures;
+    private final List<ContractFunctionSignature> functionSignatures;
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        List<ContractFunction> contractFunctions = gson
-            .fromJson(abi, new TypeToken<List<ContractFunction>>() {}.getType());
-        for (ContractFunction contractFunction : contractFunctions) {
-            if ("function".equals(contractFunction.getType())) {
-                LOG.info("contractFunction: {}", contractFunction);
-            }
-        }
-        //        this.functionSignatures = contractFunctions
-        //            .stream()
-        //            .filter(contractFunction -> "function".equals(contractFunction.getType()))
-        //            .map(ContractFunctionSignature::parse)
-        //            .collect(Collectors.toList());
+        List<ContractFunction> contractFunctions = convert(abi);
+        this.functionSignatures = contractFunctions
+            .stream()
+            .filter(contractFunction -> "function".equals(contractFunction.getType()))
+            .map(ContractFunctionSignature::new)
+            .collect(Collectors.toList());
     }
 
     public interface ContractMethodHandler {
@@ -114,19 +107,16 @@ class ContractFunctionSignature {
     private List<TypeReference<?>> inputParameters;
     private List<TypeReference<?>> outputParameters;
 
-    public static ContractFunctionSignature parse(ContractFunction contractFunction) {
-        ContractFunctionSignature contractFunctionSignature = new ContractFunctionSignature();
-        String name = contractFunction.getName();
-        contractFunctionSignature.name = name;
+    public ContractFunctionSignature(ContractFunction contractFunction) {
+        this.name = contractFunction.getName();
         List<ContractFunctionParameter> inputs = contractFunction.getInputs();
         String functionParameters = inputs.stream()
                                           .map(ContractFunctionParameter::getType)
                                           .collect(Collectors.joining(","));
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
-        contractFunctionSignature.signature = Hash.sha3String(functionDefinition);
+        this.signature = Hash.sha3String(functionDefinition);
 
-        LOG.info("ContractFunctionSignature: {}", contractFunctionSignature);
-        return contractFunctionSignature;
+        LOG.info("ContractFunctionSignature: {}", this);
     }
 
     public String getSignature() {
