@@ -11,14 +11,15 @@ import java.util.concurrent.ExecutionException;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.liquichain.api.rpc.EthApiUtils;
+import io.liquichain.api.handler.MethodHandlerInput;
+import io.liquichain.api.handler.MethodHandlerResult;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
