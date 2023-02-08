@@ -3,6 +3,7 @@ package io.liquichain.api.rpc;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
+import static io.liquichain.api.handler.ContractMethodExecutor.*;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -652,20 +653,6 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
-    private ContractMethodExecutor.MethodHandlerResult processContractMethods(
-        ContractMethodExecutor.MethodHandlerInput input) {
-        if (input.isSmartContract()) {
-            Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
-            if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
-                ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers);
-                return executor.execute(input);
-            }
-        }
-        RawTransaction rawTransaction = input.getRawTransaction();
-        return new ContractMethodExecutor.MethodHandlerResult("transfer", rawTransaction.getData(),
-            rawTransaction.getValue());
-    }
-
     private void validateRecipient(String recipient) {
         try {
             Wallet recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(recipient), Wallet.class);
@@ -697,8 +684,7 @@ class BesuProcessor extends BlockchainProcessor {
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
         String rawRecipient = rawTransaction.getTo();
-        String rawData = rawTransaction.getData();
-        LOG.info("RawTransaction recipient: {},  data: {}", rawRecipient, rawData);
+        LOG.info("RawTransaction recipient: {}", rawRecipient);
 
         // as per besu documentation
         // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
@@ -709,19 +695,21 @@ class BesuProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
-        BigInteger value = rawTransaction.getValue();
-        LOG.info("RawTransaction value: {}", value);
+        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
 
-        String smartContract = toHexHash(getSmartContract());
-        LOG.info("smartContract: {}", smartContract);
-        ContractMethodExecutor.MethodHandlerInput input =
-            new ContractMethodExecutor.MethodHandlerInput(rawTransaction, getSmartContract());
-
-        try {
-            validateRecipient(input.getRecipient());
-        } catch (Exception e) {
-            return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
+        MethodHandlerResult handlerResult = null;
+        if (input.isSmartContract()) {
+            Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
+            String abi = LIQUICHAIN_APP.getAbi();
+            if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
+                ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
+                handlerResult = executor.execute(input);
+            }
+        } else {
+            handlerResult = new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
         }
+
+        LOG.info("Handler result: {}", handlerResult);
 
         result = callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
@@ -737,8 +725,6 @@ class BesuProcessor extends BlockchainProcessor {
                 String s = toHex(signatureData.getS());
                 String r = toHex(signatureData.getR());
                 LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
-                ContractMethodExecutor.MethodHandlerResult handlerResult = processContractMethods(input);
-                LOG.info("Handler result: {}", handlerResult);
 
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
@@ -747,7 +733,7 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
-                transaction.setValue("" + value);
+                transaction.setValue("" + rawTransaction.getValue());
                 transaction.setType("" + handlerResult.getTransactionType());
                 transaction.setSignedHash(data);
                 transaction.setData(handlerResult.getExtraData());

@@ -15,15 +15,17 @@ import org.web3j.crypto.RawTransaction;
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
     private final Map<String, String> contractMethodHandlers;
+    private final String abi;
     private static final MethodHandlerResult DEFAULT_RESULT = new MethodHandlerResult(
         "transfer",
         MethodHandlerResult.DEFAULT_DATA,
         BigInteger.ZERO
     );
 
-    public ContractMethodExecutor(Map<String, String> contractMethodHandlers) {
+    public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
+        this.abi = abi;
     }
 
     public static String normalize(String data) {
