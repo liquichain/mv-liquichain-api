@@ -61,7 +61,6 @@ public class ContractMethodExecutor extends Script {
     }
 
     public interface ContractMethodHandler {
-
 //        MethodHandlerResult processData(MethodHandlerInput input);
     }
 
