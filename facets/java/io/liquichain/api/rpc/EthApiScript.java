@@ -114,6 +114,7 @@ class EthApiConstants {
     public static enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
 }
 
+
 abstract class BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BlockchainProcessor.class);
     private static final Map<String, Object[]> TRANSACTION_HOOKS = new HashMap<>();
