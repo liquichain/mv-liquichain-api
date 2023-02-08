@@ -108,8 +108,7 @@ class ContractFunctionSignature {
     private List<TypeReference<?>> inputParameters;
     private List<TypeReference<?>> outputParameters;
 
-    public ContractFunctionSignature() {
-    }
+    public ContractFunctionSignature() {}
 
     public ContractFunctionSignature(ContractFunction contractFunction) {
         if ("function".equals(contractFunction.getType())) {
