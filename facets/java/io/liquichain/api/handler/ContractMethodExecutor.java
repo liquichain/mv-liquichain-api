@@ -103,6 +103,7 @@ public class ContractMethodExecutor extends Script {
 class ContractFunctionSignature {
     private static final Logger LOG = LoggerFactory.getLogger(ContractFunctionSignature.class);
 
+    private String fullSignature;
     private String signature;
     private String name;
     private List<TypeReference<?>> inputParameters;
@@ -115,12 +116,13 @@ class ContractFunctionSignature {
                                           .map(ContractFunctionParameter::getType)
                                           .collect(Collectors.joining(","));
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
-        this.signature = Hash.sha3String(functionDefinition);
+        this.fullSignature = Hash.sha3String(functionDefinition);
+        this.signature = fullSignature.substring(10);
         LOG.info("ContractFunctionSignature: {}", this);
     }
 
     public String getSignature() {
-        return signature;
+        return lowercaseHex(signature).substring(10);
     }
 
     public void setSignature(String signature) {
