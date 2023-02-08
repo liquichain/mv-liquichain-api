@@ -14,8 +14,10 @@ import org.web3j.crypto.RawTransaction;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
+
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
+
     private static final MethodHandlerResult DEFAULT_RESULT = new MethodHandlerResult(
         "transfer",
         MethodHandlerResult.DEFAULT_DATA,
@@ -26,6 +28,11 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
+        loadAbi();
+    }
+
+    private void loadAbi() {
+        LOG.info("ABI loaded: {}", abi);
     }
 
     public static String normalize(String data) {
