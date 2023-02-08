@@ -696,6 +696,7 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
+
         MethodHandlerResult handlerResult = null;
         if (input.isSmartContract()) {
             Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();

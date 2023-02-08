@@ -49,6 +49,7 @@ public class ContractMethodExecutor extends Script {
     private void loadAbi() {
         LOG.info("ABI loaded: {}", abi);
         ContractFunction contractFunction = convert(abi);
+
         LOG.info("Extracted contract details: {}", contractFunction);
     }
 
