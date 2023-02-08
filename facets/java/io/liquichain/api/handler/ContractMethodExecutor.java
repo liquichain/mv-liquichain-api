@@ -38,7 +38,7 @@ public class ContractMethodExecutor extends Script {
         this.functionSignatures = contractFunctions
             .stream()
             .filter(contractFunction -> "function".equals(contractFunction.getType()))
-            .map(ContractFunctionSignature::new)
+            .map(contractFunction -> new ContractFunctionSignature(contractFunction))
             .collect(Collectors.toList());
     }
 
