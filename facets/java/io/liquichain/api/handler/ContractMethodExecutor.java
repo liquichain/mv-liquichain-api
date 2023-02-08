@@ -29,9 +29,9 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        List<ContractFunction> contractFunctions = convert(abi);
-        for(ContractFunction contractFunction : contractFunctions){
-            if("function".equals(contractFunction.getType())){
+        List<Map<String, Object>> contractFunctions = convert(abi);
+        for(Map<String, Object> contractFunction : contractFunctions){
+            if("function".equals(contractFunction.get("type"))){
                 LOG.info("contractFunction: {}", contractFunction);
             }
         }
