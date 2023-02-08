@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.rpc.EthApiUtils",
+  "description" : "Eth API Utils",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
