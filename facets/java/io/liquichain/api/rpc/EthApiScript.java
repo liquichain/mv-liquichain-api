@@ -692,7 +692,6 @@ class BesuProcessor extends BlockchainProcessor {
         if (rawRecipient == null || "0x0".equals(rawRecipient) || "0x80".equals(rawRecipient)) {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
-
 //        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
 //        MethodHandlerResult handlerResult = null;
 //        if (input.isSmartContract()) {
