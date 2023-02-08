@@ -27,17 +27,18 @@ public class ContractMethodExecutor extends Script {
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
-    private final List<ContractFunctionSignature> functionSignatures;
+//    private final List<ContractFunctionSignature> functionSignatures;
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
         List<ContractFunction> contractFunctions = convert(abi);
-        this.functionSignatures = contractFunctions
-            .stream()
-            .map(ContractFunctionSignature::new)
-            .collect(Collectors.toList());
+        LOG.info("contractFunctions: {}", contractFunctions);
+//        this.functionSignatures = contractFunctions
+//            .stream()
+//            .map(ContractFunctionSignature::new)
+//            .collect(Collectors.toList());
     }
 
     public interface ContractMethodHandler {
