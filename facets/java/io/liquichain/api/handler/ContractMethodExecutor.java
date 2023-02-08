@@ -3,6 +3,7 @@ package io.liquichain.api.handler;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +28,7 @@ public class ContractMethodExecutor extends Script {
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
-//    private final List<ContractFunctionSignature> functionSignatures;
+    private final List<ContractFunctionSignature> functionSignatures = new ArrayList<>();
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
@@ -35,11 +36,13 @@ public class ContractMethodExecutor extends Script {
         this.abi = abi;
         List<ContractFunction> contractFunctions = convert(abi);
         LOG.info("contractFunctions: {}", contractFunctions);
-//        this.functionSignatures = contractFunctions
-//            .stream()
-//            .filter(contractFunction -> "function".equals(contractFunction.getType()))
-//            .map(contractFunction -> new ContractFunctionSignature(contractFunction))
-//            .collect(Collectors.toList());
+        if (contractFunctions != null && !contractFunctions.isEmpty()) {
+            for (ContractFunction contractFunction : contractFunctions) {
+                if ("function".equals(contractFunction.getType())) {
+                    functionSignatures.add(new ContractFunctionSignature(contractFunction));
+                }
+            }
+        }
     }
 
     public interface ContractMethodHandler {
