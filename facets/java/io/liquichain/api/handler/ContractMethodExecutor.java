@@ -115,7 +115,6 @@ class ContractFunctionSignature {
                                           .collect(Collectors.joining(","));
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
         this.signature = Hash.sha3String(functionDefinition);
-
         LOG.info("ContractFunctionSignature: {}", this);
     }
 
