@@ -598,17 +598,24 @@ class BesuProcessor extends BlockchainProcessor {
         if (rawRecipient == null || "0x0".equals(rawRecipient) || "0x80".equals(rawRecipient)) {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
-        MethodHandlerInput input = new MethodHandlerInput(rawTransaction, getSmartContract());
+
+        String smartContract = getSmartContract();
+        boolean isSmartContract = lowercaseHex(rawRecipient).equals(lowercaseHex(rawRecipient));
         MethodHandlerResult handlerResult = null;
-        if (input.isSmartContract()) {
+        if (isSmartContract) {
             Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
             String abi = LIQUICHAIN_APP.getAbi();
             if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
+                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
                 ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
                 handlerResult = executor.execute(input);
             }
         } else {
-            handlerResult = new MethodHandlerResult("transfer", rawTransaction.getData(), rawTransaction.getValue());
+            handlerResult = new MethodHandlerResult(
+                "transfer",
+                "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}",
+                rawTransaction.getValue()
+            );
         }
         LOG.info("Handler result: {}", handlerResult);
 
@@ -646,8 +653,8 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setS(s);
                 transaction.setR(r);
                 LOG.info("Transaction CEI details: {}", transaction);
-//                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-//                LOG.info("Created transaction on DB with uuid: {}", uuid);
+                //                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+                //                LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
             }
