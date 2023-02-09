@@ -120,13 +120,14 @@ class ContractFunctionSignature {
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10);
-        
+
         this.inputParameters = inputs
             .stream()
             .map(contractFunctionParameter -> {
             String type = contractFunctionParameter.getType();
             if("tuple".equals(type)){
                 // convert tuple to DynamicStruct
+                return null;
             } else {
                 try {
                     return TypeReference.makeTypeReference(type);
@@ -142,6 +143,7 @@ class ContractFunctionSignature {
                 String type = contractFunctionParameter.getType();
                 if("tuple".equals(type)){
                     // convert tuple to DynamicStruct
+                    return null;
                 } else {
                     try {
                         return TypeReference.makeTypeReference(type);
