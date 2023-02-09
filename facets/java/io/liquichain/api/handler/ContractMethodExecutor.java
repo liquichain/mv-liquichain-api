@@ -3,6 +3,7 @@ package io.liquichain.api.handler;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.TypeReference;
 import org.web3j.crypto.Hash;
+import org.web3j.protocol.core.methods.response.AbiDefinition;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
@@ -31,13 +33,15 @@ public class ContractMethodExecutor extends Script {
         super();
         this.contractMethodHandlers = contractMethodHandlers;
         this.abi = abi;
-        List<ContractFunction> contractFunctions = new Gson()
-            .fromJson(abi, new TypeToken<List<ContractFunction>>() {}.getType());
-        this.functionSignatures = contractFunctions
-            .stream()
-            .filter(contractFunction -> "function".equals(contractFunction.getType()))
-            .map(ContractFunctionSignature::new)
-            .collect(Collectors.toList());
+        List<AbiDefinition> abiDefinitions = new Gson()
+            .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
+        LOG.info("Abi Definitions: {}", abiDefinitions);
+
+//        this.functionSignatures = contractFunctions
+//            .stream()
+//            .filter(contractFunction -> "function".equals(contractFunction.getType()))
+//            .map(ContractFunctionSignature::new)
+//            .collect(Collectors.toList());
     }
 
     public interface ContractMethodHandler {
