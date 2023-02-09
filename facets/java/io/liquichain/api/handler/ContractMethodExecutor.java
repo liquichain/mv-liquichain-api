@@ -109,9 +109,9 @@ class ContractFunctionSignature {
     private List<TypeReference> inputParameters;
     private List<TypeReference> outputParameters;
 
-    private static TypeReference parseParameterType(ContractFunctionParameter contractFunctionParameter){
+    private TypeReference parseParameterType(ContractFunctionParameter contractFunctionParameter) {
         String type = contractFunctionParameter.getType();
-        if("tuple".equals(type)){
+        if ("tuple".equals(type)) {
             // convert tuple to DynamicStruct
             return null;
         } else {
@@ -119,7 +119,7 @@ class ContractFunctionSignature {
                 return TypeReference.makeTypeReference(type);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
-            }   
+            }
         }
     }
 
