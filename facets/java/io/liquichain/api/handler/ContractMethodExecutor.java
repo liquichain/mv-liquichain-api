@@ -120,6 +120,7 @@ class ContractFunctionSignature {
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10);
+        
         this.inputParameters = inputs
             .stream()
             .map(contractFunctionParameter -> {
