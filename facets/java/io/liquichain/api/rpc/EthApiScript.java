@@ -312,15 +312,9 @@ class BesuProcessor extends BlockchainProcessor {
         public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
             super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
                 new Uint256(decimals));
-            this.id = id;
-            this.totalSupply = totalSupply;
-            this.name = name;
-            this.symbol = symbol;
-            this.decimals = decimals;
         }
 
         public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
-            super(id, totalSupply, name, symbol, decimals);
             this.id = id.getValue();
             this.totalSupply = totalSupply.getValue();
             this.name = name.getValue();

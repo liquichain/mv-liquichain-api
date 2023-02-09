@@ -30,7 +30,10 @@ public class ContractMethodExecutor extends Script {
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
-        this.contractMethodHandlers = contractMethodHandlers;
+        this.contractMethodHandlers = contractMethodHandlers
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(entry -> lowercaseHex(entry.getKey()), Map.Entry::getValue));
         this.abi = abi;
         List<AbiDefinition> abiDefinitions = new Gson()
             .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
@@ -39,7 +42,10 @@ public class ContractMethodExecutor extends Script {
             .stream()
             .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
             .map(ContractFunctionSignature::new)
+            .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toList());
+
+        LOG.info("function signatures: {}", toJson(functionSignatures));
     }
 
     public interface ContractMethodHandler {
@@ -111,10 +117,8 @@ class ContractFunctionSignature {
 
     private TypeReference parseParameterType(AbiDefinition.NamedType contractFunctionParameter) {
         String type = contractFunctionParameter.getType();
-        LOG.info("{}", new Gson().toJson(contractFunctionParameter));
         boolean isTuple = "tuple".equals(type);
         boolean isTupleArray = "tuple[]".equals(type);
-        LOG.info("isTuple: {}", isTuple);
         if (isTuple || isTupleArray) {
             // convert tuple to DynamicStruct
             return null;
@@ -135,12 +139,10 @@ class ContractFunctionSignature {
                                           .collect(Collectors.joining(","));
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
         this.fullSignature = Hash.sha3String(functionDefinition);
-        this.signature = fullSignature.substring(0, 10);
-
+        this.signature = fullSignature.substring(0, 10).toLowerCase();
         this.inputParameters = inputs.stream()
                                      .map(this::parseParameterType)
                                      .collect(Collectors.toList());
-        LOG.info("{}", new Gson().toJson(this));
 
     }
 
