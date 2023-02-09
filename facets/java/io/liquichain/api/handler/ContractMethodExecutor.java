@@ -112,8 +112,9 @@ class ContractFunctionSignature {
         String type = contractFunctionParameter.getType();
         LOG.info("{}", contractFunctionParameter);
         boolean isTuple = "tuple".equals(type);
+        boolean isTupleArray = "tuple[]".equals(type);
         LOG.info("isTuple: {}", isTuple);
-        if (isTuple) {
+        if (isTuple || isTupleArray) {
             // convert tuple to DynamicStruct
             return null;
         } else {
