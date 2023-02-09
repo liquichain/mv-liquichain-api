@@ -48,7 +48,6 @@ public class ContractMethodExecutor extends Script {
         if (contractMethodHandlers == null || contractMethodHandlers.isEmpty()) {
             return null;
         }
-
         String rawData = lowercaseHex(input.getRawTransaction().getData());
         Map.Entry<String, String> handlerFound = contractMethodHandlers
             .entrySet()
