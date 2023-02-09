@@ -120,29 +120,36 @@ class ContractFunctionSignature {
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10);
-        this.inputParameters = inputs.stream()
-                                     .map(contractFunctionParameter -> {
-                                        String type = contractFunctionParameter.getType();
-                                        if("tuple".equals(type)){
-
-                                        }
-                                         try {
-                                             return TypeReference.makeTypeReference(type);
-                                         } catch (ClassNotFoundException e) {
-                                             throw new RuntimeException(e);
-                                         }
-                                     })
-                                     .collect(Collectors.toList());
-        this.outputParameters = outputs.stream()
-                                       .map(ContractFunctionParameter::getType)
-                                       .map(type -> {
-                                           try {
-                                               return TypeReference.makeTypeReference(type);
-                                           } catch (ClassNotFoundException e) {
-                                               throw new RuntimeException(e);
-                                           }
-                                       })
-                                       .collect(Collectors.toList());
+        this.inputParameters = inputs
+            .stream()
+            .map(contractFunctionParameter -> {
+            String type = contractFunctionParameter.getType();
+            if("tuple".equals(type)){
+                // convert tuple to DynamicStruct
+            } else {
+                try {
+                    return TypeReference.makeTypeReference(type);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }   
+            }
+            })
+            .collect(Collectors.toList());
+        this.outputParameters = outputs
+            .stream()
+            .map(contractFunctionParameter -> {
+                String type = contractFunctionParameter.getType();
+                if("tuple".equals(type)){
+                    // convert tuple to DynamicStruct
+                } else {
+                    try {
+                        return TypeReference.makeTypeReference(type);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }   
+                }
+            })
+            .collect(Collectors.toList());
 
         LOG.info(this.toString());
     }
