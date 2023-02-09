@@ -138,7 +138,9 @@ class ContractFunctionSignature {
         String functionParameters = inputs.stream()
                                           .map(AbiDefinition.NamedType::getType)
                                           .collect(Collectors.joining(","));
+        LOG.info("function parameters: {}", functionParameters);
         String functionDefinition = String.format("%s(%s)", name, functionParameters);
+        LOG.info("function definition: {}", functionDefinition);
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10).toLowerCase();
         this.inputParameters = inputs.stream()
