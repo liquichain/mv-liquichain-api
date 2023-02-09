@@ -110,7 +110,7 @@ class ContractFunctionSignature {
     private List<TypeReference> outputParameters;
 
     public ContractFunctionSignature(ContractFunction contractFunction) {
-        LOG.info(contractFunction);
+        LOG.info(contractFunction.toString());
         this.name = contractFunction.getName();
         List<ContractFunctionParameter> inputs = contractFunction.getInputs();
         List<ContractFunctionParameter> outputs = contractFunction.getOutputs();
@@ -144,7 +144,7 @@ class ContractFunctionSignature {
                                        })
                                        .collect(Collectors.toList());
 
-        LOG.info(this);
+        LOG.info(this.toString());
     }
 
     public String getSignature() {
