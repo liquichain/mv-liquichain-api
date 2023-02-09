@@ -36,6 +36,13 @@ public class ContractMethodExecutor extends Script {
         List<AbiDefinition> abiDefinitions = new Gson()
             .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
         LOG.info("Abi Definitions: {}", abiDefinitions);
+        abiDefinitions.stream()
+            .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
+            .forEach(abiDefinition -> {
+                List<AbiDefinition.NamedType> inputs = abiDefinition.getInputs();
+                LOG.info("inputs for {}: {}", abiDefinition.getName(), toJson(inputs));
+            });
+
 
 //        this.functionSignatures = contractFunctions
 //            .stream()

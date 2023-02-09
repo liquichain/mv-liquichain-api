@@ -23,7 +23,6 @@ import io.liquichain.api.handler.ContractMethodExecutor;
 import io.liquichain.api.handler.MethodHandlerInput;
 import io.liquichain.api.handler.MethodHandlerResult;
 import io.liquichain.core.BlockForgerScript;
-import io.liquichain.api.rpc.EthApiUtils;
 
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
@@ -589,7 +588,7 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         String smartContract = getSmartContract();
-        boolean isSmartContract = lowercaseHex(rawRecipient).equals(lowercaseHex(rawRecipient));
+        boolean isSmartContract = lowercaseHex(smartContract).equals(lowercaseHex(rawRecipient));
 
         MethodHandlerResult handlerResult = null;
         if (isSmartContract) {
