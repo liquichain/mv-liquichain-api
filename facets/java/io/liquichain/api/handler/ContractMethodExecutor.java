@@ -42,7 +42,7 @@ public class ContractMethodExecutor extends Script {
             .stream()
             .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
             .map(ContractFunctionSignature::new)
-            .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
+            //.filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toList());
 
         LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
