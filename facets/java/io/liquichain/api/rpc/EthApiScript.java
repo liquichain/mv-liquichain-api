@@ -644,7 +644,7 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setV(v);
                 transaction.setS(s);
                 transaction.setR(r);
-                LOG.info("Transaction CEI details: {}", transaction);
+                LOG.info("Transaction CEI details: {}", toJson(transaction));
                 //                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
                 //                LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {
