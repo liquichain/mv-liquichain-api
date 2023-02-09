@@ -110,6 +110,7 @@ class ContractFunctionSignature {
 
     private TypeReference parseParameterType(ContractFunctionParameter contractFunctionParameter) {
         String type = contractFunctionParameter.getType();
+        LOG.info("{}", contractFunctionParameter);
         if ("tuple".equals(type)) {
             // convert tuple to DynamicStruct
             return null;
