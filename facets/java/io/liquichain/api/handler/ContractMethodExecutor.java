@@ -109,8 +109,21 @@ class ContractFunctionSignature {
     private List<TypeReference> inputParameters;
     private List<TypeReference> outputParameters;
 
+    private static TypeReference parseParameterType(ContractFunctionParameter contractFunctionParameter){
+        String type = contractFunctionParameter.getType();
+        if("tuple".equals(type)){
+            // convert tuple to DynamicStruct
+            return null;
+        } else {
+            try {
+                return TypeReference.makeTypeReference(type);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }   
+        }
+    }
+
     public ContractFunctionSignature(ContractFunction contractFunction) {
-        LOG.info(contractFunction.toString());
         this.name = contractFunction.getName();
         List<ContractFunctionParameter> inputs = contractFunction.getInputs();
         List<ContractFunctionParameter> outputs = contractFunction.getOutputs();
@@ -121,40 +134,12 @@ class ContractFunctionSignature {
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10);
 
-        this.inputParameters = inputs
-            .stream()
-            .map(contractFunctionParameter -> {
-            String type = contractFunctionParameter.getType();
-            if("tuple".equals(type)){
-                // convert tuple to DynamicStruct
-                return null;
-            } else {
-                try {
-                    return TypeReference.makeTypeReference(type);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }   
-            }
-            })
-            .collect(Collectors.toList());
-        this.outputParameters = outputs
-            .stream()
-            .map(contractFunctionParameter -> {
-                String type = contractFunctionParameter.getType();
-                if("tuple".equals(type)){
-                    // convert tuple to DynamicStruct
-                    return null;
-                } else {
-                    try {
-                        return TypeReference.makeTypeReference(type);
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }   
-                }
-            })
-            .collect(Collectors.toList());
-
-        LOG.info(this.toString());
+        this.inputParameters = inputs.stream()
+                                     .map(this::parseParameterType)
+                                     .collect(Collectors.toList());
+        this.outputParameters = outputs.stream()
+                                       .map(this::parseParameterType)
+                                       .collect(Collectors.toList());
     }
 
     public String getSignature() {
