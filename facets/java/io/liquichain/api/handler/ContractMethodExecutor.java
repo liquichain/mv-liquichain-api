@@ -110,6 +110,7 @@ class ContractFunctionSignature {
     private List<TypeReference> outputParameters;
 
     public ContractFunctionSignature(ContractFunction contractFunction) {
+        LOG.info(contractFunction);
         this.name = contractFunction.getName();
         List<ContractFunctionParameter> inputs = contractFunction.getInputs();
         List<ContractFunctionParameter> outputs = contractFunction.getOutputs();
@@ -120,8 +121,11 @@ class ContractFunctionSignature {
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10);
         this.inputParameters = inputs.stream()
-                                     .map(ContractFunctionParameter::getType)
-                                     .map(type -> {
+                                     .map(contractFunctionParameter -> {
+                                        String type = contractFunctionParameter.getType();
+                                        if("tuple".equals(type)){
+
+                                        }
                                          try {
                                              return TypeReference.makeTypeReference(type);
                                          } catch (ClassNotFoundException e) {
@@ -140,7 +144,7 @@ class ContractFunctionSignature {
                                        })
                                        .collect(Collectors.toList());
 
-        LOG.info("ContractFunctionSignature: {}", this);
+        LOG.info(this);
     }
 
     public String getSignature() {
