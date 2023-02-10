@@ -24,6 +24,7 @@ import org.web3j.protocol.core.methods.response.AbiDefinition;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
+    private static final Gson gson = new Gson();
 
     private final Map<String, String> contractMethodHandlers;
     private final String abi;
@@ -33,11 +34,14 @@ public class ContractMethodExecutor extends Script {
         super();
         contractMethodHandlers = new HashMap<>();
         for (Map.Entry<String, String> entry : handlers.entrySet()) {
-            contractMethodHandlers.put(lowercaseHex(entry.getKey()), entry.getValue());
+            String key = lowercaseHex(entry.getKey());
+            String value = entry.getValue();
+            contractMethodHandlers.put(key, value);
         }
+        LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
+
         this.abi = abi;
-        List<AbiDefinition> abiDefinitions = new Gson()
-            .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
+        List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
 
         this.functionSignatures = abiDefinitions
             .stream()
@@ -45,8 +49,6 @@ public class ContractMethodExecutor extends Script {
             .map(ContractFunctionSignature::new)
             .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toList());
-
-        LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
         LOG.info("function signatures: {}", toJson(functionSignatures));
     }
 
