@@ -104,7 +104,7 @@ class EthApiConstants {
     public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
     public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
     public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
-    public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
+    public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: %s";
     public static final String INVALID_REQUEST = "-32600";
     public static final String INTERNAL_ERROR = "-32603";
     public static final String RESOURCE_NOT_FOUND = "-32001";
@@ -407,7 +407,7 @@ class BesuProcessor extends BlockchainProcessor {
     }
 
     private String callProxy(String body) throws IOException, InterruptedException {
-        LOG.info("callProxy body={}", body);
+        LOG.info("callProxy body: {}", body);
         String result = null;
         Response response = null;
         try {
@@ -420,14 +420,14 @@ class BesuProcessor extends BlockchainProcessor {
                 response.close();
             }
         }
-        LOG.info("callProxy result={}", result);
+        LOG.info("callProxy result: {}", result);
         return result;
     }
 
     private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         Object id = parameters.get("id");
-        String idFormat =
-            id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
+        String idFormat = id == null
+            || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
         String requestBody = "{" +
             String.format(idFormat, id) +
             String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")) +
@@ -559,10 +559,8 @@ class BesuProcessor extends BlockchainProcessor {
                 .find(defaultRepo, Transaction.class)
                 .by("hexHash", transactionHash).getResult();
             if (existingTransaction != null) {
-                return createErrorResponse(
-                    requestId,
-                    TRANSACTION_REJECTED,
-                    String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
+                String message = String.format(TRANSACTION_EXISTS_ERROR, transactionHash);
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, message);
             }
         } catch (Exception e) {
             return createErrorResponse(requestId, RESOURCE_NOT_FOUND, e.getMessage());
@@ -596,6 +594,15 @@ class BesuProcessor extends BlockchainProcessor {
             ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
             handlerResult = executor.execute(new MethodHandlerInput(rawTransaction, smartContract));
         } else {
+            Wallet recipientWallet;
+            try {
+                recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(rawRecipient), Wallet.class);
+            } catch (Exception e) {
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
+            }
+            if (recipientWallet == null) {
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
+            }
             String defaultMetadata = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
             handlerResult = new MethodHandlerResult("transfer", defaultMetadata, rawTransaction.getValue());
         }
