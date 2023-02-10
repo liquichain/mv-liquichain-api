@@ -3,6 +3,7 @@ package io.liquichain.api.handler;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,14 +31,8 @@ public class ContractMethodExecutor extends Script {
 
     public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
         super();
-        this.contractMethodHandlers = contractMethodHandlers
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(entry -> {
-                String normalizedKey = lowercaseHex(entry.getKey());
-                LOG.info("handler key: {}", normalizedKey);
-                return normalizedKey;
-            }, Map.Entry::getValue));
+        this.contractMethodHandlers = new HashMap<>();
+        contractMethodHandlers.forEach((key, value) -> this.contractMethodHandlers.put(lowercaseHex(key), value));
         this.abi = abi;
         List<AbiDefinition> abiDefinitions = new Gson()
             .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
