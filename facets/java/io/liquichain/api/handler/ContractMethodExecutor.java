@@ -44,7 +44,7 @@ public class ContractMethodExecutor extends Script {
             .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toList());
 
-        LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
+        LOG.info("contract method handlers: {}", toJson(this.contractMethodHandlers));
         LOG.info("function signatures: {}", toJson(functionSignatures));
     }
 
