@@ -587,30 +587,26 @@ class BesuProcessor extends BlockchainProcessor {
         LOG.info("Smart Contract Address: {}", smartContract);
         LOG.info("isSmartContract: {}", isSmartContract);
 
-        MethodHandlerResult handlerResult = null;
-        if (isSmartContract) {
-            Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
+        Map<String, String> contractMethodHandlers = LIQUICHAIN_APP.getContractMethodHandlers();
+        boolean hasContractMethodHandlers = contractMethodHandlers != null && !contractMethodHandlers.isEmpty();
+
+        MethodHandlerResult handlerResult;
+        if (isSmartContract && hasContractMethodHandlers) {
             String abi = LIQUICHAIN_APP.getAbi();
-            if (contractMethodHandlers != null && !contractMethodHandlers.isEmpty()) {
-                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
-                ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
-                handlerResult = executor.execute(input);
-            }
+            ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
+            handlerResult = executor.execute(new MethodHandlerInput(rawTransaction, smartContract));
         } else {
-            handlerResult = new MethodHandlerResult(
-                "transfer",
-                "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}",
-                rawTransaction.getValue()
-            );
+            String defaultMetadata = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
+            handlerResult = new MethodHandlerResult("transfer", defaultMetadata, rawTransaction.getValue());
         }
         LOG.info("Handler result: {}", handlerResult);
 
-        //        result = callEthJsonRpc(requestId, parameters);
-        //        boolean hasError = result.contains("\"error\"");
-        //        if (hasError) {
-        //            return result;
-        //        }
-        //
+        // result = callEthJsonRpc(requestId, parameters);
+        // boolean hasError = result.contains("\"error\"");
+        // if (hasError) {
+        //      return result;
+        // }
+
         if (rawTransaction instanceof SignedRawTransaction) {
             SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
             Sign.SignatureData signatureData = signedTransaction.getSignatureData();
@@ -639,8 +635,8 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setS(s);
                 transaction.setR(r);
                 LOG.info("Transaction CEI details: {}", toJson(transaction));
-                //                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-                //                LOG.info("Created transaction on DB with uuid: {}", uuid);
+                // String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+                // LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
             }
