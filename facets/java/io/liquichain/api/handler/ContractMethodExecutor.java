@@ -36,6 +36,7 @@ public class ContractMethodExecutor extends Script {
         for (Map.Entry<String, String> entry : handlers.entrySet()) {
             String key = lowercaseHex(entry.getKey());
             String value = entry.getValue();
+            LOG.info("key: {}, value: {}", key, value);
             contractMethodHandlers.put(key, value);
         }
         LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
