@@ -29,10 +29,10 @@ public class ContractMethodExecutor extends Script {
     private final String abi;
     private final List<ContractFunctionSignature> functionSignatures;
 
-    public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
+    public ContractMethodExecutor(Map<String, String> handlers, String abi) {
         super();
-        this.contractMethodHandlers = new HashMap<>();
-        contractMethodHandlers.forEach((key, value) -> this.contractMethodHandlers.put(lowercaseHex(key), value));
+        contractMethodHandlers = new HashMap<>();
+        handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
         this.abi = abi;
         List<AbiDefinition> abiDefinitions = new Gson()
             .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
@@ -44,7 +44,7 @@ public class ContractMethodExecutor extends Script {
             .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toList());
 
-        LOG.info("contract method handlers: {}", toJson(this.contractMethodHandlers));
+        LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
         LOG.info("function signatures: {}", toJson(functionSignatures));
     }
 
