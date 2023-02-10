@@ -32,7 +32,9 @@ public class ContractMethodExecutor extends Script {
     public ContractMethodExecutor(Map<String, String> handlers, String abi) {
         super();
         contractMethodHandlers = new HashMap<>();
-        handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
+        for (Map.Entry<String, String> entry : handlers.entrySet()) {
+            contractMethodHandlers.put(lowercaseHex(entry.getKey()), entry.getValue());
+        }
         this.abi = abi;
         List<AbiDefinition> abiDefinitions = new Gson()
             .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
