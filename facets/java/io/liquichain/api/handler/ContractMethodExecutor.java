@@ -33,12 +33,7 @@ public class ContractMethodExecutor extends Script {
     public ContractMethodExecutor(Map<String, String> handlers, String abi) {
         super();
         contractMethodHandlers = new HashMap<>();
-        for (Map.Entry<String, String> entry : handlers.entrySet()) {
-            String key = lowercaseHex(entry.getKey());
-            String value = entry.getValue();
-            LOG.info("key: {}, value: {}", key, value);
-            contractMethodHandlers.put(key, value);
-        }
+        handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
         LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
 
         this.abi = abi;
