@@ -156,7 +156,7 @@ class ContractFunctionSignature {
     }
 
     public String getSignature() {
-        return lowercaseHex(signature).substring(10);
+        return signature;
     }
 
     public void setSignature(String signature) {
