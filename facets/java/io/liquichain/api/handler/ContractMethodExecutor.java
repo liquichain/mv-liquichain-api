@@ -45,9 +45,10 @@ public class ContractMethodExecutor extends Script {
             .map(ContractFunctionSignature::new)
             .filter(functionSignature -> {
                 LOG.info("function signature: {}", functionSignature);
-                boolean matches = contractMethodHandlers.containsKey(functionSignature.getSignature());
-                LOG.info("signature: {}", functionSignature.getSignature());
+                String signature = functionSignature.getSignature();
+                LOG.info("signature: {}", signature);
                 LOG.info("contract method handler keys: {}", contractMethodHandlers.keySet());
+                boolean matches = contractMethodHandlers.containsKey(functionSignature.getSignature());
                 return matches;
             })
             .collect(Collectors.toList());
