@@ -34,8 +34,6 @@ public class ContractMethodExecutor extends Script {
         super();
         contractMethodHandlers = new HashMap<>();
         handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
-        LOG.info("contract method handlers: {}", toJson(contractMethodHandlers));
-
         this.abi = abi;
         List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
 
@@ -45,7 +43,6 @@ public class ContractMethodExecutor extends Script {
             .map(ContractFunctionSignature::new)
             .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toList());
-        LOG.info("function signatures: {}", toJson(functionSignatures));
     }
 
     public interface ContractMethodHandler {
@@ -57,7 +54,7 @@ public class ContractMethodExecutor extends Script {
             return null;
         }
         String rawData = lowercaseHex(input.getRawTransaction().getData());
-        Map.Entry<String, String> handlerFound = contractMethodHandlers
+        Map.Entry<String, String> handler = contractMethodHandlers
             .entrySet()
             .stream()
             .filter(entry -> {
@@ -67,12 +64,12 @@ public class ContractMethodExecutor extends Script {
             .findFirst()
             .orElse(null);
 
-        if (handlerFound == null) {
+        if (handler == null) {
             return null;
         }
 
-        LOG.info("handler: {}", handlerFound);
-        String className = handlerFound.getValue();
+        LOG.info("handler: {}", handler);
+        String className = handler.getValue();
         Class<ContractMethodHandler> handlerClass;
         try {
             handlerClass = (Class<ContractMethodHandler>) Class.forName(className);
@@ -80,7 +77,7 @@ public class ContractMethodExecutor extends Script {
             throw new RuntimeException("Unable to load smart contract handler class: " + className, e);
         }
 
-        CompletableFuture<MethodHandlerResult> handler = CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<MethodHandlerResult> asyncHandler = CompletableFuture.supplyAsync(() -> {
             ContractMethodHandler contractMethodHandler;
             try {
                 contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
@@ -93,7 +90,7 @@ public class ContractMethodExecutor extends Script {
         });
 
         try {
-            return handler.get();
+            return asyncHandler.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Failed to execute method handler: " + className, e);
         }
