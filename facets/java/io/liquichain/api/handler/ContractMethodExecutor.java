@@ -33,7 +33,11 @@ public class ContractMethodExecutor extends Script {
         this.contractMethodHandlers = contractMethodHandlers
             .entrySet()
             .stream()
-            .collect(Collectors.toMap(entry -> lowercaseHex(entry.getKey()), Map.Entry::getValue));
+            .collect(Collectors.toMap(entry -> {
+                String normalizedKey = lowercaseHex(entry.getKey());
+                LOG.info("handler key: {}", normalizedKey);
+                return normalizedKey;
+            }, Map.Entry::getValue));
         this.abi = abi;
         List<AbiDefinition> abiDefinitions = new Gson()
             .fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
