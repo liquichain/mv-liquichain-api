@@ -1,6 +1,5 @@
 package io.liquichain.api.rpc;
 
-import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 import static io.liquichain.api.rpc.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
@@ -14,7 +13,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
@@ -39,19 +37,12 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.exceptions.ClientConnectionException;
-import org.web3j.tx.RawTransactionManager;
 import org.web3j.utils.*;
 
 public class EthApiScript extends Script {
@@ -63,7 +54,6 @@ public class EthApiScript extends Script {
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final ParamBean config = paramBeanFactory.getInstance();
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
-
 
     protected String result;
 
@@ -288,9 +278,7 @@ abstract class BlockchainProcessor {
 class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
-    private final Web3j WEB3J;
     private final String BESU_API_URL;
-    private final String ORIGIN_WALLET;
     private final LiquichainApp LIQUICHAIN_APP;
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
@@ -302,54 +290,14 @@ class BesuProcessor extends BlockchainProcessor {
         .build();
 
 
-    public static class TokenDetails extends DynamicStruct {
-        public BigInteger id;
-        public BigInteger totalSupply;
-        public String name;
-        public String symbol;
-        public BigInteger decimals;
-
-        public TokenDetails(BigInteger id, BigInteger totalSupply, String name, String symbol, BigInteger decimals) {
-            super(new Uint256(id), new Uint256(totalSupply), new Utf8String(name), new Utf8String(symbol),
-                new Uint256(decimals));
-        }
-
-        public TokenDetails(Uint256 id, Uint256 totalSupply, Utf8String name, Utf8String symbol, Uint256 decimals) {
-            this.id = id.getValue();
-            this.totalSupply = totalSupply.getValue();
-            this.name = name.getValue();
-            this.symbol = symbol.getValue();
-            this.decimals = decimals.getValue();
-        }
-
-        public Map<String, Object> toMap() {
-            return new LinkedHashMap<>() {{
-                put("id", id);
-                put("totalSupply", totalSupply);
-                put("name", name);
-                put("symbol", symbol);
-                put("decimals", decimals);
-            }};
-        }
-    }
-
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
         String paymentWallet = config.getProperty("payment.wallet", "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623");
         String app = config.getProperty("eth.api.appname", "licoin");
         BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
-        ORIGIN_WALLET = normalizeHash(paymentWallet);
-        WEB3J = Web3j.build(new HttpService(BESU_API_URL));
         LIQUICHAIN_APP = crossStorageApi.find(defaultRepo, LiquichainApp.class)
                                         .by("name", app)
                                         .getResult();
-    }
-
-    private String toHexHash(String hash) {
-        if (hash.startsWith("0x")) {
-            return hash.toLowerCase();
-        }
-        return "0x" + hash.toLowerCase();
     }
 
     @Override
@@ -363,9 +311,6 @@ class BesuProcessor extends BlockchainProcessor {
             case "net_version":
                 result = createResponse(requestId, "1662");
                 break;
-            case "eth_getBalance":
-                result = getBalance(requestId, parameters);
-                break;
             case "eth_sendSignedTransaction":
             case "eth_sendRawTransaction":
                 result = sendRawTransaction(requestId, parameters);
@@ -376,30 +321,6 @@ class BesuProcessor extends BlockchainProcessor {
             case "eea_sendRawTransaction":
                 result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
                 break;
-            case "contract_listTokenInfos":
-                result = contractListTokenInfos(requestId);
-                break;
-            case "contract_getToken":
-                result = contractGetToken(requestId, parameters);
-                break;
-            case "contract_balanceOf":
-                result = contractBalanceOf(requestId, parameters);
-                break;
-            //            case "contract_balanceOfBatch":
-            //                result = contractBalanceOfBatch(requestId, parameters);
-            //                break;
-            //            case "contract_transfer":
-            //                result = contractTransfer(requestId, parameters);
-            //                break;
-            //            case "contract_batchTransfer":
-            //                result = contractBatchTransfer(requestId, parameters);
-            //                break;
-            //            case "contract_safeTransferFrom":
-            //                result = contractSafeTransferFrom(requestId, parameters);
-            //                break;
-            //            case "contract_safeBatchTransferFrom":
-            //                result = contractSafeBatchTransferFrom(requestId, parameters);
-            //                break;
             default:
                 result = callEthJsonRpc(requestId, parameters);
                 break;
@@ -442,114 +363,6 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
-    private String getSmartContract() {
-        return LIQUICHAIN_APP.getHexCode();
-    }
-
-    private RawTransactionManager getTransactionManager() throws Exception {
-        Wallet origin = crossStorageApi.find(defaultRepo, ORIGIN_WALLET, Wallet.class);
-        String privateKey = origin.getPrivateKey();
-        Credentials credentials = Credentials.create(privateKey);
-        return new RawTransactionManager(WEB3J, credentials);
-    }
-
-    private String getBalanceOf(String requestId, String address, int tokenId, String blockParam) throws Exception {
-        String smartContract = getSmartContract();
-        RawTransactionManager manager = getTransactionManager();
-        DefaultBlockParameter blockParameter = null;
-        if (blockParam != null) {
-            if (blockParam.startsWith("0x")) {
-                blockParameter = DefaultBlockParameter.valueOf(new BigInteger(blockParam.substring(2), 16));
-            } else {
-                blockParameter = DefaultBlockParameterName.fromString(blockParam);
-            }
-        }
-
-        Function function = new Function(
-            "balanceOf",
-            Arrays.asList(
-                new Address(toHexHash(address)),
-                new Uint256(tokenId)
-            ),
-            Collections.<TypeReference<?>>emptyList()
-        );
-        String data = FunctionEncoder.encode(function);
-        LOG.info("smart contract: {}", smartContract);
-        String response = manager.sendCall(smartContract, data, blockParameter);
-        LOG.info("tokenId: {}, balance: {}", tokenId, response);
-        return createResponse(requestId, response);
-    }
-
-    private String getBalance(String requestId, Map<String, Object> parameters) {
-        try {
-            List<String> params = (List<String>) parameters.get("params");
-            String address = (String) params.get(0);
-            String blockParam = (String) params.get(1);
-            return getBalanceOf(requestId, address, 0, blockParam);
-        } catch (Exception e) {
-            LOG.error(PROXY_REQUEST_ERROR, e);
-            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-        }
-    }
-
-    private String contractBalanceOf(String requestId, Map<String, Object> parameters) {
-        try {
-            List<Object> params = (List<Object>) parameters.get("params");
-            String address = (String) params.get(0);
-            int tokenId = (Integer) params.get(1);
-            String blockParam = (String) params.get(2);
-            return getBalanceOf(requestId, address, tokenId, blockParam);
-        } catch (Exception e) {
-            LOG.error(PROXY_REQUEST_ERROR, e);
-            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-        }
-    }
-
-    private String contractGetToken(String requestId, Map<String, Object> parameters) {
-        List<Object> params = (List<Object>) parameters.get("params");
-        int tokenId = (Integer) params.get(0);
-        try {
-            List<TypeReference<?>> outputParameters = List.of(new TypeReference<TokenDetails>() {});
-            String smartContract = getSmartContract();
-            RawTransactionManager manager = getTransactionManager();
-            Function function = new Function("getToken", List.of(new Uint256(tokenId)), outputParameters);
-            String data = FunctionEncoder.encode(function);
-            LOG.info("smart contract: {}", smartContract);
-            String response = manager.sendCall(smartContract, data, LATEST);
-            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-            List<Map<String, Object>> decodedResults = results
-                .stream()
-                .map(result -> ((TokenDetails) result).toMap())
-                .collect(Collectors.toList());
-            return createResponse(requestId, toJson(decodedResults.get(0)));
-        } catch (Exception e) {
-            LOG.error(PROXY_REQUEST_ERROR, e);
-            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-        }
-    }
-
-    private String contractListTokenInfos(String requestId) {
-        try {
-            List<TypeReference<?>> outputParameters = List.of(new TypeReference<DynamicArray<TokenDetails>>() {});
-            String smartContract = getSmartContract();
-            RawTransactionManager manager = getTransactionManager();
-            Function function = new Function("listTokenInfos", new ArrayList<>(), outputParameters);
-            String data = FunctionEncoder.encode(function);
-            LOG.info("smart contract: {}", smartContract);
-            String response = manager.sendCall(smartContract, data, LATEST);
-            List<Type> results = FunctionReturnDecoder.decode(response, function.getOutputParameters());
-            List<Map<String, Object>> decodedResults = results
-                .stream()
-                .flatMap(result -> ((List<TokenDetails>) result.getValue()).stream())
-                .map(TokenDetails::toMap)
-                .collect(Collectors.toList());
-            return createResponse(requestId, toJson(decodedResults));
-        } catch (Exception e) {
-            LOG.error(PROXY_REQUEST_ERROR, e);
-            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-        }
-    }
-
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
         String data = (String) params.get(0);
@@ -579,7 +392,7 @@ class BesuProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
-        String smartContract = getSmartContract();
+        String smartContract = LIQUICHAIN_APP.getHexCode();
         boolean isSmartContract = lowercaseHex(smartContract).equals(lowercaseHex(rawRecipient));
 
         LOG.info("Smart Contract Address: {}", smartContract);
