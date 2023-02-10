@@ -157,9 +157,6 @@ class ContractFunctionSignature {
         String functionDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
         this.fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10).toLowerCase();
-        LOG.info("function definition: {}", functionDefinition);
-        LOG.info("signature: {}", signature);
-        LOG.info("parameter names: {}", parameterNames);
     }
 
     public String getSignature() {
