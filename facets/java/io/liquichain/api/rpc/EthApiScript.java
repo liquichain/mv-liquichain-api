@@ -114,7 +114,7 @@ class EthApiConstants {
     public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
 
 
-    public static enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
+    public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
 }
 
 
@@ -611,11 +611,6 @@ class BesuProcessor extends BlockchainProcessor {
             SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
             Sign.SignatureData signatureData = signedTransaction.getSignatureData();
             try {
-                String v = toHex(signatureData.getV());
-                String s = toHex(signatureData.getS());
-                String r = toHex(signatureData.getR());
-                LOG.info("SignedTransaction v: {}, r: {}, s: {}", v, r, s);
-
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
                 transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
@@ -631,9 +626,9 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setBlockNumber("1");
                 transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
-                transaction.setV(v);
-                transaction.setS(s);
-                transaction.setR(r);
+                transaction.setV(toHex(signatureData.getV()));
+                transaction.setS(toHex(signatureData.getS()));
+                transaction.setR(toHex(signatureData.getR()));
                 LOG.info("Transaction CEI details: {}", toJson(transaction));
                 // String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
                 // LOG.info("Created transaction on DB with uuid: {}", uuid);
