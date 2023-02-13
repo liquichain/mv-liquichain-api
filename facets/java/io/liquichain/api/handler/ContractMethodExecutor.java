@@ -167,7 +167,7 @@ class ContractFunctionSignature {
             });
         }
 
-        this.functionDefinition = String.format("%s(%s)", name, String.join(",", parameterNames));
+        this.functionDefinition = String.format("%s(%s)", name, String.join(", ", parameterNames));
         String baseDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
         String fullSignature = Hash.sha3String(baseDefinition);
         this.signature = fullSignature.substring(0, 10).toLowerCase();
