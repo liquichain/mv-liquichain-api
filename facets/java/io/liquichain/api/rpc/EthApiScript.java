@@ -386,36 +386,36 @@ class BesuProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
-        String smartContract = null;
+        String smartContract;
         boolean isSmartContract = false;
         String defaultData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
         String defaultValue = rawTransaction.getValue().toString();
         MethodHandlerResult handlerResult = new MethodHandlerResult("transfer", defaultData, defaultValue);
+        LiquichainApp liquichainApp = null;
         try {
             List<LiquichainApp> apps = crossStorageApi.find(defaultRepo, LiquichainApp.class).getResults();
-            LiquichainApp liquichainApp = apps.stream().filter(app -> {
+            liquichainApp = apps.stream().filter(app -> {
                 String contract = app.getHexCode();
                 return contract != null && addHexPrefix(contract).equalsIgnoreCase(rawRecipient);
             }).findFirst().orElse(null);
             isSmartContract = liquichainApp != null;
-            if (isSmartContract) {
-                smartContract = liquichainApp.getHexCode();
-                Map<String, String> handlers = liquichainApp.getContractMethodHandlers();
-                String abi = liquichainApp.getAbi();
-                boolean hasAbi = abi != null && abi.length() > 0;
-                boolean hasContractMethodHandlers = handlers != null && !handlers.isEmpty();
-                if (hasAbi && hasContractMethodHandlers) {
-                    ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
-                    MethodHandlerInput input = new MethodHandlerInput(crossStorageApi, defaultRepo, config,
-                        rawTransaction, smartContract);
-                    handlerResult = executor.execute(input);
-                }
-            }
         } catch (Exception e) {
             // if not found, then it is not a smart contract
         }
 
-        if (!isSmartContract) {
+        if (isSmartContract) {
+            smartContract = liquichainApp.getHexCode();
+            Map<String, String> handlers = liquichainApp.getContractMethodHandlers();
+            String abi = liquichainApp.getAbi();
+            boolean hasAbi = abi != null && abi.length() > 0;
+            boolean hasContractMethodHandlers = handlers != null && !handlers.isEmpty();
+            if (hasAbi && hasContractMethodHandlers) {
+                ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
+                MethodHandlerInput input = new MethodHandlerInput(crossStorageApi, defaultRepo, config,
+                    rawTransaction, smartContract);
+                handlerResult = executor.execute(input);
+            }
+        } else {
             Wallet recipientWallet;
             try {
                 recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(rawRecipient), Wallet.class);
