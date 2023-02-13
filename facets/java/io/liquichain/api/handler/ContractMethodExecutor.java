@@ -37,7 +37,7 @@ public class ContractMethodExecutor extends Script {
             .stream()
             .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
             .map(ContractFunctionSignature::new)
-            .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
+            // .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
     }
 
@@ -56,16 +56,22 @@ public class ContractMethodExecutor extends Script {
         Map.Entry<String, String> handler = contractMethodHandlers
             .entrySet()
             .stream()
-            .filter(entry -> {
-                String key = lowercaseHex(entry.getKey());
-                return normalizedData.startsWith(key);
-            })
+            .filter(entry -> normalizedData.startsWith(entry.getKey()))
             .findFirst()
             .orElse(null);
 
         if (handler == null) {
-            return null;
+            ContractFunctionSignature functionSignature = this.functionSignatures
+                .values()
+                .stream()
+                .filter(value -> normalizedData.startsWith(value.getSignature()))
+                .findFirst()
+                .orElse(null);
+            String type = functionSignature.getName();
+            String data = "{\"type\":\"" + type + "\",\"description\":\"Smart contract function call: " + type + "\"}";
+            return new MethodHandlerResult(functionSignature.getName(), data, null);
         }
+
         LOG.info("handler: {}", handler);
 
         String className = handler.getValue();
