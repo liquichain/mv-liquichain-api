@@ -47,10 +47,7 @@ public class EthApiUtils extends Script {
     }
 
     public static String normalizeHash(String hash) {
-        if (hash.startsWith("0x")) {
-            return hash.substring(2).toLowerCase();
-        }
-        return hash.toLowerCase();
+        return removeHexPrefix(hash).toLowerCase();
     }
 
     public static String retrieveHash(List<String> parameters, int parameterIndex) {
@@ -115,6 +112,16 @@ public class EthApiUtils extends Script {
             return data;
         }
         return "0x" + data;
+    }
+
+    public static String removeHexPrefix(String data) {
+        if (data == null) {
+            return "";
+        }
+        if (data.startsWith("0x")) {
+            return data.substring(2);
+        }
+        return data;
     }
 
     public static String lowercaseHex(String data) {

@@ -391,15 +391,15 @@ class BesuProcessor extends BlockchainProcessor {
         MethodHandlerResult handlerResult = null;
         try {
             LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
-                                                         .by("hexCode", rawRecipient)
+                                                         .by("hexCode", removeHexPrefix(rawRecipient))
                                                          .getResult();
             isSmartContract = true;
             smartContract = liquichainApp.getHexCode();
             Map<String, String> contractMethodHandlers = liquichainApp.getContractMethodHandlers();
             String abi = liquichainApp.getAbi();
-            boolean hasAbi = abi!=null && abi.length() > 0;
+            boolean hasAbi = abi != null && abi.length() > 0;
             boolean hasContractMethodHandlers = contractMethodHandlers != null && !contractMethodHandlers.isEmpty();
-            if(hasAbi && hasContractMethodHandlers){
+            if (hasAbi && hasContractMethodHandlers) {
                 ContractMethodExecutor executor = new ContractMethodExecutor(contractMethodHandlers, abi);
                 handlerResult = executor.execute(new MethodHandlerInput(rawTransaction, smartContract));
             }
