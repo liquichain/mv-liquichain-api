@@ -46,13 +46,14 @@ public class ContractMethodExecutor extends Script {
     }
 
     public MethodHandlerResult execute(MethodHandlerInput input) {
-        if (contractMethodHandlers == null || contractMethodHandlers.isEmpty()) {
-            return null;
-        }
-
         RawTransaction rawTransaction = input.getRawTransaction();
         String rawData = rawTransaction.getData();
         String normalizedData = lowercaseHex(rawData);
+
+        if (contractMethodHandlers == null || contractMethodHandlers.isEmpty()) {
+            return parseSmartContractResult(normalizedData);
+        }
+
         Map.Entry<String, String> handler = contractMethodHandlers
             .entrySet()
             .stream()
@@ -61,15 +62,7 @@ public class ContractMethodExecutor extends Script {
             .orElse(null);
 
         if (handler == null) {
-            ContractFunctionSignature functionSignature = this.functionSignatures
-                .values()
-                .stream()
-                .filter(value -> normalizedData.startsWith(value.getSignature()))
-                .findFirst()
-                .orElse(null);
-            String type = functionSignature.getName();
-            String data = "{\"type\":\"" + type + "\",\"description\":\"Smart contract function call: " + type + "\"}";
-            return new MethodHandlerResult(functionSignature.getName(), data, null);
+            return parseSmartContractResult(normalizedData);
         }
 
         LOG.info("handler: {}", handler);
@@ -107,6 +100,18 @@ public class ContractMethodExecutor extends Script {
                 "Unable to instantiate smart contract handler: " + className, e);
         }
         return contractMethodHandler.processData(input, parameters);
+    }
+
+    private MethodHandlerResult parseSmartContractResult(String transactionData) {
+        ContractFunctionSignature functionSignature = this.functionSignatures
+            .values()
+            .stream()
+            .filter(value -> transactionData.startsWith(value.getSignature()))
+            .findFirst()
+            .orElse(null);
+        String type = functionSignature.getName();
+        String data = "{\"type\":\"" + type + "\",\"description\":\"Smart contract function call: " + type + "\"}";
+        return new MethodHandlerResult(functionSignature.getName(), data, null);
     }
 
     @Override
