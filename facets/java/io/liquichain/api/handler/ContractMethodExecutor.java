@@ -16,6 +16,7 @@ import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Hash;
@@ -44,7 +45,7 @@ public class ContractMethodExecutor extends Script {
     }
 
     public interface ContractMethodHandler {
-        MethodHandlerResult processData(MethodHandlerInput input, Map<String, Type> parameters);
+        MethodHandlerResult processData(MethodHandlerInput input, Map<String, Object> parameters);
     }
 
     public MethodHandlerResult execute(MethodHandlerInput input) {
@@ -80,12 +81,13 @@ public class ContractMethodExecutor extends Script {
 
         ContractFunctionSignature functionSignature = functionSignatures.get(handler.getKey());
         List<TypeReference<Type>> inputs = functionSignature.getInputParameters();
-        Map<String, Type> parameters = new HashMap<>();
+        Map<String, Object> parameters = new HashMap<>();
         if (!inputs.isEmpty()) {
             List<String> names = functionSignature.getParameterNames();
             List<Type> values = FunctionReturnDecoder.decode(rawData, inputs);
             for (int index = 0; index < values.size(); index++) {
-                parameters.put(names.get(index), values.get(index));
+                Type type = values.get(index);
+                parameters.put(names.get(index), type.getValue());
             }
         }
 
