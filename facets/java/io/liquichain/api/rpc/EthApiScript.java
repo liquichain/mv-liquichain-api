@@ -393,6 +393,7 @@ class BesuProcessor extends BlockchainProcessor {
             LiquichainApp liquichainApp = crossStorageApi.find(defaultRepo, LiquichainApp.class)
                                                          .by("hexCode", removeHexPrefix(rawRecipient))
                                                          .getResult();
+            LOG.info("liquichain app: {}", toJson(liquichainApp));
             isSmartContract = true;
             smartContract = liquichainApp.getHexCode();
             Map<String, String> contractMethodHandlers = liquichainApp.getContractMethodHandlers();
@@ -404,6 +405,7 @@ class BesuProcessor extends BlockchainProcessor {
                 handlerResult = executor.execute(new MethodHandlerInput(rawTransaction, smartContract));
             }
         } catch (Exception e) {
+            LOG.info("No liquichain app with hexcode: {}", removeHexPrefix(rawRecipient));
             // if not found, then it is not a smart contract
         }
 
