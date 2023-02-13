@@ -74,6 +74,7 @@ public class ContractMethodExecutor extends Script {
         Class<ContractMethodHandler> handlerClass;
         try {
             handlerClass = (Class<ContractMethodHandler>) Class.forName(className);
+            LOG.info("class: {} was loaded.", handlerClass);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Unable to load smart contract handler class: " + className, e);
         }
@@ -95,6 +96,7 @@ public class ContractMethodExecutor extends Script {
             ContractMethodHandler contractMethodHandler;
             try {
                 contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
+                LOG.info("handler class instantiated.");
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                      InvocationTargetException e) {
                 throw new RuntimeException(
@@ -104,6 +106,7 @@ public class ContractMethodExecutor extends Script {
         });
 
         try {
+            LOG.info("calling async handler");
             return asyncHandler.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Failed to execute method handler: " + className, e);
