@@ -84,11 +84,13 @@ public class ContractMethodExecutor extends Script {
         Map<String, Object> parameters = new HashMap<>();
         if (!inputs.isEmpty()) {
             List<String> names = functionSignature.getParameterNames();
-            List<Type> values = FunctionReturnDecoder.decode(rawData, inputs);
+            String data = rawData.substring(10);
+            List<Type> values = FunctionReturnDecoder.decode(data, inputs);
             for (int index = 0; index < values.size(); index++) {
                 Type type = values.get(index);
                 String name = names.get(index);
                 LOG.info("type: {}", toJson(type));
+
                 parameters.put(name, type);
             }
         }
