@@ -4,8 +4,6 @@ import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -92,25 +90,16 @@ public class ContractMethodExecutor extends Script {
             }
         }
 
-        CompletableFuture<MethodHandlerResult> asyncHandler = CompletableFuture.supplyAsync(() -> {
-            ContractMethodHandler contractMethodHandler;
-            try {
-                contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
-                LOG.info("handler class instantiated.");
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-                     InvocationTargetException e) {
-                throw new RuntimeException(
-                    "Unable to instantiate smart contract handler: " + className, e);
-            }
-            return contractMethodHandler.processData(input, parameters);
-        });
-
+        ContractMethodHandler contractMethodHandler;
         try {
-            LOG.info("calling async handler");
-            return asyncHandler.get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to execute method handler: " + className, e);
+            contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
+            LOG.info("handler class instantiated.");
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                 InvocationTargetException e) {
+            throw new RuntimeException(
+                "Unable to instantiate smart contract handler: " + className, e);
         }
+        return contractMethodHandler.processData(input, parameters);
     }
 
     @Override
