@@ -88,7 +88,7 @@ public class ContractMethodExecutor extends Script {
             for (int index = 0; index < values.size(); index++) {
                 Type type = values.get(index);
                 String name = names.get(index);
-                LOG.info("type: {}", type);
+                LOG.info("type: {}", toJson(type));
                 parameters.put(name, type);
             }
         }
