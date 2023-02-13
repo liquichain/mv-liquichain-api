@@ -395,7 +395,6 @@ class BesuProcessor extends BlockchainProcessor {
                 String contract = app.getHexCode();
                 return contract != null && addHexPrefix(contract).equalsIgnoreCase(rawRecipient);
             }).findFirst().orElse(null);
-            LOG.info("liquichain app: {}", toJson(liquichainApp));
             isSmartContract = liquichainApp != null;
             if (isSmartContract) {
                 smartContract = liquichainApp.getHexCode();
