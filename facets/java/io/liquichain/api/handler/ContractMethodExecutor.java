@@ -87,7 +87,9 @@ public class ContractMethodExecutor extends Script {
             List<Type> values = FunctionReturnDecoder.decode(rawData, inputs);
             for (int index = 0; index < values.size(); index++) {
                 Type type = values.get(index);
-                parameters.put(names.get(index), type.getValue());
+                String name = names.get(index);
+                LOG.info("type: {}", type);
+                parameters.put(name, type);
             }
         }
 
