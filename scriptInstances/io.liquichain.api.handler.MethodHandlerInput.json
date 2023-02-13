@@ -14,15 +14,6 @@
   }, {
     "name" : "smartContractAddress",
     "type" : "String"
-  }, {
-    "name" : "recipient",
-    "type" : "String"
-  }, {
-    "name" : "value",
-    "type" : "BigInteger"
-  }, {
-    "name" : "smartContract",
-    "type" : "boolean"
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",
