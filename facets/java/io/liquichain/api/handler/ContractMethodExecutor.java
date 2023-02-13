@@ -80,6 +80,7 @@ public class ContractMethodExecutor extends Script {
         ContractFunctionSignature functionSignature = functionSignatures.get(handler.getKey());
         List<TypeReference<Type>> inputs = functionSignature.getInputParameters();
         Map<String, Object> parameters = new HashMap<>();
+
         if (!inputs.isEmpty()) {
             List<String> names = functionSignature.getParameterNames();
             List<Type> values = FunctionReturnDecoder.decode(rawData.substring(8), inputs);
