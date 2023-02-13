@@ -37,7 +37,6 @@ public class ContractMethodExecutor extends Script {
             .stream()
             .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
             .map(ContractFunctionSignature::new)
-            // .filter(functionSignature -> contractMethodHandlers.containsKey(functionSignature.getSignature()))
             .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
     }
 
@@ -108,9 +107,10 @@ public class ContractMethodExecutor extends Script {
             .stream()
             .filter(value -> transactionData.startsWith(value.getSignature()))
             .findFirst()
-            .orElse(null);
+            .orElse(new ContractFunctionSignature());
         String type = functionSignature.getName();
-        String data = "{\"type\":\"" + type + "\",\"description\":\"Smart contract function call: " + type + "\"}";
+        String description = "Smart contract function call: " + functionSignature.getFunctionDefinition();
+        String data = "{\"type\":\"" + type + "\",\"description\":\"" + description + "\"}";
         return new MethodHandlerResult(functionSignature.getName(), data, null);
     }
 
@@ -125,11 +125,11 @@ public class ContractMethodExecutor extends Script {
 class ContractFunctionSignature {
     private static final Logger LOG = LoggerFactory.getLogger(ContractFunctionSignature.class);
 
-    private final String fullSignature;
     private String signature;
     private String name;
     private List<TypeReference<Type>> inputParameters;
     private List<String> parameterNames;
+    private String functionDefinition;
 
     private TypeReference<Type> parseParameterType(AbiDefinition.NamedType contractFunctionParameter) {
         String type = contractFunctionParameter.getType();
@@ -147,6 +147,9 @@ class ContractFunctionSignature {
         }
     }
 
+    public ContractFunctionSignature() {
+    }
+
     public ContractFunctionSignature(AbiDefinition abiDefinition) {
         this.name = abiDefinition.getName();
         List<AbiDefinition.NamedType> inputs = abiDefinition.getInputs();
@@ -160,17 +163,13 @@ class ContractFunctionSignature {
                 parameterTypes.add(input.getType());
             });
         }
-        String functionDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
-        this.fullSignature = Hash.sha3String(functionDefinition);
+        this.functionDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
+        String fullSignature = Hash.sha3String(functionDefinition);
         this.signature = fullSignature.substring(0, 10).toLowerCase();
     }
 
     public String getSignature() {
         return signature;
-    }
-
-    public void setSignature(String signature) {
-        this.signature = signature;
     }
 
     public String getName() {
@@ -185,16 +184,12 @@ class ContractFunctionSignature {
         return inputParameters;
     }
 
-    public void setInputParameters(List<TypeReference<Type>> inputParameters) {
-        this.inputParameters = inputParameters;
-    }
-
     public List<String> getParameterNames() {
         return parameterNames;
     }
 
-    public void setParameterNames(List<String> parameterNames) {
-        this.parameterNames = parameterNames;
+    public String getFunctionDefinition() {
+        return functionDefinition;
     }
 
     @Override
@@ -214,10 +209,11 @@ class ContractFunctionSignature {
 
     @Override public String toString() {
         return "ContractFunctionSignature{" +
-            "fullSignature='" + fullSignature + '\'' +
-            ", signature='" + signature + '\'' +
+            "signature='" + signature + '\'' +
             ", name='" + name + '\'' +
             ", inputParameters=" + inputParameters +
+            ", parameterNames=" + parameterNames +
+            ", functionDefinition='" + functionDefinition + '\'' +
             '}';
     }
 }
