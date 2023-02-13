@@ -164,9 +164,9 @@ class ContractFunctionSignature {
                 parameterTypes.add(input.getType());
             });
         }
-        this.functionDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
-        String fullSignature = Hash.sha3String(functionDefinition);
+        String fullSignature = Hash.sha3String(String.format("%s(%s)", name, String.join(",", parameterTypes)));
         this.signature = fullSignature.substring(0, 10).toLowerCase();
+        this.functionDefinition = String.format("%s(%s)", name, String.join(",", parameterNames));
     }
 
     public String getSignature() {
