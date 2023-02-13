@@ -1,5 +1,6 @@
 package io.liquichain.api.handler;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -9,9 +10,9 @@ import org.meveo.admin.exception.BusinessException;
 public class MethodHandlerResult extends Script {
     private String transactionType;
     private String extraData;
-    private BigInteger value;
+    private String value;
 
-    public MethodHandlerResult(String transactionType, String extraData, BigInteger value) {
+    public MethodHandlerResult(String transactionType, String extraData, String value) {
         this.transactionType = transactionType;
         this.extraData = extraData;
         this.value = value;
@@ -33,11 +34,11 @@ public class MethodHandlerResult extends Script {
         this.extraData = extraData;
     }
 
-    public BigInteger getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(BigInteger value) {
+    public void setValue(String value) {
         this.value = value;
     }
 

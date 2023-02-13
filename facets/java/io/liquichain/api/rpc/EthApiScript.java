@@ -388,7 +388,9 @@ class BesuProcessor extends BlockchainProcessor {
 
         String smartContract = null;
         boolean isSmartContract = false;
-        MethodHandlerResult handlerResult = null;
+        String defaultData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
+        String defaultValue = rawTransaction.getValue().toString();
+        MethodHandlerResult handlerResult = new MethodHandlerResult("transfer", defaultData, defaultValue);
         try {
             List<LiquichainApp> apps = crossStorageApi.find(defaultRepo, LiquichainApp.class).getResults();
             LiquichainApp liquichainApp = apps.stream().filter(app -> {
@@ -423,8 +425,6 @@ class BesuProcessor extends BlockchainProcessor {
             if (recipientWallet == null) {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
             }
-            String defaultMetadata = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
-            handlerResult = new MethodHandlerResult("transfer", defaultMetadata, rawTransaction.getValue());
         }
         LOG.info("Handler result: {}", handlerResult);
 
@@ -445,7 +445,7 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
-                transaction.setValue("" + rawTransaction.getValue());
+                transaction.setValue(handlerResult.getValue());
                 transaction.setType("" + handlerResult.getTransactionType());
                 transaction.setSignedHash(data);
                 transaction.setData(handlerResult.getExtraData());
