@@ -156,18 +156,19 @@ class ContractFunctionSignature {
         this.name = abiDefinition.getName();
         List<AbiDefinition.NamedType> inputs = abiDefinition.getInputs();
         List<String> parameterTypes = new ArrayList<>();
+        this.parameterNames = new ArrayList<>();
         if (!inputs.isEmpty()) {
             this.inputParameters = new ArrayList<>();
-            this.parameterNames = new ArrayList<>();
             inputs.forEach(input -> {
                 this.inputParameters.add(this.parseParameterType(input));
                 this.parameterNames.add(input.getName());
                 parameterTypes.add(input.getType());
             });
         }
-        String fullSignature = Hash.sha3String(String.format("%s(%s)", name, String.join(",", parameterTypes)));
-        this.signature = fullSignature.substring(0, 10).toLowerCase();
         this.functionDefinition = String.format("%s(%s)", name, String.join(",", parameterNames));
+        String baseDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
+        String fullSignature = Hash.sha3String(baseDefinition);
+        this.signature = fullSignature.substring(0, 10).toLowerCase();
     }
 
     public String getSignature() {
