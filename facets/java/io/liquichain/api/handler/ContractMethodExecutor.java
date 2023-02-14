@@ -109,6 +109,7 @@ public class ContractMethodExecutor extends Script {
             .findFirst()
             .orElse(new ContractFunctionSignature());
 
+        LOG.info("function signature: {}", functionSignature);
         String type = functionSignature.getName();
         String description = "Smart contract function call: " + functionSignature.getFunctionDefinition();
         String data = "{\"type\":\"" + type + "\",\"description\":\"" + description + "\"}";
