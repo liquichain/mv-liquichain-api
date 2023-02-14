@@ -428,11 +428,11 @@ class BesuProcessor extends BlockchainProcessor {
         }
         LOG.info("Handler result: {}", handlerResult);
 
-        result = callEthJsonRpc(requestId, parameters);
-        boolean hasError = result.contains("\"error\"");
-        if (hasError) {
-             return result;
-        }
+//        result = callEthJsonRpc(requestId, parameters);
+//        boolean hasError = result.contains("\"error\"");
+//        if (hasError) {
+//             return result;
+//        }
 
         if (rawTransaction instanceof SignedRawTransaction) {
             SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
@@ -457,8 +457,8 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setS(toHex(signatureData.getS()));
                 transaction.setR(toHex(signatureData.getR()));
                 LOG.info("Transaction CEI details: {}", toJson(transaction));
-                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-                LOG.info("Created transaction on DB with uuid: {}", uuid);
+//                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+//                LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
             }
