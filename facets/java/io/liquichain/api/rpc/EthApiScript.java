@@ -299,9 +299,9 @@ class BesuProcessor extends BlockchainProcessor {
         LOG.info("json rpc: {}, parameters:{}", method, parameters);
 
         switch (method) {
-//            case "net_version":
-//                result = createResponse(requestId, "1662");
-//                break;
+            case "net_version":
+                result = createResponse(requestId, "1662");
+                break;
             case "eth_chainId":
                 result = createResponse(requestId, "0x67e");
                 break;
