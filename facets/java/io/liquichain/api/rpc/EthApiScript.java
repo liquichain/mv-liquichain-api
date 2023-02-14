@@ -390,7 +390,9 @@ class BesuProcessor extends BlockchainProcessor {
         boolean isSmartContract = false;
         String defaultData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
         String defaultValue = rawTransaction.getValue().toString();
-        MethodHandlerResult handlerResult = new MethodHandlerResult("transfer", defaultData, defaultValue);
+        MethodHandlerResult handlerResult =
+            new MethodHandlerResult("transfer", defaultData, rawRecipient, defaultValue);
+
         LiquichainApp liquichainApp = null;
         try {
             List<LiquichainApp> apps = crossStorageApi.find(defaultRepo, LiquichainApp.class).getResults();
@@ -431,17 +433,19 @@ class BesuProcessor extends BlockchainProcessor {
         result = callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
         if (hasError) {
-             return result;
+            return result;
         }
 
         if (rawTransaction instanceof SignedRawTransaction) {
-            SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
-            Sign.SignatureData signatureData = signedTransaction.getSignatureData();
             try {
+                SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
+                Sign.SignatureData signatureData = signedTransaction.getSignatureData();
+                String recipient = Objects.requireNonNullElse(handlerResult.getRecipient(), rawRecipient);
+
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
                 transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
-                transaction.setToHexHash(normalizeHash(rawRecipient));
+                transaction.setToHexHash(normalizeHash(recipient));
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
@@ -457,6 +461,7 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setS(toHex(signatureData.getS()));
                 transaction.setR(toHex(signatureData.getR()));
                 LOG.info("Transaction CEI details: {}", toJson(transaction));
+
                 String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
                 LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {

@@ -114,7 +114,7 @@ public class ContractMethodExecutor extends Script {
         String description = "Smart contract function call: " + functionSignature.getFunctionDefinition();
         String data = "{\"type\":\"" + type + "\",\"description\":\"" + description + "\"}";
 
-        return new MethodHandlerResult(type, data, null);
+        return new MethodHandlerResult(type, data);
     }
 
     @Override

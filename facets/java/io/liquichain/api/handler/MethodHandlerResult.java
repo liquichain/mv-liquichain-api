@@ -10,11 +10,17 @@ import org.meveo.admin.exception.BusinessException;
 public class MethodHandlerResult extends Script {
     private String transactionType;
     private String extraData;
+    private String recipient;
     private String value;
 
-    public MethodHandlerResult(String transactionType, String extraData, String value) {
+    public MethodHandlerResult(String transactionType, String extraData) {
+        this(transactionType, extraData, null, null);
+    }
+
+    public MethodHandlerResult(String transactionType, String extraData, String recipient, String value) {
         this.transactionType = transactionType;
         this.extraData = extraData;
+        this.recipient = recipient;
         this.value = value;
     }
 
@@ -32,6 +38,14 @@ public class MethodHandlerResult extends Script {
 
     public void setExtraData(String extraData) {
         this.extraData = extraData;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 
     public String getValue() {
