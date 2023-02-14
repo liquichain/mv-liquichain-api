@@ -4,9 +4,11 @@ import java.util.Map;
 
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
+import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
+import org.meveo.service.storage.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.RawTransaction;
@@ -20,11 +22,12 @@ public class MethodHandlerInput extends Script {
     private final Repository defaultRepo;
     private final ParamBean config;
 
-    public MethodHandlerInput(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config,
-        RawTransaction rawTransaction, String smartContractAddress) {
-        this.crossStorageApi = crossStorageApi;
-        this.defaultRepo = defaultRepo;
-        this.config = config;
+    public MethodHandlerInput(RawTransaction rawTransaction, String smartContractAddress) {
+        this.crossStorageApi = getCDIBean(CrossStorageApi.class);
+        RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+        this.defaultRepo = repositoryService.findDefaultRepository();
+        ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+        this.config = paramBeanFactory.getInstance();
         this.rawTransaction = rawTransaction;
         this.smartContractAddress = smartContractAddress;
     }

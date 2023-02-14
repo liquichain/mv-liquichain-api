@@ -37,11 +37,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.abi.datatypes.*;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Service;
-import org.web3j.protocol.Web3j;
 import org.web3j.protocol.exceptions.ClientConnectionException;
 import org.web3j.utils.*;
 
@@ -321,6 +318,8 @@ class BesuProcessor extends BlockchainProcessor {
         }
     }
 
+
+
     private String callProxy(String body) throws IOException, InterruptedException {
         LOG.info("callProxy body: {}", body);
         String result = null;
@@ -413,8 +412,7 @@ class BesuProcessor extends BlockchainProcessor {
             boolean hasContractMethodHandlers = handlers != null && !handlers.isEmpty();
             if (hasAbi && hasContractMethodHandlers) {
                 ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
-                MethodHandlerInput input = new MethodHandlerInput(crossStorageApi, defaultRepo, config,
-                    rawTransaction, smartContract);
+                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
                 handlerResult = executor.execute(input);
             }
         } else {
