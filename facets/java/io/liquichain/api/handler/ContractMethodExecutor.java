@@ -157,6 +157,7 @@ class ContractFunctionSignature {
         List<AbiDefinition.NamedType> inputs = abiDefinition.getInputs();
         List<String> parameterTypes = new ArrayList<>();
         this.parameterNames = new ArrayList<>();
+
         if (!inputs.isEmpty()) {
             this.inputParameters = new ArrayList<>();
             inputs.forEach(input -> {
@@ -165,6 +166,7 @@ class ContractFunctionSignature {
                 parameterTypes.add(input.getType());
             });
         }
+
         this.functionDefinition = String.format("%s(%s)", name, String.join(", ", parameterNames));
         String baseDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
         String fullSignature = Hash.sha3String(baseDefinition);
