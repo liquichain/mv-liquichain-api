@@ -413,6 +413,7 @@ class BesuProcessor extends BlockchainProcessor {
             if (hasAbi && hasContractMethodHandlers) {
                 ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
                 MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
+
                 handlerResult = executor.execute(input);
             }
         } else {

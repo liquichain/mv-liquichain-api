@@ -28,6 +28,7 @@ public class MethodHandlerInput extends Script {
         this.defaultRepo = repositoryService.findDefaultRepository();
         ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
         this.config = paramBeanFactory.getInstance();
+
         this.rawTransaction = rawTransaction;
         this.smartContractAddress = smartContractAddress;
     }
