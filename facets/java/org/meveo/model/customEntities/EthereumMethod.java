@@ -23,6 +23,7 @@ public class EthereumMethod implements CustomEntity {
     @JsonProperty(required = true)
     private String method;
 
+    @JsonProperty(required = true)
     private String methodHandler;
 
     @Override()
