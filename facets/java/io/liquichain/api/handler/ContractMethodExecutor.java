@@ -95,8 +95,7 @@ public class ContractMethodExecutor extends Script {
             LOG.info("handler class instantiated.");
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
-            throw new RuntimeException(
-                "Unable to instantiate smart contract handler: " + className, e);
+            throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
         }
         return contractMethodHandler.processData(input, parameters);
     }
