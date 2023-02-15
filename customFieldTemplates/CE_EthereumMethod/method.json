@@ -6,7 +6,7 @@
   "appliesTo" : "CE_EthereumMethod",
   "useInheritedAsDefaultValue" : false,
   "storageType" : "SINGLE",
-  "valueRequired" : false,
+  "valueRequired" : true,
   "versionable" : false,
   "triggerEndPeriodEvent" : false,
   "allowEdit" : true,
