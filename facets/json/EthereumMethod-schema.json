@@ -8,7 +8,8 @@
     "properties": {
         "method": {
             "storages": ["SQL"],
-            "nullable": true,
+            "nullable": false,
+            "minLength": 1,
             "description": "Method",
             "readOnly": false,
             "versionable": false,
@@ -28,5 +29,6 @@
             "type": "string",
             "maxLength": 2048
         }
-    }
+    },
+    "required": ["method"]
 }
