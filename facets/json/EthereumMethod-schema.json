@@ -1,0 +1,32 @@
+{
+    "storages": ["SQL"],
+    "default": "Ethereum method scripts",
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "id": "EthereumMethod",
+    "title": "Ethereum method",
+    "type": "object",
+    "properties": {
+        "method": {
+            "storages": ["SQL"],
+            "nullable": true,
+            "description": "Method",
+            "readOnly": false,
+            "versionable": false,
+            "id": "CE_EthereumMethod_method",
+            "title": "EthereumMethod.method",
+            "type": "string",
+            "maxLength": 255
+        },
+        "methodHandler": {
+            "storages": ["SQL"],
+            "nullable": true,
+            "description": "Method handler (full class name)",
+            "readOnly": false,
+            "versionable": false,
+            "id": "CE_EthereumMethod_methodHandler",
+            "title": "EthereumMethod.methodHandler",
+            "type": "string",
+            "maxLength": 2048
+        }
+    }
+}
