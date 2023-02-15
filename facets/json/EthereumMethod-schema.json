@@ -20,7 +20,8 @@
         },
         "methodHandler": {
             "storages": ["SQL"],
-            "nullable": true,
+            "nullable": false,
+            "minLength": 1,
             "description": "Method handler (full class name)",
             "readOnly": false,
             "versionable": false,
@@ -30,5 +31,8 @@
             "maxLength": 2048
         }
     },
-    "required": ["method"]
+    "required": [
+        "method",
+        "methodHandler"
+    ]
 }
