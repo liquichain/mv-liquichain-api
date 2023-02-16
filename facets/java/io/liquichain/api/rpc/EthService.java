@@ -1,9 +1,11 @@
 package io.liquichain.api.rpc;
 
+import static io.liquichain.api.rpc.EthApiScript.EthApiConstants.*;
+import static io.liquichain.api.rpc.EthApiUtils.*;
+
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.math.NumberUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.service.script.Script;
@@ -15,11 +17,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import static io.liquichain.api.rpc.EthApiConstants.INTERNAL_ERROR;
-import static io.liquichain.api.rpc.EthApiConstants.PROXY_REQUEST_ERROR;
-import static io.liquichain.api.rpc.EthApiUtils.createErrorResponse;
-import static io.liquichain.api.rpc.EthApiUtils.toJson;
 
 public class EthService extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthService.class);
@@ -44,16 +41,15 @@ public class EthService extends Script {
         Object jsonRpcVersion = parameters.get("jsonrpc");
         Object method = parameters.get("method");
         Object params = parameters.get("params");
-        boolean isNumeric = id == null || NumberUtils.isParsable("" + id);
 
         String result;
         Response response = null;
 
         String body = "{" +
-            (isNumeric ? "\"id\": " + id + "," : "\"id\": \"" + id + "\",") +
-            "\"jsonrpc\":\"" + jsonRpcVersion + "\"," +
-            "\"method\":\"" + method + "\"," +
-            "\"params\": " + toJson(params) +
+            "  \"id\": " + formatId(id) + "," +
+            "  \"jsonrpc\": \"" + jsonRpcVersion + "\"," +
+            "  \"method\": \"" + method + "\"," +
+            "  \"params\": " + toJson(params) +
             "}";
 
         LOG.info("callEthJsonRpc body: {}", body);

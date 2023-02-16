@@ -1,6 +1,6 @@
 package io.liquichain.api.rpc;
 
-import static io.liquichain.api.rpc.EthApiConstants.*;
+import static io.liquichain.api.rpc.EthApiScript.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.math.BigInteger;
@@ -8,8 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import io.liquichain.api.handler.ContractMethodExecutor;
+import io.liquichain.api.handler.EthereumMethodExecutor;
 import io.liquichain.api.handler.MethodHandlerInput;
 import io.liquichain.api.handler.MethodHandlerResult;
 import io.liquichain.core.BlockForgerScript;
@@ -40,6 +42,30 @@ public class EthApiScript extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
 
+
+    public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
+
+
+    public static class EthApiConstants {
+        public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
+        public static final String CONTRACT_NOT_ALLOWED_ERROR = "Contract deployment not allowed";
+        public static final String NAME_REQUIRED_ERROR = "Wallet name is required";
+        public static final String NAME_EXISTS_ERROR = "Wallet with name: %s, already exists";
+        public static final String EMAIL_REQUIRED_ERROR = "Email address is required";
+        public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
+        public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
+        public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
+        public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: %s";
+        public static final String INVALID_REQUEST = "-32600";
+        public static final String INTERNAL_ERROR = "-32603";
+        public static final String RESOURCE_NOT_FOUND = "-32001";
+        public static final String TRANSACTION_REJECTED = "-32003";
+        public static final String METHOD_NOT_FOUND = "-32601";
+        public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
+        public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
+    }
+
+
     protected String result;
 
     public String getResult() {
@@ -66,29 +92,6 @@ public class EthApiScript extends Script {
         processor.execute(parameters);
         result = processor.getResult();
     }
-}
-
-
-class EthApiConstants {
-    public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
-    public static final String CONTRACT_NOT_ALLOWED_ERROR = "Contract deployment not allowed";
-    public static final String NAME_REQUIRED_ERROR = "Wallet name is required";
-    public static final String NAME_EXISTS_ERROR = "Wallet with name: %s, already exists";
-    public static final String EMAIL_REQUIRED_ERROR = "Email address is required";
-    public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
-    public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
-    public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
-    public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: %s";
-    public static final String INVALID_REQUEST = "-32600";
-    public static final String INTERNAL_ERROR = "-32603";
-    public static final String RESOURCE_NOT_FOUND = "-32001";
-    public static final String TRANSACTION_REJECTED = "-32003";
-    public static final String METHOD_NOT_FOUND = "-32601";
-    public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
-    public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
-
-
-    public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
 }
 
 
@@ -263,10 +266,20 @@ class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
     private final EthService ethService;
+    private final Map<String, EthereumMethod> ethereumMethods;
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
         ethService = new EthService(config);
+        List<EthereumMethod> ethereumMethods = crossStorageApi.find(defaultRepo, EthereumMethod.class).getResults();
+        boolean hasEthereumMethods = ethereumMethods != null && !ethereumMethods.isEmpty();
+        if (hasEthereumMethods) {
+            this.ethereumMethods = ethereumMethods
+                .stream()
+                .collect(Collectors.toMap(EthereumMethod::getMethod, method -> method));
+        } else {
+            this.ethereumMethods = new HashMap<>();
+        }
     }
 
     @Override
@@ -275,6 +288,13 @@ class BesuProcessor extends BlockchainProcessor {
         String requestId = "" + parameters.get("id");
 
         LOG.info("json rpc: {}, parameters:{}", method, parameters);
+
+        EthereumMethod ethereumMethod = ethereumMethods.get(method);
+        if(ethereumMethod != null){
+            EthereumMethodExecutor executor = new EthereumMethodExecutor();
+            result = executor.execute(requestId, parameters);
+            return;
+        }
 
         switch (method) {
             case "net_version":
@@ -294,7 +314,6 @@ class BesuProcessor extends BlockchainProcessor {
                 result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
                 break;
             default:
-
                 result = ethService.callEthJsonRpc(requestId, parameters);
                 break;
         }
