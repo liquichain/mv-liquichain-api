@@ -25,10 +25,10 @@ import static io.liquichain.api.rpc.EthApiUtils.*;
 public class EthereumMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthereumMethodExecutor.class);
 
-    private final List<EthereumMethod> ethereumMethods;
+    private final Map<String, EthereumMethod> ethereumMethods;
     private final EthService ethService;
 
-    public EthereumMethodExecutor() {
+    public EthereumMethodExecutor(Map<String, EthereumMethod> ethereumMethods) {
         super();
         CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
         RepositoryService repositoryService = getCDIBean(RepositoryService.class);
@@ -36,13 +36,7 @@ public class EthereumMethodExecutor extends Script {
         ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
         ParamBean config = paramBeanFactory.getInstance();
         this.ethService = new EthService(config);
-        List<EthereumMethod> ethereumMethodList = null;
-        try {
-            ethereumMethodList = crossStorageApi.find(defaultRepo, EthereumMethod.class).getResults();
-        } catch (Exception e) {
-            // do nothing just allow ethereum methods to initialize
-        }
-        this.ethereumMethods = Objects.requireNonNullElse(ethereumMethodList, new ArrayList<>());
+        this.ethereumMethods = ethereumMethods;
     }
 
     public interface EthereumMethodHandler {
@@ -50,22 +44,9 @@ public class EthereumMethodExecutor extends Script {
     }
 
     public String execute(String requestId, Map<String, Object> parameters) {
-        if (this.ethereumMethods == null || this.ethereumMethods.isEmpty()) {
-            return ethService.callEthJsonRpc(requestId, parameters);
-        }
-
-        Object methodName = parameters.get("method");
         try {
-            EthereumMethod ethereumMethod = ethereumMethods
-                .stream()
-                .filter(method -> method.getMethod().equals(methodName))
-                .findAny()
-                .orElse(null);
-
-            if (ethereumMethod == null) {
-                return ethService.callEthJsonRpc(requestId, parameters);
-            }
-
+            Object methodName = parameters.get("method");
+            EthereumMethod ethereumMethod = ethereumMethods.get(methodName);
             String className = ethereumMethod.getMethodHandler();
             Class<EthereumMethodHandler> handlerClass;
             try {

@@ -291,7 +291,7 @@ class BesuProcessor extends BlockchainProcessor {
 
         EthereumMethod ethereumMethod = ethereumMethods.get(method);
         if(ethereumMethod != null){
-            EthereumMethodExecutor executor = new EthereumMethodExecutor();
+            EthereumMethodExecutor executor = new EthereumMethodExecutor(ethereumMethods);
             result = executor.execute(requestId, parameters);
             return;
         }
