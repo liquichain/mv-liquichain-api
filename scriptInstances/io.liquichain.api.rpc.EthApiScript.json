@@ -17,5 +17,5 @@
     "version" : "4.8.9",
     "coordinates" : "org.web3j:core:4.8.9"
   } ],
-  "importScriptInstances" : [ "io.liquichain.core.BlockForgerScript", "io.liquichain.api.rpc.EthService", "io.liquichain.api.handler.EthereumMethodExecutor", "io.liquichain.api.handler.MethodHandlerResult", "io.liquichain.api.handler.ContractMethodExecutor", "io.liquichain.api.handler.MethodHandlerInput" ]
+  "importScriptInstances" : [ "io.liquichain.core.BlockForgerScript", "io.liquichain.api.handler.EthereumMethodExecutor", "io.liquichain.api.handler.MethodHandlerResult", "io.liquichain.api.handler.ContractMethodExecutor", "io.liquichain.api.handler.MethodHandlerInput" ]
 }
