@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.commons.utils.ParamBean;
+import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.script.Script;
 import org.meveo.admin.exception.BusinessException;
 import org.slf4j.Logger;
@@ -31,8 +32,10 @@ public class EthService extends Script {
         .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
         .build();
 
-    public EthService(ParamBean config) {
+    public EthService() {
         super();
+        ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+        ParamBean config = paramBeanFactory.getInstance();
         BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
     }
 

@@ -14,6 +14,7 @@ import io.liquichain.api.handler.ContractMethodExecutor;
 import io.liquichain.api.handler.EthereumMethodExecutor;
 import io.liquichain.api.handler.MethodHandlerInput;
 import io.liquichain.api.handler.MethodHandlerResult;
+import io.liquichain.api.rpc.EthService;
 import io.liquichain.core.BlockForgerScript;
 
 import org.meveo.api.exception.EntityDoesNotExistsException;
@@ -270,7 +271,7 @@ class BesuProcessor extends BlockchainProcessor {
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
-        ethService = new EthService(config);
+        this.ethService = new EthService();
         List<EthereumMethod> ethereumMethods = crossStorageApi.find(defaultRepo, EthereumMethod.class).getResults();
         boolean hasEthereumMethods = ethereumMethods != null && !ethereumMethods.isEmpty();
         if (hasEthereumMethods) {
