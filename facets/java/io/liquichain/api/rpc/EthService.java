@@ -33,7 +33,6 @@ public class EthService extends Script {
         .build();
 
     public EthService() {
-        super();
         ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
         ParamBean config = paramBeanFactory.getInstance();
         BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
