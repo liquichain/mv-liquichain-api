@@ -51,7 +51,6 @@ public class EthService extends Script {
             "  \"method\": \"" + method + "\"," +
             "  \"params\": " + toJson(params) +
             "}";
-
         LOG.info("callEthJsonRpc body: {}", body);
 
         try {

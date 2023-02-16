@@ -286,7 +286,6 @@ class BesuProcessor extends BlockchainProcessor {
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
         String requestId = "" + parameters.get("id");
-
         LOG.info("json rpc: {}, parameters:{}", method, parameters);
 
         EthereumMethod ethereumMethod = ethereumMethods.get(method);
