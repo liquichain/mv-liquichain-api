@@ -6,6 +6,7 @@ import static io.liquichain.api.rpc.EthApiUtils.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -14,9 +15,10 @@ import io.liquichain.api.handler.ContractMethodExecutor;
 import io.liquichain.api.handler.EthereumMethodExecutor;
 import io.liquichain.api.handler.MethodHandlerInput;
 import io.liquichain.api.handler.MethodHandlerResult;
-import io.liquichain.api.rpc.EthService;
+import io.liquichain.api.rpc.EthApiScript.EthService;
 import io.liquichain.core.BlockForgerScript;
 
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.model.customEntities.*;
@@ -32,6 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
 import org.web3j.utils.*;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
@@ -64,6 +71,58 @@ public class EthApiScript extends Script {
         public static final String METHOD_NOT_FOUND = "-32601";
         public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
         public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
+    }
+
+    public static class EthService {
+        private final String BESU_API_URL;
+        private static final int CONNECTION_POOL_SIZE = 50;
+        private static final int MAX_POOLED_PER_ROUTE = 5;
+        private static final long CONNECTION_TTL = 5;
+        private final Client client = new ResteasyClientBuilder()
+            .connectionPoolSize(CONNECTION_POOL_SIZE)
+            .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+            .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+            .build();
+
+        public EthService(ParamBean config) {
+            BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+        }
+
+        public String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+            Object id = parameters.get("id");
+            Object jsonRpcVersion = parameters.get("jsonrpc");
+            Object method = parameters.get("method");
+            Object params = parameters.get("params");
+
+            String result;
+            Response response = null;
+
+            String body = "{" +
+                "  \"id\": " + formatId(id) + "," +
+                "  \"jsonrpc\": \"" + jsonRpcVersion + "\"," +
+                "  \"method\": \"" + method + "\"," +
+                "  \"params\": " + toJson(params) +
+                "}";
+
+            LOG.info("callEthJsonRpc body: {}", body);
+
+            try {
+                response = client.target(BESU_API_URL)
+                                 .request(MediaType.APPLICATION_JSON)
+                                 .post(Entity.json(body));
+                result = response.readEntity(String.class);
+            } catch (Exception e) {
+                LOG.error(PROXY_REQUEST_ERROR, e);
+                return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+            } finally {
+                if (response != null) {
+                    response.close();
+                }
+            }
+
+            LOG.info("callEthJsonRpc result: {}", result);
+            return result;
+        }
     }
 
 
@@ -271,7 +330,7 @@ class BesuProcessor extends BlockchainProcessor {
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
-        this.ethService = new EthService();
+        this.ethService = new EthService(config);
         List<EthereumMethod> ethereumMethods = crossStorageApi.find(defaultRepo, EthereumMethod.class).getResults();
         boolean hasEthereumMethods = ethereumMethods != null && !ethereumMethods.isEmpty();
         if (hasEthereumMethods) {
