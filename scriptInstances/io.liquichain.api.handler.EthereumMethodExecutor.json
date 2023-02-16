@@ -9,5 +9,5 @@
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ "io.liquichain.api.rpc.EthService" ]
+  "importScriptInstances" : [ ]
 }
