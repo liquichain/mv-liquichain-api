@@ -1,0 +1,21 @@
+
+{
+  "code" : "checkEmail",
+  "description" : "Check if email exists",
+  "secured" : true,
+  "checkPathParams" : true,
+  "serviceCode" : "io.liquichain.api.verification.CheckVerifiedEmail",
+  "synchronous" : true,
+  "method" : "GET",
+  "parameterMappings" : [ ],
+  "pathParameters" : [ "email" ],
+  "roles" : [ ],
+  "returnedVariableName" : "result",
+  "serializeResult" : false,
+  "contentType" : "application/json",
+  "basePath" : "checkEmail",
+  "path" : "/{email}",
+  "pool" : {
+    "usePool" : false
+  }
+}
