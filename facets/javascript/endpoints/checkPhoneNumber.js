@@ -1,33 +1,53 @@
-const checkPhoneNumber = async (parameters) =>  {
-	const baseUrl = window.location.origin;
-	const url = new URL(`${window.location.pathname.split('/')[1]}/rest/checkPhoneNumber/${parameters.phoneNumber}`, baseUrl);
-	return fetch(url.toString(), {
-		method: 'GET'
-	});
+import EndpointInterface from "#{API_BASE_URL}/api/rest/endpoint/EndpointInterface.js";
+
+// the request schema, this should be updated
+// whenever changes to the endpoint parameters are made
+// this is important because this is used to validate and parse the request parameters
+const requestSchema = {
+  "title" : "checkPhoneNumberRequest",
+  "id" : "checkPhoneNumberRequest",
+  "default" : "Schema definition for checkPhoneNumber",
+  "$schema" : "http://json-schema.org/draft-07/schema",
+  "type" : "object"
 }
 
-const checkPhoneNumberForm = (container) => {
-	const html = `<form id='checkPhoneNumber-form'>
-		<div id='checkPhoneNumber-phoneNumber-form-field'>
-			<label for='phoneNumber'>phoneNumber</label>
-			<input type='text' id='checkPhoneNumber-phoneNumber-param' name='phoneNumber'/>
-		</div>
-		<button type='button'>Test</button>
-	</form>`;
-
-	container.insertAdjacentHTML('beforeend', html)
-
-	const phoneNumber = container.querySelector('#checkPhoneNumber-phoneNumber-param');
-
-	container.querySelector('#checkPhoneNumber-form button').onclick = () => {
-		const params = {
-			phoneNumber : phoneNumber.value !== "" ? phoneNumber.value : undefined
-		};
-
-		checkPhoneNumber(params).then(r => r.text().then(
-				t => alert(t)
-			));
-	};
+// the response schema, this should be updated
+// whenever changes to the endpoint parameters are made
+// this is important because this could be used to parse the result
+const responseSchema = {
+  "title" : "checkPhoneNumberResponse",
+  "id" : "checkPhoneNumberResponse",
+  "default" : "Schema definition for checkPhoneNumber",
+  "$schema" : "http://json-schema.org/draft-07/schema",
+  "type" : "object",
+  "properties" : {
+    "result" : {
+      "title" : "result",
+      "type" : "string",
+      "minLength" : 1
+    }
+  }
 }
 
-export { checkPhoneNumber, checkPhoneNumberForm };
+// should contain offline mock data, make sure it adheres to the response schema
+const mockResult = {};
+
+class checkPhoneNumber extends EndpointInterface {
+	constructor() {
+		// name and http method, these are inserted when code is generated
+		super("checkPhoneNumber", "GET");
+		this.requestSchema = requestSchema;
+		this.responseSchema = responseSchema;
+		this.mockResult = mockResult;
+	}
+
+	getRequestSchema() {
+		return this.requestSchema;
+	}
+
+	getResponseSchema() {
+		return this.responseSchema;
+	}
+}
+
+export default new checkPhoneNumber();
