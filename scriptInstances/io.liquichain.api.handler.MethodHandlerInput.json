@@ -1,0 +1,28 @@
+{
+  "code" : "io.liquichain.api.handler.MethodHandlerInput",
+  "description" : "Contract method handler input dto",
+  "inputs" : [ ],
+  "outputs" : [ {
+    "name" : "rawTransaction",
+    "type" : "RawTransaction"
+  }, {
+    "name" : "smartContractAddress",
+    "type" : "String"
+  }, {
+    "name" : "crossStorageApi",
+    "type" : "CrossStorageApi"
+  }, {
+    "name" : "defaultRepo",
+    "type" : "Repository"
+  }, {
+    "name" : "config",
+    "type" : "ParamBean"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}

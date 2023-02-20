@@ -1,0 +1,37 @@
+{
+  "code" : "io.liquichain.api.handler.MethodHandlerResult",
+  "description" : "Contract method handler result dto",
+  "inputs" : [ {
+    "name" : "transactionType",
+    "type" : "String"
+  }, {
+    "name" : "extraData",
+    "type" : "String"
+  }, {
+    "name" : "recipient",
+    "type" : "String"
+  }, {
+    "name" : "value",
+    "type" : "String"
+  } ],
+  "outputs" : [ {
+    "name" : "transactionType",
+    "type" : "String"
+  }, {
+    "name" : "extraData",
+    "type" : "String"
+  }, {
+    "name" : "recipient",
+    "type" : "String"
+  }, {
+    "name" : "value",
+    "type" : "String"
+  } ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
