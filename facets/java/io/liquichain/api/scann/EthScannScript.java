@@ -148,26 +148,11 @@ public class EthScannScript extends Script {
 
         String walletId = normalizeHash(hash);
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                        .by("fromHexHash", walletId)
+                                                        .or(List.of("fromHexHash", "toHexHash", "initiator"), walletId)
+                                                        .orderBy("creationDate", false)
+                                                        .limit(limit)
+                                                        .offset(offset)
                                                         .getResults();
-        List<Transaction> transactionsTo = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                          .by("toHexHash", walletId)
-                                                          .getResults();
-        List<Transaction> transactionsInitiated = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                                 .by("initiator", walletId)
-                                                                 .getResults();
-        transactions.addAll(transactionsTo);
-        transactions.addAll(transactionsInitiated);
-        // we order by newest to oldest
-        transactions = transactions.stream()
-                                   .sorted(Comparator.comparing(Transaction::getCreationDate).reversed())
-                                   .collect(Collectors.toList());
-        // check offset and limit
-        if (transactions.size() <= offset) {
-            transactions = new ArrayList<>();
-        } else {
-            transactions = transactions.subList(offset, Math.min(offset + limit, transactions.size()));
-        }
 
         List<Map<String, Object>> results = new ArrayList<>();
         for (Transaction transaction : transactions) {

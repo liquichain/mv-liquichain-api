@@ -70,7 +70,7 @@ public class WalletApiScript extends Script {
 
     protected String parseAddress(String signature, String message) throws Exception {
         byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
-        LOG.info("messageHash={}", Numeric.toHexString(messageHash));
+        LOG.debug("messageHash={}", Numeric.toHexString(messageHash));
         String r = signature.substring(0, 66);
         String s = "0x" + signature.substring(66, 130);
         String v = "0x" + signature.substring(130, 132);
@@ -83,7 +83,7 @@ public class WalletApiScript extends Script {
                     Numeric.hexStringToByteArray(s)))
             .toString(16);
         String address = Keys.getAddress(publicKey);
-        LOG.info("address: " + address);
+        LOG.debug("address: " + address);
         return address;
     }
 
@@ -100,7 +100,7 @@ public class WalletApiScript extends Script {
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
-        LOG.info("json rpc: {}, parameters:{}", method, parameters);
+        LOG.debug("json rpc: {}, parameters:{}", method, parameters);
         String requestId = "" + parameters.get("id");
         switch (method) {
             case "wallet_creation":
@@ -196,7 +196,7 @@ public class WalletApiScript extends Script {
             throw new BusinessException(e.getMessage());
         }
         boolean sameAddress = walletHash.equals(validatedAddress);
-        LOG.info("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
+        LOG.debug("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
             walletHash, sameAddress);
 
         if (!sameAddress) {
@@ -320,7 +320,7 @@ public class WalletApiScript extends Script {
         }
 
         try {
-            LOG.info(
+            LOG.debug(
                 "wallet_creation Creating wallet with name={}, walletHash={}, accountHash={}, email={}, phoneNumber={}",
                 name, walletHash, accountHash, emailAddress, phoneNumber);
             wallet.setUuid(walletHash);
@@ -354,11 +354,11 @@ public class WalletApiScript extends Script {
 
             String newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
             if (!Objects.equals(newHash, walletHash)) {
-                LOG.info("wallet_creation Wallet hash changed from {} to {}", walletHash, newHash);
+                LOG.debug("wallet_creation Wallet hash changed from {} to {}", walletHash, newHash);
                 wallet.setUuid(walletHash);
-                LOG.info("wallet_creation Attempt to update wallet with hash: {}", walletHash);
+                LOG.debug("wallet_creation Attempt to update wallet with hash: {}", walletHash);
                 newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
-                LOG.info("wallet_creation Updated wallet hash: {}", newHash);
+                LOG.debug("wallet_creation Updated wallet hash: {}", newHash);
             }
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
@@ -424,7 +424,7 @@ public class WalletApiScript extends Script {
             Map<String, Object> publicInfoMap = convert(publicInfo);
             Map<String, Object> sanitizedMap = new HashMap<>();
             for (Map.Entry<String, Object> entry : publicInfoMap.entrySet()) {
-                LOG.info("entry, key: {}, value: {}", entry.getKey(), entry.getValue());
+                LOG.debug("entry, key: {}, value: {}", entry.getKey(), entry.getValue());
                 if (!FILTERED_KEYS.contains(entry.getKey())) {
                     sanitizedMap.put(entry.getKey(), entry.getValue());
                 }
@@ -439,8 +439,8 @@ public class WalletApiScript extends Script {
             sanitizedPublicInfo = existingPublicInfo;
         }
 
-        LOG.info("wallet_update received email: {}", emailAddress);
-        LOG.info("wallet_update received phoneNumber: {}", phoneNumber);
+        LOG.debug("wallet_update received email: {}", emailAddress);
+        LOG.debug("wallet_update received phoneNumber: {}", phoneNumber);
 
         VerifiedEmail verifiedEmail = wallet.getEmailAddress();
         VerifiedPhoneNumber verifiedPhoneNumber = wallet.getPhoneNumber();
@@ -448,14 +448,14 @@ public class WalletApiScript extends Script {
         String existingPhoneNumber;
         try {
             if (verifiedEmail != null) {
-                LOG.info("wallet_update Verified email: {}", verifiedEmail.getUuid());
+                LOG.debug("wallet_update Verified email: {}", verifiedEmail.getUuid());
                 VerifiedEmail oldEmail = findEntity(verifiedEmail.getUuid(), VerifiedEmail.class);
                 if (oldEmail != null) {
                     existingEmail = oldEmail.getEmail();
                 } else {
                     existingEmail = null;
                 }
-                LOG.info("wallet_update existing email: {}", existingEmail);
+                LOG.debug("wallet_update existing email: {}", existingEmail);
                 if (StringUtils.isNotBlank(emailAddress) && StringUtils.isNotBlank(existingEmail)
                     && !existingEmail.equals(emailAddress)) {
                     verifiedEmail = new VerifiedEmail();
@@ -464,7 +464,7 @@ public class WalletApiScript extends Script {
                     verifiedEmail.setWalletId(wallet.getUuid());
                     verifiedEmail.setVerified(false);
                     crossStorageApi.createOrUpdate(defaultRepo, verifiedEmail);
-                    LOG.info("wallet_update old email: {}, saved email: {}", existingEmail, emailAddress);
+                    LOG.debug("wallet_update old email: {}, saved email: {}", existingEmail, emailAddress);
                 }
             } else if (StringUtils.isNotBlank(emailAddress)) {
                 verifiedEmail = new VerifiedEmail();
@@ -473,11 +473,11 @@ public class WalletApiScript extends Script {
                 verifiedEmail.setWalletId(wallet.getUuid());
                 verifiedEmail.setVerified(false);
                 crossStorageApi.createOrUpdate(defaultRepo, verifiedEmail);
-                LOG.info("wallet_update No old email, saved email: {}", emailAddress);
+                LOG.debug("wallet_update No old email, saved email: {}", emailAddress);
             }
 
             if (verifiedPhoneNumber != null) {
-                LOG.info("wallet_update Verified phoneNumber: {}", verifiedPhoneNumber.getUuid());
+                LOG.debug("wallet_update Verified phoneNumber: {}", verifiedPhoneNumber.getUuid());
                 VerifiedPhoneNumber oldPhoneNumber =
                     findEntity(verifiedPhoneNumber.getUuid(), VerifiedPhoneNumber.class);
                 if (oldPhoneNumber != null) {
@@ -485,7 +485,7 @@ public class WalletApiScript extends Script {
                 } else {
                     existingPhoneNumber = null;
                 }
-                LOG.info("wallet_update existing phoneNumber: {}", existingPhoneNumber);
+                LOG.debug("wallet_update existing phoneNumber: {}", existingPhoneNumber);
                 if (StringUtils.isNotBlank(phoneNumber) && StringUtils.isNotBlank(existingPhoneNumber)
                     && !existingPhoneNumber.equals(phoneNumber)) {
                     verifiedPhoneNumber = new VerifiedPhoneNumber();
@@ -550,7 +550,7 @@ public class WalletApiScript extends Script {
 
         Wallet wallet;
 
-        LOG.info("wallet_info lookup wallet: {}", walletHash);
+        LOG.debug("wallet_info lookup wallet: {}", walletHash);
         try {
             wallet = crossStorageApi.find(defaultRepo, walletHash, Wallet.class);
             if (wallet == null) {
@@ -573,18 +573,18 @@ public class WalletApiScript extends Script {
                 return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
             }
             boolean sameAddress = walletHash.toLowerCase().equals(validatedAddress);
-            LOG.info("wallet_info validated address: {}, walletHash: {}, same address: {}", validatedAddress,
+            LOG.debug("wallet_info validated address: {}, walletHash: {}, same address: {}", validatedAddress,
                 walletHash.toLowerCase(), sameAddress);
             Long lastRequest = wallet.getLastPrivateInfoRequest();
             if (lastRequest == null) {
                 lastRequest = 0L;
             }
             requestTime = Long.parseLong(message.split(",")[2]);
-            LOG.info("wallet_info lastRequest={}", lastRequest);
-            LOG.info("wallet_info requestTime={}", requestTime);
+            LOG.debug("wallet_info lastRequest={}", lastRequest);
+            LOG.debug("wallet_info requestTime={}", requestTime);
 
             isValidSignature = sameAddress && requestTime > lastRequest;
-            LOG.info("wallet_info isValidSignature={}", isValidSignature);
+            LOG.debug("wallet_info isValidSignature={}", isValidSignature);
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -594,10 +594,10 @@ public class WalletApiScript extends Script {
         if (isValidSignature) {
             Map<String, Object> privateInfo = new HashMap<>();
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
-            LOG.info("verifiedEmail={}", verifiedEmail);
+            LOG.debug("verifiedEmail={}", verifiedEmail);
             if (verifiedEmail != null) {
                 String emailId = verifiedEmail.getUuid();
-                LOG.info("wallet_info emailId={}", emailId);
+                LOG.debug("wallet_info emailId={}", emailId);
                 String emailAddress = verifiedEmail.getEmail();
                 boolean hasEmailAddress = StringUtils.isNotBlank(emailAddress);
                 if (StringUtils.isNotBlank(emailId) && !hasEmailAddress) {
@@ -612,7 +612,7 @@ public class WalletApiScript extends Script {
                         emailAddress = null;
                     }
                 }
-                LOG.info("wallet_info emailAddress={}", emailAddress);
+                LOG.debug("wallet_info emailAddress={}", emailAddress);
                 if (verifiedEmail != null && StringUtils.isNotBlank(emailAddress)) {
                     Map<String, Object> email = new HashMap<>();
                     email.put("emailAddress", emailAddress);
@@ -623,10 +623,10 @@ public class WalletApiScript extends Script {
             }
 
             VerifiedPhoneNumber verifiedPhoneNumber = wallet.getPhoneNumber();
-            LOG.info("wallet_info verifiedPhoneNumber={}", verifiedPhoneNumber);
+            LOG.debug("wallet_info verifiedPhoneNumber={}", verifiedPhoneNumber);
             if (verifiedPhoneNumber != null) {
                 String phoneId = verifiedPhoneNumber.getUuid();
-                LOG.info("wallet_info phoneId={}", phoneId);
+                LOG.debug("wallet_info phoneId={}", phoneId);
                 String phoneNumber = verifiedPhoneNumber.getPhoneNumber();
                 boolean hasPhoneNumber = StringUtils.isNotBlank(phoneNumber);
                 if (StringUtils.isNotBlank(phoneId) && !hasPhoneNumber) {
@@ -640,7 +640,7 @@ public class WalletApiScript extends Script {
                         phoneNumber = null;
                     }
                 }
-                LOG.info("wallet_info phoneNumber={}", phoneNumber);
+                LOG.debug("wallet_info phoneNumber={}", phoneNumber);
                 if (verifiedPhoneNumber != null && StringUtils.isNotBlank(phoneNumber)) {
                     Map<String, Object> phone = new HashMap<>();
                     phone.put("phoneNumber", phoneNumber);

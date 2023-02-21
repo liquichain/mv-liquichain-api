@@ -1,30 +1,27 @@
 package io.liquichain.api.rpc;
 
-import static io.liquichain.api.rpc.EthApiConstants.*;
+import static io.liquichain.api.rpc.EthApiScript.EthApiConstants.*;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.*;
-
+import io.liquichain.api.handler.ContractMethodExecutor;
+import io.liquichain.api.handler.EthereumMethodExecutor;
+import io.liquichain.api.handler.MethodHandlerInput;
+import io.liquichain.api.handler.MethodHandlerResult;
+import io.liquichain.api.rpc.EthApiScript.EthService;
 import io.liquichain.core.BlockForgerScript;
 
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.model.customEntities.Transaction;
-import org.meveo.model.customEntities.VerifiedEmail;
-import org.meveo.model.customEntities.VerifiedPhoneNumber;
+import org.meveo.model.customEntities.*;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
@@ -33,28 +30,101 @@ import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.storage.RepositoryService;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.math.NumberUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
 import org.web3j.utils.*;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    @Inject
-    private RepositoryService repositoryService;
-    @Inject
-    private ParamBeanFactory paramBeanFactory;
-    @Inject
-    protected CrossStorageApi crossStorageApi;
-
-    protected Repository defaultRepo;
-    protected ParamBean config;
+    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+    private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final ParamBean config = paramBeanFactory.getInstance();
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
+
+
+    public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
+
+
+    public static class EthApiConstants {
+        public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
+        public static final String CONTRACT_NOT_ALLOWED_ERROR = "Contract deployment not allowed";
+        public static final String NAME_REQUIRED_ERROR = "Wallet name is required";
+        public static final String NAME_EXISTS_ERROR = "Wallet with name: %s, already exists";
+        public static final String EMAIL_REQUIRED_ERROR = "Email address is required";
+        public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
+        public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
+        public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
+        public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: %s";
+        public static final String INVALID_REQUEST = "-32600";
+        public static final String INTERNAL_ERROR = "-32603";
+        public static final String RESOURCE_NOT_FOUND = "-32001";
+        public static final String TRANSACTION_REJECTED = "-32003";
+        public static final String METHOD_NOT_FOUND = "-32601";
+        public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
+        public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
+    }
+
+    public static class EthService {
+        private final String BESU_API_URL;
+        private static final int CONNECTION_POOL_SIZE = 50;
+        private static final int MAX_POOLED_PER_ROUTE = 5;
+        private static final long CONNECTION_TTL = 5;
+        private final Client client = new ResteasyClientBuilder()
+            .connectionPoolSize(CONNECTION_POOL_SIZE)
+            .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+            .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+            .build();
+
+        public EthService(ParamBean config) {
+            BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+        }
+
+        public String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+            Object id = parameters.get("id");
+            Object jsonRpcVersion = parameters.get("jsonrpc");
+            Object method = parameters.get("method");
+            Object params = parameters.get("params");
+
+            String result;
+            Response response = null;
+
+            String body = "{" +
+                "  \"id\": " + formatId(id) + "," +
+                "  \"jsonrpc\": \"" + jsonRpcVersion + "\"," +
+                "  \"method\": \"" + method + "\"," +
+                "  \"params\": " + toJson(params) +
+                "}";
+
+            LOG.info("callEthJsonRpc body: {}", body);
+
+            try {
+                response = client.target(BESU_API_URL)
+                                 .request(MediaType.APPLICATION_JSON)
+                                 .post(Entity.json(body));
+                result = response.readEntity(String.class);
+            } catch (Exception e) {
+                LOG.error(PROXY_REQUEST_ERROR, e);
+                return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+            } finally {
+                if (response != null) {
+                    response.close();
+                }
+            }
+
+            LOG.info("callEthJsonRpc result: {}", result);
+            return result;
+        }
+    }
+
 
     protected String result;
 
@@ -63,156 +133,24 @@ public class EthApiScript extends Script {
     }
 
     private void init() {
-        defaultRepo = repositoryService.findDefaultRepository();
-        config = paramBeanFactory.getInstance();
-        String blockchainType = config.getProperty("txn.blockchain.type", "DATABASE");
+        String blockchainType = config.getProperty("txn.blockchain.type", "BESU");
         BLOCKCHAIN_BACKEND = BLOCKCHAIN_TYPE.valueOf(blockchainType);
     }
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         this.init();
-        String method = "" + parameters.get("method");
         BlockchainProcessor processor = null;
         switch (BLOCKCHAIN_BACKEND) {
             case BESU:
                 processor = new BesuProcessor(crossStorageApi, defaultRepo, config);
                 break;
-            case FABRIC:
-                break;
-            case BESU_ONLY:
-                break;
             case DATABASE:
             default:
                 processor = new DatabaseProcessor(crossStorageApi, defaultRepo, config);
         }
-        if (processor != null) {
-            processor.execute(parameters);
-            result = processor.getResult();
-        } else {
-            LOG.info("json rpc: {}, parameters:{}", method, parameters);
-            String requestId = "" + parameters.get("id");
-            result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
-        }
-    }
-}
-
-
-class EthApiConstants {
-    public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
-    public static final String CONTRACT_NOT_ALLOWED_ERROR = "Contract deployment not allowed";
-    public static final String NAME_REQUIRED_ERROR = "Wallet name is required";
-    public static final String NAME_EXISTS_ERROR = "Wallet with name: %s, already exists";
-    public static final String EMAIL_REQUIRED_ERROR = "Email address is required";
-    public static final String PHONE_NUMBER_REQUIRED_ERROR = "Phone number is required";
-    public static final String EMAIL_EXISTS_ERROR = "Email address: %s, already exists";
-    public static final String PHONE_NUMBER_EXISTS_ERROR = "Phone number: %s, already exists";
-    public static final String TRANSACTION_EXISTS_ERROR = "Transaction already exists: {}";
-    public static final String INVALID_REQUEST = "-32600";
-    public static final String INTERNAL_ERROR = "-32603";
-    public static final String RESOURCE_NOT_FOUND = "-32001";
-    public static final String TRANSACTION_REJECTED = "-32003";
-    public static final String METHOD_NOT_FOUND = "-32601";
-    public static final String PROXY_REQUEST_ERROR = "Proxy request to remote json-rpc endpoint failed";
-
-
-    public static enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
-}
-
-
-class EthApiUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    public static String createResponse(String requestId, String result) {
-        String idFormat = requestId == null || NumberUtils.isParsable(requestId)
-            ? "  \"id\": %s,"
-            : "  \"id\": \"%s\",";
-        String resultFormat = result.startsWith("{") ? "%s" : "\"%s\"";
-        String response = "{\n" +
-            String.format(idFormat, requestId) + "\n" +
-            "  \"jsonrpc\": \"2.0\",\n" +
-            "  \"result\": " + String.format(resultFormat, result) + "\n" +
-            "}";
-        LOG.debug("response: {}", response);
-        return response;
-    }
-
-    public static String createErrorResponse(String requestId, String errorCode, String message) {
-        String idFormat = requestId == null || NumberUtils.isParsable(requestId)
-            ? "  \"id\": %s,"
-            : "  \"id\": \"%s\",";
-        String response = "{\n" +
-            String.format(idFormat, requestId) + "\n" +
-            "  \"jsonrpc\": \"2.0\",\n" +
-            "  \"error\": {\n" +
-            "    \"code\": " + errorCode + ",\n" +
-            "    \"message\": \"" + message + "\"\n" +
-            "  }\n" +
-            "}";
-        LOG.debug("error response: {}", response);
-        return response;
-    }
-
-    public static String normalizeHash(String hash) {
-        if (hash.startsWith("0x")) {
-            return hash.substring(2).toLowerCase();
-        }
-        return hash.toLowerCase();
-    }
-
-    public static String retrieveHash(List<String> parameters, int parameterIndex) {
-        return normalizeHash(parameters.get(parameterIndex));
-    }
-
-    public static boolean isJSONValid(String jsonInString) {
-        try {
-            mapper.readTree(jsonInString);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    public static String toJson(Object data) {
-        String json = null;
-        try {
-            json = mapper.writeValueAsString(data);
-        } catch (Exception e) {
-            LOG.error("Failed to convert to json: {}", data, e);
-        }
-        return json;
-    }
-
-    public static <T> T convert(String data) {
-        T value = null;
-        try {
-            value = mapper.readValue(data, new TypeReference<T>() {
-            });
-        } catch (Exception e) {
-            LOG.error("Failed to parse data: {}", data, e);
-        }
-        return value;
-    }
-
-    public static String toHex(byte[] bytes) {
-        StringBuilder hexValue = new StringBuilder();
-        for (byte aByte : bytes) {
-            hexValue.append(String.format("%02x", aByte));
-        }
-        return hexValue.toString().toLowerCase();
-    }
-
-    public static String toBigHex(String value) {
-        String hexValue = "";
-        if (value != null) {
-            try {
-                hexValue = "0x" + new BigInteger(value).toString(16);
-            } catch (NumberFormatException e) {
-                LOG.error("Failed to convert {} to hex", value, e);
-            }
-        }
-        return hexValue;
+        processor.execute(parameters);
+        result = processor.getResult();
     }
 }
 
@@ -278,10 +216,10 @@ abstract class BlockchainProcessor {
                 }
             });
             if (data.contains("orderId")) {
-                LOG.info("detected orderId:{}", data);
+                LOG.info("Detected orderId: {}", data);
             }
-        } catch (Exception ex) {
-            LOG.info("error while detecting order:{}", ex);
+        } catch (Exception e) {
+            LOG.info("Error while detecting order", e);
         }
     }
 
@@ -387,32 +325,42 @@ abstract class BlockchainProcessor {
 class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
-    private String BESU_API_URL;
-    private String ORIGIN_WALLET;
-    private static final int CONNECTION_POOL_SIZE = 50;
-    private static final int MAX_POOLED_PER_ROUTE = 5;
-    private static final long CONNECTION_TTL = 5;
-    private static Client client = new ResteasyClientBuilder()
-        .connectionPoolSize(CONNECTION_POOL_SIZE)
-        .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
-        .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
-        .build();
+    private final EthService ethService;
+    private final Map<String, EthereumMethod> ethereumMethods;
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
-        BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
-        String paymentWallet = config.getProperty("payment.wallet", "b4bF880BAfaF68eC8B5ea83FaA394f5133BB9623");
-        ORIGIN_WALLET = paymentWallet.toLowerCase();
+        this.ethService = new EthService(config);
+        List<EthereumMethod> ethereumMethods = crossStorageApi.find(defaultRepo, EthereumMethod.class).getResults();
+        boolean hasEthereumMethods = ethereumMethods != null && !ethereumMethods.isEmpty();
+        if (hasEthereumMethods) {
+            this.ethereumMethods = ethereumMethods
+                .stream()
+                .collect(Collectors.toMap(EthereumMethod::getMethod, method -> method));
+        } else {
+            this.ethereumMethods = new HashMap<>();
+        }
     }
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
-        LOG.info("json rpc: {}, parameters:{}", method, parameters);
         String requestId = "" + parameters.get("id");
+        LOG.info("json rpc: {}, parameters:{}", method, parameters);
+
+        EthereumMethod ethereumMethod = ethereumMethods.get(method);
+        if(ethereumMethod != null){
+            EthereumMethodExecutor executor = new EthereumMethodExecutor(ethereumMethods);
+            result = executor.execute(requestId, parameters);
+            return;
+        }
+
         switch (method) {
-            case "get_chainId":
-                result = createResponse(requestId, "0x4c");
+            case "net_version":
+                result = createResponse(requestId, "1662");
+                break;
+            case "eth_chainId":
+                result = createResponse(requestId, "0x67e");
                 break;
             case "eth_sendSignedTransaction":
             case "eth_sendRawTransaction":
@@ -425,156 +373,115 @@ class BesuProcessor extends BlockchainProcessor {
                 result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
                 break;
             default:
-                result = callEthJsonRpc(requestId, parameters);
+                result = ethService.callEthJsonRpc(requestId, parameters);
                 break;
-        }
-    }
-
-    private String callProxy(String body) throws IOException, InterruptedException {
-        LOG.info("callProxy body={}", body);
-        String result = null;
-        Response response = null;
-        try {
-
-            response = client.target(BESU_API_URL)
-                             .request(MediaType.APPLICATION_JSON)
-                             .post(Entity.json(body));
-            result = response.readEntity(String.class);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
-        LOG.info("callProxy result={}", result);
-        return result;
-    }
-
-    private String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
-        Object id = parameters.get("id");
-        String idFormat =
-            id == null || NumberUtils.isParsable("" + id) ? "\"id\": %s," : "\"id\": \"%s\",";
-        String requestBody = new StringBuilder()
-            .append("{")
-            .append(String.format(idFormat, id))
-            .append(String.format("\"jsonrpc\":\"%s\",", parameters.get("jsonrpc")))
-            .append(String.format("\"method\":\"%s\",", parameters.get("method")))
-            .append(String.format("\"params\":%s", toJson(parameters.get("params"))))
-            .append("}")
-            .toString();
-        try {
-            return callProxy(requestBody);
-        } catch (Exception e) {
-            LOG.error(PROXY_REQUEST_ERROR, e);
-            return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
         }
     }
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        String data = (String) params.get(0);
+        String data = params.get(0);
         String transactionHash = normalizeHash(Hash.sha3(data));
         try {
             Transaction existingTransaction = crossStorageApi
                 .find(defaultRepo, Transaction.class)
                 .by("hexHash", transactionHash).getResult();
             if (existingTransaction != null) {
-                return createErrorResponse(
-                    requestId,
-                    TRANSACTION_REJECTED,
-                    String.format(TRANSACTION_EXISTS_ERROR, transactionHash));
+                String message = String.format(TRANSACTION_EXISTS_ERROR, transactionHash);
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, message);
             }
         } catch (Exception e) {
             return createErrorResponse(requestId, RESOURCE_NOT_FOUND, e.getMessage());
         }
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
-        LOG.info("to:{} , value:{}", rawTransaction.getTo(), rawTransaction.getValue());
+        String rawRecipient = rawTransaction.getTo();
+        LOG.info("RawTransaction recipient: {}", rawRecipient);
 
         // as per besu documentation
         // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
         // to - address of the receiver. To deploy a contract, set to null.
         // or it can also be set to 0x0 or 0x80 as per:
         // (https://stackoverflow.com/questions/48219716/what-is-address0-in-solidity)
-        String recipient = rawTransaction.getTo();
-        if (recipient == null || "0x0".equals(recipient) || "0x80".equals(recipient)) {
+        if (rawRecipient == null || "0x0".equals(rawRecipient) || "0x80".equals(rawRecipient)) {
             return createErrorResponse(requestId, INVALID_REQUEST, CONTRACT_NOT_ALLOWED_ERROR);
         }
 
-        LOG.info("data: {}", rawTransaction.getData());
-        if (rawTransaction.getData() != null) {
-            String extraData = rawTransaction.getData();
-            String to = extraData.substring(34, 74);
-            String receiver = rawTransaction.getTo();
-            BigInteger value = new BigInteger(extraData.substring(74), 16);
-            BigInteger gasLimit = rawTransaction.getGasLimit();
-            BigInteger gasPrice = rawTransaction.getGasPrice();
+        String smartContract;
+        boolean isSmartContract = false;
+        String defaultData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
+        String defaultValue = rawTransaction.getValue().toString();
+        MethodHandlerResult handlerResult =
+            new MethodHandlerResult("transfer", defaultData, rawRecipient, defaultValue);
 
-            LOG.info("receiver: {}", receiver);
-            LOG.info("to:{}, value:{}", to, value);
-            LOG.info("gasLimit:{} , gasPrice:{}", gasLimit, gasPrice);
+        LiquichainApp liquichainApp = null;
+        try {
+            List<LiquichainApp> apps = crossStorageApi.find(defaultRepo, LiquichainApp.class).getResults();
+            liquichainApp = apps.stream().filter(app -> {
+                String contract = app.getHexCode();
+                return contract != null && addHexPrefix(contract).equalsIgnoreCase(rawRecipient);
+            }).findFirst().orElse(null);
+            isSmartContract = liquichainApp != null;
+        } catch (Exception e) {
+            // if not found, then it is not a smart contract
         }
 
-        result = callEthJsonRpc(requestId, parameters);
+        if (isSmartContract) {
+            smartContract = liquichainApp.getHexCode();
+            Map<String, String> handlers = liquichainApp.getContractMethodHandlers();
+            String abi = liquichainApp.getAbi();
+            boolean hasAbi = abi != null && abi.length() > 0;
+            boolean hasContractMethodHandlers = handlers != null && !handlers.isEmpty();
+            if (hasAbi && hasContractMethodHandlers) {
+                ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
+                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
+                handlerResult = executor.execute(input);
+            }
+        } else {
+            Wallet recipientWallet;
+            try {
+                recipientWallet = crossStorageApi.find(defaultRepo, normalizeHash(rawRecipient), Wallet.class);
+            } catch (Exception e) {
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
+            }
+            if (recipientWallet == null) {
+                return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
+            }
+        }
+        LOG.info("Handler result: {}", handlerResult);
+
+        result = ethService.callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
         if (hasError) {
             return result;
         }
 
         if (rawTransaction instanceof SignedRawTransaction) {
-            SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
-            Sign.SignatureData signatureData = signedTransaction.getSignatureData();
             try {
-                String v = toHex(signatureData.getV());
-                String s = toHex(signatureData.getS());
-                String r = toHex(signatureData.getR());
-                // LOG.info("from:{} chainId:{} , v:{} , r:{} , s:{}",
-                // signedTransaction.getFrom(), signedTransaction.getChainId(), v, r, s);
-                String extraData = rawTransaction.getData();
-                String to = normalizeHash(rawTransaction.getTo());
-                BigInteger value = rawTransaction.getValue();
-                LOG.info("extraData:{} to:{}", extraData, to);
-                String type = "transfer";
-                if (extraData == null || extraData.isEmpty()) {
-                    extraData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
-                } else if (extraData.startsWith("0xa9059cbb") || extraData.startsWith("a9059cbb")) {
-                    if (extraData.startsWith("a9059cbb")) {
-                        extraData = "0x" + extraData;
-                    }
-                    to = extraData.substring(34, 74);
-                    value = new BigInteger(extraData.substring(74), 16);
-                    extraData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
-                    if (ORIGIN_WALLET.equals(to)) {
-                        type = "purchase";
-                        extraData = "{\"type\":\"purchase\",\"description\":\"Shop purchase\"}";
-                    }
-                } else {
-                    Map extraDataMap = convert(extraData);
-                    if (extraDataMap != null) {
-                        type = extraDataMap.get("type").toString();
-                    }
-                    extraData = "transfer".equals(type)
-                        ? "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}"
-                        : extraData;
-                }
+                SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
+                Sign.SignatureData signatureData = signedTransaction.getSignatureData();
+                String recipient = Objects.requireNonNullElse(handlerResult.getRecipient(), rawRecipient);
+
                 Transaction transaction = new Transaction();
-                String fromHash = normalizeHash(signedTransaction.getFrom());
                 transaction.setHexHash(transactionHash);
-                transaction.setFromHexHash(fromHash);
-                transaction.setToHexHash(to);
+                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
+                transaction.setToHexHash(normalizeHash(recipient));
                 transaction.setNonce("" + rawTransaction.getNonce());
                 transaction.setGasPrice("" + rawTransaction.getGasPrice());
                 transaction.setGasLimit("" + rawTransaction.getGasLimit());
-                transaction.setValue("" + value);
-                transaction.setType("" + type);
+                transaction.setValue(handlerResult.getValue());
+                transaction.setType("" + handlerResult.getTransactionType());
                 transaction.setSignedHash(data);
-                transaction.setData(extraData);
+                transaction.setData(handlerResult.getExtraData());
+                transaction.setRawData(rawTransaction.getData());
                 transaction.setBlockNumber("1");
                 transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
                 transaction.setCreationDate(java.time.Instant.now());
-                transaction.setInitiator(fromHash);
-                transaction.setV(v);
-                transaction.setS(s);
-                transaction.setR(r);
+                transaction.setV(toHex(signatureData.getV()));
+                transaction.setS(toHex(signatureData.getS()));
+                transaction.setR(toHex(signatureData.getR()));
+                LOG.info("Transaction CEI details: {}", toJson(transaction));
+
                 String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
                 LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {
@@ -823,3 +730,5 @@ class DatabaseProcessor extends BlockchainProcessor {
         }
     }
 }
+
+

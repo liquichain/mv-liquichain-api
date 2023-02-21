@@ -4,9 +4,9 @@ import EndpointInterface from "#{API_BASE_URL}/api/rest/endpoint/EndpointInterfa
 // whenever changes to the endpoint parameters are made
 // this is important because this is used to validate and parse the request parameters
 const requestSchema = {
-  "title" : "checkPhoneNumberRequest",
-  "id" : "checkPhoneNumberRequest",
-  "default" : "Schema definition for checkPhoneNumber",
+  "title" : "checkEmailRequest",
+  "id" : "checkEmailRequest",
+  "default" : "Schema definition for checkEmail",
   "$schema" : "http://json-schema.org/draft-07/schema",
   "type" : "object"
 }
@@ -15,9 +15,9 @@ const requestSchema = {
 // whenever changes to the endpoint parameters are made
 // this is important because this could be used to parse the result
 const responseSchema = {
-  "title" : "checkPhoneNumberResponse",
-  "id" : "checkPhoneNumberResponse",
-  "default" : "Schema definition for checkPhoneNumber",
+  "title" : "checkEmailResponse",
+  "id" : "checkEmailResponse",
+  "default" : "Schema definition for checkEmail",
   "$schema" : "http://json-schema.org/draft-07/schema",
   "type" : "object",
   "properties" : {
@@ -32,10 +32,10 @@ const responseSchema = {
 // should contain offline mock data, make sure it adheres to the response schema
 const mockResult = {};
 
-class checkPhoneNumber extends EndpointInterface {
+class checkEmail extends EndpointInterface {
 	constructor() {
 		// name and http method, these are inserted when code is generated
-		super("checkPhoneNumber", "GET");
+		super("checkEmail", "GET");
 		this.requestSchema = requestSchema;
 		this.responseSchema = responseSchema;
 		this.mockResult = mockResult;
@@ -50,4 +50,4 @@ class checkPhoneNumber extends EndpointInterface {
 	}
 }
 
-export default new checkPhoneNumber();
+export default new checkEmail();

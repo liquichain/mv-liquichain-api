@@ -90,7 +90,8 @@ public class VerifyOtpForPrivateInfo extends Script {
             Duration delay = Duration.between(creationDate, Instant.now());
             boolean isExpired = delay.compareTo(MAX_DELAY) > 0;
 
-            long attempts = latestSMS.getVerificationAttempts();
+            Long verificatonAttempts = latestSMS.getVerificationAttempts();
+            Long attempts = verificatonAttempts == null ? 0L : verificatonAttempts;
             boolean isTooManyAttempts = attempts >= MAX_ATTEMPTS;
 
             LOG.info("creationDate: {}", creationDate);
