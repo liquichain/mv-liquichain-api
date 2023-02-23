@@ -431,8 +431,7 @@ class BesuProcessor extends BlockchainProcessor {
             Map<String, String> handlers = liquichainApp.getContractMethodHandlers();
             String abi = liquichainApp.getAbi();
             boolean hasAbi = abi != null && abi.length() > 0;
-            boolean hasContractMethodHandlers = handlers != null && !handlers.isEmpty();
-            if (hasAbi && hasContractMethodHandlers) {
+            if (hasAbi) {
                 ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
                 MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
                 handlerResult = executor.execute(input);
