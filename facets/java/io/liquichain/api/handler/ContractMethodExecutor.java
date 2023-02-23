@@ -101,7 +101,7 @@ public class ContractMethodExecutor extends Script {
         LOG.info("function signature: {}", functionSignature);
         String type = functionSignature.getName();
         Map<String, Object> parameters = functionSignature.parseParameters(rawData);
-        String description = "Smart contract function call: " + functionSignature.getFunctionDefinition();
+        String description = functionSignature.getFunctionDefinition();
         Map<String, Object> dataMap = new LinkedHashMap<>();
         dataMap.put("type", type);
         dataMap.put("description", description);
@@ -199,7 +199,7 @@ class ContractFunctionSignature {
 
     private Map<String, Object> mapFunctionParameters(ContractFunctionSignature functionSignature, String rawData) {
         List<TypeReference<Type>> inputs = functionSignature.getInputParameters();
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, Object> parameters = new LinkedHashMap<>();
 
         if (!inputs.isEmpty()) {
             List<String> names = functionSignature.getParameterNames();
