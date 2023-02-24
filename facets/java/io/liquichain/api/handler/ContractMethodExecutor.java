@@ -50,7 +50,7 @@ public class ContractMethodExecutor extends Script {
         String normalizedData = lowercaseHex(rawData);
 
         if (contractMethodHandlers == null || contractMethodHandlers.isEmpty()) {
-            return parseSmartContractResult(normalizedData);
+            return parseSmartContractResult(rawData);
         }
 
         Map.Entry<String, String> handler = contractMethodHandlers
@@ -61,7 +61,7 @@ public class ContractMethodExecutor extends Script {
             .orElse(null);
 
         if (handler == null) {
-            return parseSmartContractResult(normalizedData);
+            return parseSmartContractResult(rawData);
         }
 
         LOG.info("handler: {}", handler);
@@ -76,18 +76,7 @@ public class ContractMethodExecutor extends Script {
         }
 
         ContractFunctionSignature functionSignature = functionSignatures.get(handler.getKey());
-        List<TypeReference<Type>> inputs = functionSignature.getInputParameters();
-        Map<String, Object> parameters = new HashMap<>();
-
-        if (!inputs.isEmpty()) {
-            List<String> names = functionSignature.getParameterNames();
-            List<Type> values = FunctionReturnDecoder.decode(rawData.substring(8), inputs);
-            for (int index = 0; index < values.size(); index++) {
-                Type type = values.get(index);
-                String name = names.get(index);
-                parameters.put(name, type.getValue());
-            }
-        }
+        Map<String, Object> parameters = functionSignature.parseParameters(rawData);
 
         ContractMethodHandler contractMethodHandler;
         try {
@@ -100,7 +89,8 @@ public class ContractMethodExecutor extends Script {
         return contractMethodHandler.processData(input, parameters);
     }
 
-    private MethodHandlerResult parseSmartContractResult(String transactionData) {
+    private MethodHandlerResult parseSmartContractResult(String rawData) {
+        String transactionData = lowercaseHex(rawData);
         ContractFunctionSignature functionSignature = this.functionSignatures
             .values()
             .stream()
@@ -110,17 +100,19 @@ public class ContractMethodExecutor extends Script {
 
         LOG.info("function signature: {}", functionSignature);
         String type = functionSignature.getName();
-        String description = "Smart contract function call: " + functionSignature.getFunctionDefinition();
-        String data = "{\"type\":\"" + type + "\",\"description\":\"" + description + "\"}";
-
-        return new MethodHandlerResult(type, data);
+        Map<String, Object> parameters = functionSignature.parseParameters(rawData);
+        String description = functionSignature.getFunctionDefinition();
+        Map<String, Object> dataMap = new LinkedHashMap<>();
+        dataMap.put("type", type);
+        dataMap.put("description", description);
+        dataMap.put("parameters", parameters);
+        return new MethodHandlerResult(type, toJson(dataMap));
     }
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         super.execute(parameters);
     }
-
 }
 
 
@@ -132,6 +124,7 @@ class ContractFunctionSignature {
     private List<TypeReference<Type>> inputParameters;
     private List<String> parameterNames;
     private String functionDefinition;
+    private Map<String, Object> parameters;
 
     private TypeReference<Type> parseParameterType(AbiDefinition.NamedType contractFunctionParameter) {
         String type = contractFunctionParameter.getType();
@@ -195,6 +188,29 @@ class ContractFunctionSignature {
 
     public String getFunctionDefinition() {
         return functionDefinition;
+    }
+
+    public Map<String, Object> parseParameters(String rawData) {
+        if (parameters == null || parameters.isEmpty()) {
+            parameters = mapFunctionParameters(this, rawData);
+        }
+        return parameters;
+    }
+
+    private Map<String, Object> mapFunctionParameters(ContractFunctionSignature functionSignature, String rawData) {
+        List<TypeReference<Type>> inputs = functionSignature.getInputParameters();
+        Map<String, Object> parameters = new LinkedHashMap<>();
+
+        if (!inputs.isEmpty()) {
+            List<String> names = functionSignature.getParameterNames();
+            List<Type> values = FunctionReturnDecoder.decode(rawData.substring(8), inputs);
+            for (int index = 0; index < values.size(); index++) {
+                Type type = values.get(index);
+                String name = names.get(index);
+                parameters.put(name, type.getValue());
+            }
+        }
+        return parameters;
     }
 
     @Override

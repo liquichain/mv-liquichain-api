@@ -1,11 +1,16 @@
 package io.liquichain.api.verification;
 
+import static io.liquichain.api.rpc.EthApiUtils.*;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.VerifiedEmail;
+import org.meveo.model.customEntities.VerifiedPhoneNumber;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
@@ -19,41 +24,64 @@ import org.slf4j.LoggerFactory;
 
 public class GetUsername extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(GetUsername.class);
+    private static final String EMAIL_REGEX =
+        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
 
-    private String emailAddress;
+    private String emailOrNumber;
     private Map<String, Object> result = new HashMap<>();
 
     public Map<String, Object> getResult() {
         return result;
     }
 
-    public void setEmailAddress(String emailAddress) {
-        this.emailAddress = emailAddress;
+    public void setEmailOrNumber(String emailOrNumber) {
+        this.emailOrNumber = emailOrNumber;
+    }
+
+    public static boolean isValidEmail(String email) {
+        Matcher matcher = EMAIL_PATTERN.matcher(email);
+        return matcher.matches();
     }
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         super.execute(parameters);
         try {
-            if (StringUtils.isBlank(emailAddress)) {
-                throw new RuntimeException("emailAddress is required");
-            }
-            VerifiedEmail verifiedEmail = crossStorageApi.find(defaultRepo, VerifiedEmail.class)
-                                                         .by("email", emailAddress)
-                                                         .getResult();
-            if (verifiedEmail == null) {
-                throw new RuntimeException("Failed to find email: " + emailAddress);
+            if (StringUtils.isBlank(emailOrNumber)) {
+                throw new RuntimeException("Email address or phone number is required");
             }
 
-            Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class)
-                                           .by("emailAddress", verifiedEmail)
-                                           .getResult();
+            Wallet wallet;
+            if (isValidEmail(emailOrNumber)) {
+                VerifiedEmail verifiedEmail = crossStorageApi.find(defaultRepo, VerifiedEmail.class)
+                                                             .by("email", emailOrNumber)
+                                                             .getResult();
+                if (verifiedEmail == null) {
+                    throw new RuntimeException("Failed to find email: " + emailOrNumber);
+                }
+
+                wallet = crossStorageApi.find(defaultRepo, Wallet.class)
+                                        .by("emailAddress", verifiedEmail)
+                                        .getResult();
+            } else {
+                VerifiedPhoneNumber verifiedPhoneNumber = crossStorageApi.find(defaultRepo, VerifiedPhoneNumber.class)
+                                                                         .by("phoneNumber", emailOrNumber)
+                                                                         .getResult();
+                if (verifiedPhoneNumber == null) {
+                    throw new RuntimeException("Failed to find phone number: " + emailOrNumber);
+                }
+                wallet = crossStorageApi.find(defaultRepo, Wallet.class)
+                                        .by("phoneNumber", verifiedPhoneNumber)
+                                        .getResult();
+            }
+
 
             if (wallet == null) {
-                throw new RuntimeException("Failed to retrieve wallet for email address: " + emailAddress);
+                throw new RuntimeException("Failed to retrieve wallet for: " + emailOrNumber);
             }
             String privateInfo = wallet.getPrivateInfo();
             if (StringUtils.isBlank(privateInfo)) {
@@ -70,18 +98,6 @@ public class GetUsername extends Script {
         } catch (Exception e) {
             mapError(e);
         }
-    }
-
-    public static <T> T convert(String data) {
-        T value = null;
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            value = mapper.readValue(data, new TypeReference<T>() {
-            });
-        } catch (Exception e) {
-            LOG.error("Failed to parse data: {}", data, e);
-        }
-        return value;
     }
 
     private void mapError(Throwable e) {

@@ -277,7 +277,7 @@ public class KeycloakUserService extends Script {
 		LOG.info("publicInfo == {}",publicInfo);
       	String currentPublicInfo = wallet.getPublicInfo();
         String currentPrivateInfo = wallet.getPrivateInfo();
-		LOG.info("wallet currentPublicInfo == {}",wallet.getPublicInfo());	
+		LOG.info("wallet currentPublicInfo == {}",wallet.getPublicInfo());
       
         Map<String, Object> currentPublicInfoMap = null;
         if (StringUtils.isNotBlank(currentPublicInfo)) {
@@ -379,7 +379,7 @@ public class KeycloakUserService extends Script {
                       	LOG.info("locale is different.");
                     	Map<String,Object> attributesMap = (Map<String,Object>)userMap.get("attributes");
                       	if(attributesMap == null){
-                      		LOG.info("attributes are null");  
+                      		LOG.info("attributes are null");
                       	} else {
                           	LOG.info("attributes size == {}",attributesMap.size());
                           	LOG.info("attributes json == {}",toJson(attributesMap));
