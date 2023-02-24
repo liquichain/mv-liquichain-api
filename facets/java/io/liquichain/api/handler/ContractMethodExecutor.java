@@ -64,13 +64,13 @@ public class ContractMethodExecutor extends Script {
             return parseSmartContractResult(rawData);
         }
 
-        LOG.debug("handler: {}", handler);
+        LOG.info("handler: {}", handler);
 
         String className = handler.getValue();
         Class<ContractMethodHandler> handlerClass;
         try {
             handlerClass = (Class<ContractMethodHandler>) Class.forName(className);
-            LOG.debug("class: {} was loaded.", handlerClass);
+            LOG.info("class: {} was loaded.", handlerClass);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Unable to load smart contract handler class: " + className, e);
         }
@@ -81,7 +81,7 @@ public class ContractMethodExecutor extends Script {
         ContractMethodHandler contractMethodHandler;
         try {
             contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
-            LOG.debug("handler class instantiated.");
+            LOG.info("handler class instantiated.");
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
             throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
@@ -98,7 +98,7 @@ public class ContractMethodExecutor extends Script {
             .findFirst()
             .orElse(new ContractFunctionSignature());
 
-        LOG.debug("function signature: {}", functionSignature);
+        LOG.info("function signature: {}", functionSignature);
         String type = functionSignature.getName();
         Map<String, Object> parameters = functionSignature.parseParameters(rawData);
         String description = functionSignature.getFunctionDefinition();

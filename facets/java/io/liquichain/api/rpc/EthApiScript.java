@@ -104,7 +104,7 @@ public class EthApiScript extends Script {
                 "  \"params\": " + toJson(params) +
                 "}";
 
-            LOG.debug("callEthJsonRpc body: {}", body);
+            LOG.info("callEthJsonRpc body: {}", body);
 
             try {
                 response = client.target(BESU_API_URL)
@@ -120,7 +120,7 @@ public class EthApiScript extends Script {
                 }
             }
 
-            LOG.debug("callEthJsonRpc result: {}", result);
+            LOG.info("callEthJsonRpc result: {}", result);
             return result;
         }
     }
@@ -179,7 +179,7 @@ abstract class BlockchainProcessor {
     public static boolean addTransactionHook(String regex, Script script) {
         boolean isHookAdded = true;
         String key = regex + ":" + script.getClass().getName();
-        LOG.debug("addTransactionHook key: {}", key);
+        LOG.info("addTransactionHook key: {}", key);
         isHookAdded = !TRANSACTION_HOOKS.containsKey(key);
         if (isHookAdded) {
             Pattern pattern = Pattern.compile(regex);
@@ -191,14 +191,14 @@ abstract class BlockchainProcessor {
     protected void processTransactionHooks(String transactionHash, SignedRawTransaction transaction) {
         try {
             String data = new String(new BigInteger(transaction.getData(), 16).toByteArray());
-            LOG.debug("try matching {} hooks", TRANSACTION_HOOKS.size());
+            LOG.info("try matching {} hooks", TRANSACTION_HOOKS.size());
             TRANSACTION_HOOKS.forEach((String key, Object[] hook) -> {
-                LOG.debug("try hook {} on {}", key, data);
+                LOG.info("try hook {} on {}", key, data);
                 Pattern pattern = (Pattern) hook[0];
                 Script script = (Script) hook[1];
                 Matcher matcher = pattern.matcher(data);
                 if (matcher.find()) {
-                    LOG.debug(" hook {} matched", key);
+                    LOG.info(" hook {} matched", key);
                     Map<String, Object> context = new HashMap<>();
                     context.put("transaction", transaction);
                     context.put("transactionHash", transactionHash);
@@ -206,20 +206,20 @@ abstract class BlockchainProcessor {
                     try {
                         script.execute(context);
                         if (context.containsKey("result")) {
-                            LOG.debug(" hook result:{} ", context.get("result"));
+                            LOG.info(" hook result:{} ", context.get("result"));
                         }
                     } catch (Exception e) {
                         LOG.error("error while invoking transaction hook {}", script, e);
                     }
                 } else {
-                    LOG.debug(" hook {} matched", key);
+                    LOG.info(" hook {} matched", key);
                 }
             });
             if (data.contains("orderId")) {
-                LOG.debug("Detected orderId: {}", data);
+                LOG.info("Detected orderId: {}", data);
             }
         } catch (Exception e) {
-            LOG.debug("Error while detecting order", e);
+            LOG.info("Error while detecting order", e);
         }
     }
 
@@ -291,7 +291,7 @@ abstract class BlockchainProcessor {
 
     protected String parseAddress(String signature, String message) throws Exception {
         byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
-        LOG.debug("messageHash={}", Numeric.toHexString(messageHash));
+        LOG.info("messageHash={}", Numeric.toHexString(messageHash));
         String r = signature.substring(0, 66);
         String s = "0x" + signature.substring(66, 130);
         String v = "0x" + signature.substring(130, 132);
@@ -306,7 +306,7 @@ abstract class BlockchainProcessor {
             )
             .toString(16);
         String address = Keys.getAddress(publicKey);
-        LOG.debug("address: " + address);
+        LOG.info("address: " + address);
         return address;
     }
 
@@ -346,7 +346,7 @@ class BesuProcessor extends BlockchainProcessor {
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
         String requestId = "" + parameters.get("id");
-        LOG.debug("json rpc: {}, parameters:{}", method, parameters);
+        LOG.info("json rpc: {}, parameters:{}", method, parameters);
 
         EthereumMethod ethereumMethod = ethereumMethods.get(method);
         if(ethereumMethod != null){
@@ -396,7 +396,7 @@ class BesuProcessor extends BlockchainProcessor {
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
         String rawRecipient = rawTransaction.getTo();
-        LOG.debug("RawTransaction recipient: {}", rawRecipient);
+        LOG.info("RawTransaction recipient: {}", rawRecipient);
 
         // as per besu documentation
         // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
@@ -447,7 +447,7 @@ class BesuProcessor extends BlockchainProcessor {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
             }
         }
-        LOG.debug("Handler result: {}", handlerResult);
+        LOG.info("Handler result: {}", handlerResult);
 
         result = ethService.callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
@@ -479,10 +479,10 @@ class BesuProcessor extends BlockchainProcessor {
                 transaction.setV(toHex(signatureData.getV()));
                 transaction.setS(toHex(signatureData.getS()));
                 transaction.setR(toHex(signatureData.getR()));
-                LOG.debug("Transaction CEI details: {}", toJson(transaction));
+                LOG.info("Transaction CEI details: {}", toJson(transaction));
 
                 String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-                LOG.debug("Created transaction on DB with uuid: {}", uuid);
+                LOG.info("Created transaction on DB with uuid: {}", uuid);
             } catch (Exception e) {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
             }
@@ -522,7 +522,7 @@ class DatabaseProcessor extends BlockchainProcessor {
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String method = "" + parameters.get("method");
-        LOG.debug("json rpc: {}, parameters:{}", method, parameters);
+        LOG.info("json rpc: {}, parameters:{}", method, parameters);
         String requestId = "" + parameters.get("id");
         switch (method) {
             case "eth_call":
@@ -573,7 +573,7 @@ class DatabaseProcessor extends BlockchainProcessor {
     private String getTransactionByHash(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
         String hash = retrieveHash(params, 0);
-        LOG.debug("lookup transaction hexHash={}", hash);
+        LOG.info("lookup transaction hexHash={}", hash);
 
         try {
             Transaction transaction = crossStorageApi
@@ -604,7 +604,7 @@ class DatabaseProcessor extends BlockchainProcessor {
             transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
             transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
             transactionDetails += "}";
-            LOG.debug("res={}" + transactionDetails);
+            LOG.info("res={}" + transactionDetails);
             return createResponse(requestId, transactionDetails);
         } catch (Exception e) {
             LOG.error("Resource not found.", e);
@@ -636,7 +636,7 @@ class DatabaseProcessor extends BlockchainProcessor {
             SignedRawTransaction signedResult = (SignedRawTransaction) rawTransaction;
             Sign.SignatureData signatureData = signedResult.getSignatureData();
             try {
-                LOG.debug("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
+                LOG.info("from:{} chainedId:{}", signedResult.getFrom(), signedResult.getChainId());
                 Transaction transaction = new Transaction();
                 transaction.setHexHash(transactionHash);
                 transaction.setFromHexHash(normalizeHash(signedResult.getFrom()));
@@ -655,11 +655,11 @@ class DatabaseProcessor extends BlockchainProcessor {
                 transaction.setV(toHex(signatureData.getV()));
                 transaction.setS(toHex(signatureData.getS()));
                 transaction.setR(toHex(signatureData.getR()));
-                LOG.debug("transaction:{}", transaction);
+                LOG.info("transaction:{}", transaction);
                 String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
                 transferValue(transaction, rawTransaction.getValue());
                 result = "0x" + transactionHash;
-                LOG.debug("created transaction with uuid:{}", uuid);
+                LOG.info("created transaction with uuid:{}", uuid);
                 if (rawTransaction.getData() != null && rawTransaction.getData().length() > 0) {
                     processTransactionHooks(transaction.getHexHash(), signedResult);
                 }
@@ -679,7 +679,7 @@ class DatabaseProcessor extends BlockchainProcessor {
             crossStorageApi.find(defaultRepo, transaction.getToHexHash(), Wallet.class);
             message = "insufficient balance";
             BigInteger originBalance = new BigInteger(originWallet.getBalance());
-            LOG.debug("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
+            LOG.info("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
                 originWallet.getBalance());
             if (value.compareTo(originBalance) <= 0) {
                 BlockForgerScript.addTransaction(transaction);
@@ -709,7 +709,7 @@ class DatabaseProcessor extends BlockchainProcessor {
         String address = retrieveHash(params, 0);
         try {
             Wallet wallet = crossStorageApi.find(defaultRepo, address, Wallet.class);
-            LOG.debug("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
+            LOG.info("getCode wallet.application.uuid={}", wallet.getApplication().getUuid());
             return createResponse(requestId, "0x" + wallet.getApplication().getUuid());
         } catch (Exception e) {
             LOG.error("Wallet address {} not found", address, e);
