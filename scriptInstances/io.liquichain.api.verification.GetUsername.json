@@ -2,7 +2,7 @@
   "code" : "io.liquichain.api.verification.GetUsername",
   "description" : "Get username based on email address",
   "inputs" : [ {
-    "name" : "emailAddress",
+    "name" : "emailOrNumber",
     "type" : "String"
   } ],
   "outputs" : [ {

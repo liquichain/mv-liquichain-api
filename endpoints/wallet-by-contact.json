@@ -16,8 +16,11 @@
   "pathParameters" : [ ],
   "roles" : [ ],
   "returnedVariableName" : "result",
-  "serializeResult" : false,
+  "serializeResult" : true,
   "contentType" : "application/json",
   "basePath" : "wallet-by-contact",
-  "path" : "/"
+  "path" : "/",
+  "pool" : {
+    "usePool" : false
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "code" : "EthereumMethod",
+  "name" : "Ethereum method",
+  "description" : "Ethereum method scripts",
+  "customEntityCategoryCode" : "liquichain",
+  "availableStorages" : [ "SQL" ],
+  "sqlStorageConfiguration" : {
+    "storeAsTable" : true
+  },
+  "samples" : [ ],
+  "audited" : false
+}

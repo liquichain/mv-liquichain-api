@@ -8,8 +8,11 @@
     "name" : "extraData",
     "type" : "String"
   }, {
+    "name" : "recipient",
+    "type" : "String"
+  }, {
     "name" : "value",
-    "type" : "BigInteger"
+    "type" : "String"
   } ],
   "outputs" : [ {
     "name" : "transactionType",
@@ -18,8 +21,11 @@
     "name" : "extraData",
     "type" : "String"
   }, {
+    "name" : "recipient",
+    "type" : "String"
+  }, {
     "name" : "value",
-    "type" : "BigInteger"
+    "type" : "String"
   } ],
   "generateOutputs" : false,
   "type" : "JAVA",

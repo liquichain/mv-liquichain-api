@@ -7,13 +7,13 @@
   "synchronous" : true,
   "method" : "GET",
   "parameterMappings" : [ ],
-  "pathParameters" : [ "emailAddress" ],
+  "pathParameters" : [ "emailOrNumber" ],
   "roles" : [ ],
   "returnedVariableName" : "result",
   "serializeResult" : true,
   "contentType" : "application/json",
   "basePath" : "username",
-  "path" : "/{emailAddress}",
+  "path" : "/{emailOrNumber}",
   "pool" : {
     "usePool" : false
   }

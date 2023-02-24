@@ -3,11 +3,7 @@ package io.liquichain.api.handler;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -17,138 +13,161 @@ import org.meveo.admin.exception.BusinessException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.protocol.core.methods.response.AbiDefinition;
 
 public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
+    private static final Gson gson = new Gson();
 
     private final Map<String, String> contractMethodHandlers;
-    private final String abi;
-    private final List<ContractFunctionSignature> functionSignatures;
+    private final Map<String, ContractFunctionSignature> functionSignatures;
 
-    public ContractMethodExecutor(Map<String, String> contractMethodHandlers, String abi) {
+    public ContractMethodExecutor(String abi, Map<String, String> handlers) {
         super();
-        this.contractMethodHandlers = contractMethodHandlers;
-        this.abi = abi;
-        List<ContractFunction> contractFunctions = new Gson()
-            .fromJson(abi, new TypeToken<List<ContractFunction>>() {}.getType());
-        this.functionSignatures = contractFunctions
+        this.contractMethodHandlers = new HashMap<>();
+        handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
+        List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
+
+        this.functionSignatures = abiDefinitions
             .stream()
-            .filter(contractFunction -> "function".equals(contractFunction.getType()))
+            .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
             .map(ContractFunctionSignature::new)
-            .collect(Collectors.toList());
+            .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
     }
 
     public interface ContractMethodHandler {
-        MethodHandlerResult processData(MethodHandlerInput input);
+        MethodHandlerResult processData(MethodHandlerInput input, Map<String, Object> parameters);
     }
 
     public MethodHandlerResult execute(MethodHandlerInput input) {
+        RawTransaction rawTransaction = input.getRawTransaction();
+        String rawData = rawTransaction.getData();
+        String normalizedData = lowercaseHex(rawData);
+
         if (contractMethodHandlers == null || contractMethodHandlers.isEmpty()) {
-            return null;
+            return parseSmartContractResult(rawData);
         }
 
-        String rawData = lowercaseHex(input.getRawTransaction().getData());
-        Map.Entry<String, String> handlerFound = contractMethodHandlers
+        Map.Entry<String, String> handler = contractMethodHandlers
             .entrySet()
             .stream()
-            .filter(entry -> {
-                String key = lowercaseHex(entry.getKey());
-                return rawData.startsWith(key);
-            })
+            .filter(entry -> normalizedData.startsWith(entry.getKey()))
             .findFirst()
             .orElse(null);
 
-        if (handlerFound == null) {
-            return null;
+        if (handler == null) {
+            return parseSmartContractResult(rawData);
         }
 
-        LOG.info("handler: {}", handlerFound);
-        String className = handlerFound.getValue();
+        LOG.info("handler: {}", handler);
+
+        String className = handler.getValue();
         Class<ContractMethodHandler> handlerClass;
         try {
             handlerClass = (Class<ContractMethodHandler>) Class.forName(className);
+            LOG.info("class: {} was loaded.", handlerClass);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Unable to load smart contract handler class: " + className, e);
         }
 
-        CompletableFuture<MethodHandlerResult> handler = CompletableFuture.supplyAsync(() -> {
-            ContractMethodHandler contractMethodHandler;
-            try {
-                contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-                     InvocationTargetException e) {
-                throw new RuntimeException(
-                    "Unable to instantiate smart contract handler: " + className, e);
-            }
-            return contractMethodHandler.processData(input);
-        });
+        ContractFunctionSignature functionSignature = functionSignatures.get(handler.getKey());
+        Map<String, Object> parameters = functionSignature.parseParameters(rawData);
 
+        ContractMethodHandler contractMethodHandler;
         try {
-            return handler.get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to execute method handler: " + className, e);
+            contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
+            LOG.info("handler class instantiated.");
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                 InvocationTargetException e) {
+            throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
         }
+        return contractMethodHandler.processData(input, parameters);
+    }
+
+    private MethodHandlerResult parseSmartContractResult(String rawData) {
+        String transactionData = lowercaseHex(rawData);
+        ContractFunctionSignature functionSignature = this.functionSignatures
+            .values()
+            .stream()
+            .filter(value -> transactionData.startsWith(value.getSignature()))
+            .findFirst()
+            .orElse(new ContractFunctionSignature());
+
+        LOG.info("function signature: {}", functionSignature);
+        String type = functionSignature.getName();
+        Map<String, Object> parameters = functionSignature.parseParameters(rawData);
+        String description = functionSignature.getFunctionDefinition();
+        Map<String, Object> dataMap = new LinkedHashMap<>();
+        dataMap.put("type", type);
+        dataMap.put("description", description);
+        dataMap.put("parameters", parameters);
+        return new MethodHandlerResult(type, toJson(dataMap));
     }
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         super.execute(parameters);
     }
-
 }
 
 
 class ContractFunctionSignature {
     private static final Logger LOG = LoggerFactory.getLogger(ContractFunctionSignature.class);
 
-    private String fullSignature;
     private String signature;
     private String name;
-    private List<TypeReference> inputParameters;
-    private List<TypeReference> outputParameters;
+    private List<TypeReference<Type>> inputParameters;
+    private List<String> parameterNames;
+    private String functionDefinition;
+    private Map<String, Object> parameters;
 
-    public ContractFunctionSignature(ContractFunction contractFunction) {
-        this.name = contractFunction.getName();
-        List<ContractFunctionParameter> inputs = contractFunction.getInputs();
-        List<ContractFunctionParameter> outputs = contractFunction.getOutputs();
-        String functionParameters = inputs.stream()
-                                          .map(ContractFunctionParameter::getType)
-                                          .collect(Collectors.joining(","));
-        String functionDefinition = String.format("%s(%s)", name, functionParameters);
-        this.fullSignature = Hash.sha3String(functionDefinition);
-        this.signature = fullSignature.substring(0, 10);
-        this.inputParameters = inputs.stream()
-                                     .map(ContractFunctionParameter::getType)
-                                     .map(type -> {
-                                         try {
-                                             return TypeReference.makeTypeReference(type);
-                                         } catch (ClassNotFoundException e) {
-                                             throw new RuntimeException(e);
-                                         }
-                                     })
-                                     .collect(Collectors.toList());
-        this.outputParameters = outputs.stream()
-                                       .map(ContractFunctionParameter::getType)
-                                       .map(type -> {
-                                           try {
-                                               return TypeReference.makeTypeReference(type);
-                                           } catch (ClassNotFoundException e) {
-                                               throw new RuntimeException(e);
-                                           }
-                                       })
-                                       .collect(Collectors.toList());
+    private TypeReference<Type> parseParameterType(AbiDefinition.NamedType contractFunctionParameter) {
+        String type = contractFunctionParameter.getType();
+        boolean isTuple = "tuple".equals(type);
+        boolean isTupleArray = "tuple[]".equals(type);
+        if (isTuple || isTupleArray) {
+            // convert tuple to DynamicStruct
+            return null;
+        } else {
+            try {
+                return TypeReference.makeTypeReference(type);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-        LOG.info("ContractFunctionSignature: {}", this);
+    public ContractFunctionSignature() {
+    }
+
+    public ContractFunctionSignature(AbiDefinition abiDefinition) {
+        this.name = abiDefinition.getName();
+        List<AbiDefinition.NamedType> inputs = abiDefinition.getInputs();
+        List<String> parameterTypes = new ArrayList<>();
+        this.parameterNames = new ArrayList<>();
+
+        if (!inputs.isEmpty()) {
+            this.inputParameters = new ArrayList<>();
+            inputs.forEach(input -> {
+                this.inputParameters.add(this.parseParameterType(input));
+                this.parameterNames.add(input.getName());
+                parameterTypes.add(input.getType());
+            });
+        }
+
+        this.functionDefinition = String.format("%s(%s)", name, String.join(", ", parameterNames));
+        String baseDefinition = String.format("%s(%s)", name, String.join(",", parameterTypes));
+        String fullSignature = Hash.sha3String(baseDefinition);
+        this.signature = fullSignature.substring(0, 10).toLowerCase();
     }
 
     public String getSignature() {
-        return lowercaseHex(signature).substring(10);
-    }
-
-    public void setSignature(String signature) {
-        this.signature = signature;
+        return signature;
     }
 
     public String getName() {
@@ -159,20 +178,39 @@ class ContractFunctionSignature {
         this.name = name;
     }
 
-    public List<TypeReference> getInputParameters() {
+    public List<TypeReference<Type>> getInputParameters() {
         return inputParameters;
     }
 
-    public void setInputParameters(List<TypeReference> inputParameters) {
-        this.inputParameters = inputParameters;
+    public List<String> getParameterNames() {
+        return parameterNames;
     }
 
-    public List<TypeReference> getOutputParameters() {
-        return outputParameters;
+    public String getFunctionDefinition() {
+        return functionDefinition;
     }
 
-    public void setOutputParameters(List<TypeReference> outputParameters) {
-        this.outputParameters = outputParameters;
+    public Map<String, Object> parseParameters(String rawData) {
+        if (parameters == null || parameters.isEmpty()) {
+            parameters = mapFunctionParameters(this, rawData);
+        }
+        return parameters;
+    }
+
+    private Map<String, Object> mapFunctionParameters(ContractFunctionSignature functionSignature, String rawData) {
+        List<TypeReference<Type>> inputs = functionSignature.getInputParameters();
+        Map<String, Object> parameters = new LinkedHashMap<>();
+
+        if (!inputs.isEmpty()) {
+            List<String> names = functionSignature.getParameterNames();
+            List<Type> values = FunctionReturnDecoder.decode(rawData.substring(8), inputs);
+            for (int index = 0; index < values.size(); index++) {
+                Type type = values.get(index);
+                String name = names.get(index);
+                parameters.put(name, type.getValue());
+            }
+        }
+        return parameters;
     }
 
     @Override
@@ -195,117 +233,8 @@ class ContractFunctionSignature {
             "signature='" + signature + '\'' +
             ", name='" + name + '\'' +
             ", inputParameters=" + inputParameters +
-            ", outputParameters=" + outputParameters +
-            '}';
-    }
-}
-
-
-class ContractFunction {
-    private String name;
-    private String stateMutability;
-    private String type;
-    private List<ContractFunctionParameter> inputs;
-    private List<ContractFunctionParameter> outputs;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getStateMutability() {
-        return stateMutability;
-    }
-
-    public void setStateMutability(String stateMutability) {
-        this.stateMutability = stateMutability;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public List<ContractFunctionParameter> getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(List<ContractFunctionParameter> inputs) {
-        this.inputs = inputs;
-    }
-
-    public List<ContractFunctionParameter> getOutputs() {
-        return outputs;
-    }
-
-    public void setOutputs(List<ContractFunctionParameter> outputs) {
-        this.outputs = outputs;
-    }
-
-    @Override
-    public String toString() {
-        return "ContractFunction{" +
-            "name='" + name + '\'' +
-            ", stateMutability='" + stateMutability + '\'' +
-            ", type='" + type + '\'' +
-            ", inputs=" + inputs +
-            ", outputs=" + outputs +
-            '}';
-    }
-}
-
-
-class ContractFunctionParameter {
-    private String name;
-    private String type;
-    private String internalType;
-    private List<ContractFunctionParameter> components;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getInternalType() {
-        return internalType;
-    }
-
-    public void setInternalType(String internalType) {
-        this.internalType = internalType;
-    }
-
-    public List<ContractFunctionParameter> getComponents() {
-        return components;
-    }
-
-    public void setComponents(List<ContractFunctionParameter> components) {
-        this.components = components;
-    }
-
-    @Override
-    public String toString() {
-        return "ContractFunctionParameter{" +
-            "name='" + name + '\'' +
-            ", type='" + type + '\'' +
-            ", internalType='" + internalType + '\'' +
-            ", components=" + components +
+            ", parameterNames=" + parameterNames +
+            ", functionDefinition='" + functionDefinition + '\'' +
             '}';
     }
 }

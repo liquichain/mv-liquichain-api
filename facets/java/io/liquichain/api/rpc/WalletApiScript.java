@@ -266,6 +266,7 @@ public class WalletApiScript extends Script {
         // check existing Wallet
         try {
             wallet = crossStorageApi.find(defaultRepo, walletHash, Wallet.class);
+            LOG.info("wallet: {}", toJson(wallet));
             if (wallet != null) {
                 return createErrorResponse(requestId, INVALID_REQUEST, WALLET_EXISTS_ERROR);
             }

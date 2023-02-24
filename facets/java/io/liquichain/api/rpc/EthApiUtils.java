@@ -16,26 +16,27 @@ public class EthApiUtils extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static String createResponse(String requestId, String result) {
-        String idFormat = requestId == null || NumberUtils.isParsable(requestId)
-            ? "  \"id\": %s,"
-            : "  \"id\": \"%s\",";
-        String resultFormat = result.startsWith("{") || result.startsWith("[") ? "%s" : "\"%s\"";
+    public static String formatId(Object id) {
+        return id == null || NumberUtils.isParsable("" + id) ? "" + id : "\"" + id + "\"";
+    }
+
+    public static String formatResult(String result) {
+        return result.startsWith("{") || result.startsWith("[") ? result : "\"" + result + "\"";
+    }
+
+    public static String createResponse(Object requestId, String result) {
         String response = "{\n" +
-            String.format(idFormat, requestId) + "\n" +
+            "  \"id\": " + formatId(requestId) + ",\n" +
             "  \"jsonrpc\": \"2.0\",\n" +
-            "  \"result\": " + String.format(resultFormat, result) + "\n" +
+            "  \"result\": " + formatResult(result) + "\n" +
             "}";
         LOG.info("response: {}", response);
         return response;
     }
 
-    public static String createErrorResponse(String requestId, String errorCode, String message) {
-        String idFormat = requestId == null || NumberUtils.isParsable(requestId)
-            ? "  \"id\": %s,"
-            : "  \"id\": \"%s\",";
+    public static String createErrorResponse(Object requestId, String errorCode, String message) {
         String response = "{\n" +
-            String.format(idFormat, requestId) + "\n" +
+            "  \"id\": " + formatId(requestId) + ",\n" +
             "  \"jsonrpc\": \"2.0\",\n" +
             "  \"error\": {\n" +
             "    \"code\": " + errorCode + ",\n" +
@@ -47,10 +48,7 @@ public class EthApiUtils extends Script {
     }
 
     public static String normalizeHash(String hash) {
-        if (hash.startsWith("0x")) {
-            return hash.substring(2).toLowerCase();
-        }
-        return hash.toLowerCase();
+        return removeHexPrefix(hash).toLowerCase();
     }
 
     public static String retrieveHash(List<String> parameters, int parameterIndex) {
@@ -115,6 +113,16 @@ public class EthApiUtils extends Script {
             return data;
         }
         return "0x" + data;
+    }
+
+    public static String removeHexPrefix(String data) {
+        if (data == null) {
+            return "";
+        }
+        if (data.startsWith("0x")) {
+            return data.substring(2);
+        }
+        return data;
     }
 
     public static String lowercaseHex(String data) {

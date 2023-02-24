@@ -220,44 +220,6 @@
 			"response": []
 		},
 		{
-			"name": "Get Balance",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"eth_getBalance\",\n    \"params\": [\n        \"{{walletId}}\",\n        \"latest\"\n    ],\n    \"id\": 1\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
-					"protocol": "{{protocol}}",
-					"host": [
-						"{{hostname}}"
-					],
-					"port": "{{port}}",
-					"path": [
-						"{{webContext}}",
-						"rest",
-						"jsonrpc",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Contract listTokenInfos",
 			"event": [
 				{
@@ -287,7 +249,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_listTokenInfos\",\n    \"params\": [],\n    \"id\": 1\n}",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"id\": 1,\n    \"method\": \"contract_listTokenInfos\",\n    \"params\": [\n        {\n            \"to\": \"0x64F782197283D592B9a6ceE67038f990fc29225B\",\n            \"data\": \"0xb5857f45\"\n        },\n        \"latest\"\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -336,45 +298,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_getToken\",\n    \"params\": [0],\n    \"id\": 1\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{protocol}}://{{hostname}}:{{port}}/{{webContext}}/rest/jsonrpc/",
-					"protocol": "{{protocol}}",
-					"host": [
-						"{{hostname}}"
-					],
-					"port": "{{port}}",
-					"path": [
-						"{{webContext}}",
-						"rest",
-						"jsonrpc",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Contract balanceOf",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"method\": \"contract_balanceOf\",\n    \"params\": [\n        \"{{walletId}}\",\n        {{tokenId}},\n        \"latest\"\n    ],\n    \"id\": 1\n}",
+					"raw": "{\n    \"jsonrpc\": \"2.0\",\n    \"id\": 1,\n    \"method\": \"contract_getToken\",\n    \"params\": [\n        {\n            \"to\": \"0x64F782197283D592B9a6ceE67038f990fc29225B\",\n            \"data\": \"0xe4b50cb80000000000000000000000000000000000000000000000000000000000000000\"\n        },\n        \"latest\"\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -485,7 +409,7 @@
 		},
 		{
 			"key": "transferAmount",
-			"value": "10.0",
+			"value": "12",
 			"type": "string"
 		},
 		{
