@@ -1,53 +1,33 @@
-import EndpointInterface from "#{API_BASE_URL}/api/rest/endpoint/EndpointInterface.js";
-
-// the request schema, this should be updated
-// whenever changes to the endpoint parameters are made
-// this is important because this is used to validate and parse the request parameters
-const requestSchema = {
-  "title" : "getUsernameRequest",
-  "id" : "getUsernameRequest",
-  "default" : "Schema definition for getUsername",
-  "$schema" : "http://json-schema.org/draft-07/schema",
-  "type" : "object"
+const getUsername = async (parameters) =>  {
+	const baseUrl = window.location.origin;
+	const url = new URL(`${window.location.pathname.split('/')[1]}/rest/getUsername/${parameters.emailOrNumber}`, baseUrl);
+	return fetch(url.toString(), {
+		method: 'GET'
+	});
 }
 
-// the response schema, this should be updated
-// whenever changes to the endpoint parameters are made
-// this is important because this could be used to parse the result
-const responseSchema = {
-  "title" : "getUsernameResponse",
-  "id" : "getUsernameResponse",
-  "default" : "Schema definition for getUsername",
-  "$schema" : "http://json-schema.org/draft-07/schema",
-  "type" : "object",
-  "properties" : {
-    "result" : {
-      "title" : "result",
-      "type" : "string",
-      "minLength" : 1
-    }
-  }
+const getUsernameForm = (container) => {
+	const html = `<form id='getUsername-form'>
+		<div id='getUsername-emailOrNumber-form-field'>
+			<label for='emailOrNumber'>emailOrNumber</label>
+			<input type='text' id='getUsername-emailOrNumber-param' name='emailOrNumber'/>
+		</div>
+		<button type='button'>Test</button>
+	</form>`;
+
+	container.insertAdjacentHTML('beforeend', html)
+
+	const emailOrNumber = container.querySelector('#getUsername-emailOrNumber-param');
+
+	container.querySelector('#getUsername-form button').onclick = () => {
+		const params = {
+			emailOrNumber : emailOrNumber.value !== "" ? emailOrNumber.value : undefined
+		};
+
+		getUsername(params).then(r => r.text().then(
+				t => alert(t)
+			));
+	};
 }
 
-// should contain offline mock data, make sure it adheres to the response schema
-const mockResult = {};
-
-class getUsername extends EndpointInterface {
-	constructor() {
-		// name and http method, these are inserted when code is generated
-		super("getUsername", "GET");
-		this.requestSchema = requestSchema;
-		this.responseSchema = responseSchema;
-		this.mockResult = mockResult;
-	}
-
-	getRequestSchema() {
-		return this.requestSchema;
-	}
-
-	getResponseSchema() {
-		return this.responseSchema;
-	}
-}
-
-export default new getUsername();
+export { getUsername, getUsernameForm };
