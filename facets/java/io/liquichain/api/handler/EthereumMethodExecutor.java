@@ -35,7 +35,7 @@ public class EthereumMethodExecutor extends Script {
             Class<EthereumMethodHandler> handlerClass;
             try {
                 handlerClass = (Class<EthereumMethodHandler>) Class.forName(className);
-                LOG.info("class: {} was loaded.", handlerClass);
+                LOG.debug("class: {} was loaded.", handlerClass);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Unable to load ethereum method handler class: " + className, e);
             }
@@ -43,7 +43,7 @@ public class EthereumMethodExecutor extends Script {
             EthereumMethodHandler ethereumMethodHandler;
             try {
                 ethereumMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
-                LOG.info("handler class instantiated.");
+                LOG.debug("handler class instantiated.");
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                      InvocationTargetException e) {
                 throw new RuntimeException("Unable to instantiate ethereum method handler: " + className, e);
