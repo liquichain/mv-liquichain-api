@@ -45,4 +45,5 @@ public class WalletByContactScript extends Script {
                 .collect(Collectors.toMap(wallet -> wallet.getPhoneNumber().getUuid(), Wallet::getUuid));
         }
     }
+
 }
