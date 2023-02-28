@@ -321,8 +321,8 @@ public class KeycloakUserService extends Script {
             String password = "";
             if (isNotEmptyMap(privateMap)) {
                 username = StringUtils.isNotBlank(privateMap.get("username")) ? privateMap.get("username") : username;
-                password = String.valueOf(privateMap.get("password"));
-                emailAddress = String.valueOf(privateMap.get("emailAddress"));
+                password = privateMap.get("password");
+                emailAddress = privateMap.get("emailAddress");
             }
 
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
