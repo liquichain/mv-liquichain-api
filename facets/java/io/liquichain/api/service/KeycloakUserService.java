@@ -258,8 +258,8 @@ public class KeycloakUserService extends Script {
             password = privateMap.get("password");
             emailAddress = privateMap.get("emailAddress");
         }
-		emailAddress = StringUtils.isBlank(emailAddress)?"":emailAddress;
-      
+        emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
+
         boolean hasUsername = !"null".equalsIgnoreCase(username) && StringUtils.isNotBlank(username);
         boolean hasPassword = !"null".equalsIgnoreCase(password) && StringUtils.isNotBlank(password);
         if (hasUsername && hasPassword) {
@@ -274,11 +274,11 @@ public class KeycloakUserService extends Script {
     }
 
     public void updateUser(String name, String publicInfo, String privateInfo, Wallet wallet) throws BusinessException {
-		LOG.info("publicInfo == {}",publicInfo);
-      	String currentPublicInfo = wallet.getPublicInfo();
+        LOG.info("publicInfo == {}", publicInfo);
+        String currentPublicInfo = wallet.getPublicInfo();
         String currentPrivateInfo = wallet.getPrivateInfo();
-		LOG.info("wallet currentPublicInfo == {}",wallet.getPublicInfo());
-      
+        LOG.info("wallet currentPublicInfo == {}", wallet.getPublicInfo());
+
         Map<String, Object> currentPublicInfoMap = null;
         if (StringUtils.isNotBlank(currentPublicInfo)) {
             currentPublicInfoMap = convert(currentPublicInfo);
@@ -290,12 +290,12 @@ public class KeycloakUserService extends Script {
         }
 
         String currentUsername = null;
-		String currentLocale = null;
+        String currentLocale = null;
         if (isNotEmptyMap(currentPublicInfoMap)) {
             currentUsername = String.valueOf(currentPublicInfoMap.get("username"));
-          	currentLocale = String.valueOf(currentPublicInfoMap.get("locale"));
+            currentLocale = String.valueOf(currentPublicInfoMap.get("locale"));
         }
-      	currentLocale = StringUtils.isBlank(currentLocale)?"en":currentLocale;
+        currentLocale = StringUtils.isBlank(currentLocale) ? "en" : currentLocale;
 
         if (isNotEmptyMap(currentPrivateInfoMap)) {
             currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
@@ -311,8 +311,8 @@ public class KeycloakUserService extends Script {
             Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convert(privateInfo) : null;
 
             String username = "";
-            String locale = ""; 
-          	if (isNotEmptyMap(publicMap)) {
+            String locale = "";
+            if (isNotEmptyMap(publicMap)) {
                 username = String.valueOf(publicMap.get("username"));
                 locale = String.valueOf(publicMap.get("locale"));
             }
@@ -330,16 +330,15 @@ public class KeycloakUserService extends Script {
                 verifiedEmail = crossStorageApi.find(defaultRepo, verifiedEmail.getUuid(), VerifiedEmail.class);
             }
             String currentEmailAddress = verifiedEmail != null ? verifiedEmail.getEmail() : null;
-          
-            boolean hasPassword = !("null".equalsIgnoreCase(password) || StringUtils.isBlank(password));
-            boolean hasUsername = !("null".equalsIgnoreCase(username) || StringUtils.isBlank(username));
-          
-            boolean differentName = !String.valueOf(name).equals(wallet.getName());
-            boolean differentEmailAddress = !emailAddress.equals(currentEmailAddress);
-            boolean differentUsername = !username.equals(currentUsername);
-            boolean differentLocale = StringUtils.isNotBlank(locale) && !locale.equals(currentLocale);
-          	LOG.info("differntLocale = {}",differentLocale);
-          
+
+            boolean hasPassword = !StringUtils.isBlank(password);
+            boolean hasUsername = !StringUtils.isBlank(username);
+
+            boolean differentName = StringUtils.compare(name, wallet.getName()) != 0;
+            boolean differentEmailAddress = StringUtils.compare(emailAddress, currentEmailAddress) != 0;
+            boolean differentUsername = StringUtils.compare(username, currentUsername) != 0;
+            boolean differentLocale = StringUtils.compare(locale, currentLocale) != 0;
+
             boolean shouldUpdateUser = hasPassword || hasUsername
                 && (differentName || differentEmailAddress || differentUsername || differentLocale);
 
@@ -348,7 +347,7 @@ public class KeycloakUserService extends Script {
             LOG.info("name: {} => {}", wallet.getName(), name);
             LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
             LOG.info("username: {} => {}", currentUsername, username);
-          	LOG.info("locale: {} => {}",currentLocale,locale);
+            LOG.info("locale: {} => {}", currentLocale, locale);
             LOG.info("shouldUpdateUser: {}", shouldUpdateUser);
 
             if (shouldUpdateUser) {
@@ -374,23 +373,23 @@ public class KeycloakUserService extends Script {
                         credentials.add(credentialMap);
                         userMap.put("credentials", credentials);
                     }
-                  
-                  	if(differentLocale){
-                      	LOG.info("locale is different.");
-                    	Map<String,Object> attributesMap = (Map<String,Object>)userMap.get("attributes");
-                      	if(attributesMap == null){
-                      		LOG.info("attributes are null");
-                      	} else {
-                          	LOG.info("attributes size == {}",attributesMap.size());
-                          	LOG.info("attributes json == {}",toJson(attributesMap));
-                          	LOG.info("attributes locale ext == {}",attributesMap.get("locale"));
-                          	if(attributesMap.get("locale")!=null){
-                            	String currLocale = String.valueOf(((List)attributesMap.get("locale")).get(0));
-                                LOG.info("currLocale == {}",currLocale);
-                              	List localeList = new ArrayList<String>();
-                              	localeList.add(locale);
-                              	attributesMap.put("locale",localeList);
-                              	userMap.put("attributes",attributesMap);
+
+                    if (differentLocale) {
+                        LOG.info("locale is different.");
+                        Map<String, Object> attributesMap = (Map<String, Object>) userMap.get("attributes");
+                        if (attributesMap == null) {
+                            LOG.info("attributes are null");
+                        } else {
+                            LOG.info("attributes size == {}", attributesMap.size());
+                            LOG.info("attributes json == {}", toJson(attributesMap));
+                            LOG.info("attributes locale ext == {}", attributesMap.get("locale"));
+                            if (attributesMap.get("locale") != null) {
+                                String currLocale = String.valueOf(((List) attributesMap.get("locale")).get(0));
+                                LOG.info("currLocale == {}", currLocale);
+                                List localeList = new ArrayList<String>();
+                                localeList.add(locale);
+                                attributesMap.put("locale", localeList);
+                                userMap.put("attributes", attributesMap);
                             }
                         }
                     }
@@ -415,7 +414,7 @@ public class KeycloakUserService extends Script {
             }
 
             if (shouldUpdateUser) {
-              	LOG.info("shouldUpdateUser");
+                LOG.info("shouldUpdateUser");
                 User user = userService.findByUsername(currentUsername);
                 if (user != null) { // update meveo user
                     // TODO - meveo username cannot be updated
