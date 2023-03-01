@@ -319,6 +319,7 @@ public class KeycloakUserService extends Script {
 
             String emailAddress = "";
             String password = "";
+
             if (isNotEmptyMap(privateMap)) {
                 username = StringUtils.isNotBlank(privateMap.get("username")) ? privateMap.get("username") : username;
                 password = privateMap.get("password");
