@@ -313,8 +313,8 @@ public class KeycloakUserService extends Script {
             String username = "";
             String locale = "";
             if (isNotEmptyMap(publicMap)) {
-                username = String.valueOf(publicMap.get("username"));
-                locale = String.valueOf(publicMap.get("locale"));
+                username = (String) publicMap.get("username");
+                locale = (String) publicMap.get("locale");
             }
 
             String emailAddress = "";
