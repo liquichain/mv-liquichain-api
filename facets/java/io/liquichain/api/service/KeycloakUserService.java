@@ -292,8 +292,8 @@ public class KeycloakUserService extends Script {
         String currentUsername = null;
         String currentLocale = null;
         if (isNotEmptyMap(currentPublicInfoMap)) {
-            currentUsername = String.valueOf(currentPublicInfoMap.get("username"));
-            currentLocale = String.valueOf(currentPublicInfoMap.get("locale"));
+            currentUsername = (String) currentPublicInfoMap.get("username");
+            currentLocale = (String) currentPublicInfoMap.get("locale");
         }
         currentLocale = StringUtils.isBlank(currentLocale) ? "en" : currentLocale;
 
@@ -313,8 +313,8 @@ public class KeycloakUserService extends Script {
             String username = "";
             String locale = "";
             if (isNotEmptyMap(publicMap)) {
-                username = (String)publicMap.get("username");
-                locale = (String)publicMap.get("locale");
+                username = (String) publicMap.get("username");
+                locale = (String) publicMap.get("locale");
             }
 
             String emailAddress = "";
