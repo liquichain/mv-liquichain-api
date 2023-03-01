@@ -376,7 +376,8 @@ public class KeycloakUserService extends Script {
 
                     if (differentLocale) {
                         LOG.info("add/replace locale");
-                        Map<String, Object> attributesMap = (Map<String, Object>) userMap.get("attributes");
+                        Map<String, Object> attributesMap = Objects
+                            .requireNonNullElse((Map<String, Object>) userMap.get("attributes"), new HashMap<>());
                         String newLocale = Objects.requireNonNullElse(locale, currentLocale);
                         List<String> localeList = new ArrayList<>();
                         localeList.add(newLocale);
