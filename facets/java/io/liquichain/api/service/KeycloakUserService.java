@@ -248,7 +248,7 @@ public class KeycloakUserService extends Script {
 
         String username = null;
         if (isNotEmptyMap(publicMap)) {
-            username = String.valueOf(publicMap.get("username"));
+            username = (String) publicMap.get("username");
         }
 
         String emailAddress = null;
@@ -260,8 +260,8 @@ public class KeycloakUserService extends Script {
         }
         emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
 
-        boolean hasUsername = !"null".equalsIgnoreCase(username) && StringUtils.isNotBlank(username);
-        boolean hasPassword = !"null".equalsIgnoreCase(password) && StringUtils.isNotBlank(password);
+        boolean hasUsername = StringUtils.isNotBlank(username);
+        boolean hasPassword = StringUtils.isNotBlank(password);
         if (hasUsername && hasPassword) {
             String token = login();
             String userDetails = buildUserDetails(username, emailAddress, name, password);
@@ -375,23 +375,13 @@ public class KeycloakUserService extends Script {
                     }
 
                     if (differentLocale) {
-                        LOG.info("locale is different.");
+                        LOG.info("add/replace locale");
                         Map<String, Object> attributesMap = (Map<String, Object>) userMap.get("attributes");
-                        if (attributesMap == null) {
-                            LOG.info("attributes are null");
-                        } else {
-                            LOG.info("attributes size == {}", attributesMap.size());
-                            LOG.info("attributes json == {}", toJson(attributesMap));
-                            LOG.info("attributes locale ext == {}", attributesMap.get("locale"));
-                            if (attributesMap.get("locale") != null) {
-                                String currLocale = String.valueOf(((List) attributesMap.get("locale")).get(0));
-                                LOG.info("currLocale == {}", currLocale);
-                                List localeList = new ArrayList<String>();
-                                localeList.add(locale);
-                                attributesMap.put("locale", localeList);
-                                userMap.put("attributes", attributesMap);
-                            }
-                        }
+                        String newLocale = Objects.requireNonNullElse(locale, currentLocale);
+                        List<String> localeList = new ArrayList<>();
+                        localeList.add(newLocale);
+                        attributesMap.put("locale", localeList);
+                        userMap.put("attributes", attributesMap);
                     }
 
                     String userDetails = toJson(userMap);
