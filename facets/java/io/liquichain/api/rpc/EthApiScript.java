@@ -73,6 +73,7 @@ public class EthApiScript extends Script {
         public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
     }
 
+
     public static class EthService {
         private final String BESU_API_URL;
         private static final int CONNECTION_POOL_SIZE = 50;
@@ -349,7 +350,7 @@ class BesuProcessor extends BlockchainProcessor {
         LOG.info("json rpc: {}, parameters:{}", method, parameters);
 
         EthereumMethod ethereumMethod = ethereumMethods.get(method);
-        if(ethereumMethod != null){
+        if (ethereumMethod != null) {
             EthereumMethodExecutor executor = new EthereumMethodExecutor(ethereumMethods);
             result = executor.execute(requestId, parameters);
             return;
@@ -426,11 +427,14 @@ class BesuProcessor extends BlockchainProcessor {
             // if not found, then it is not a smart contract
         }
 
+        LOG.info("isSmartContract: {}", isSmartContract);
         if (isSmartContract) {
             smartContract = liquichainApp.getHexCode();
             Map<String, String> handlers = liquichainApp.getContractMethodHandlers();
             String abi = liquichainApp.getAbi();
             boolean hasAbi = abi != null && abi.length() > 0;
+
+            LOG.info("hasAbi: {}", hasAbi);
             if (hasAbi) {
                 ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
                 MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
