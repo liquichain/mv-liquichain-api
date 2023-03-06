@@ -151,14 +151,13 @@ public class EthScannScript extends Script {
                                                         .offset(offset)
                                                         .getResults();
 
-
-
         List<Map<String, Object>> results = new ArrayList<>();
         for (Transaction transaction : transactions) {
             Map<String, Object> map = new HashMap<>();
             boolean hasCreationDate = transaction.getCreationDate() != null;
             Long creationDate = hasCreationDate ? transaction.getCreationDate().toEpochMilli() : null;
             Map<String, Object> data = convert(transaction.getData());
+            String value = transaction.getValue() != null ? (new BigInteger(transaction.getValue())).toString(16) : "0";
             map.put("blockNumber", transaction.getBlockNumber());
             map.put("timeStamp", creationDate);
             map.put("hash", transaction.getHexHash());
@@ -168,7 +167,7 @@ public class EthScannScript extends Script {
             map.put("from", "0x" + transaction.getFromHexHash());
             map.put("to", "0x" + transaction.getToHexHash());
             map.put("initiatedBy", "0x" + transaction.getInitiator());
-            map.put("value", "0x" + (new BigInteger(transaction.getValue())).toString(16));
+            map.put("value", "0x" + value);
             map.put("data", data);
             map.put("gas", "0");
             map.put("gasPrice", "0x" + transaction.getGasPrice());
