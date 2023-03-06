@@ -148,17 +148,19 @@ public class EthScannScript extends Script {
 
         String walletId = normalizeHash(hash);
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                        .or(List.of("fromHexHash", "toHexHash", "initiator"), walletId)
+                                                        .by("likeCriterias fromHexHash toHexHash initiator", walletId)
                                                         .orderBy("creationDate", false)
                                                         .limit(limit)
                                                         .offset(offset)
                                                         .getResults();
 
+
+
         List<Map<String, Object>> results = new ArrayList<>();
         for (Transaction transaction : transactions) {
             Map<String, Object> map = new HashMap<>();
             boolean hasCreationDate = transaction.getCreationDate() != null;
-            Long creationDate = hasCreationDate? transaction.getCreationDate().toEpochMilli() : null;
+            Long creationDate = hasCreationDate ? transaction.getCreationDate().toEpochMilli() : null;
             Map<String, Object> data = convert(transaction.getData());
             map.put("blockNumber", transaction.getBlockNumber());
             map.put("timeStamp", creationDate);
@@ -170,7 +172,7 @@ public class EthScannScript extends Script {
             map.put("to", "0x" + transaction.getToHexHash());
             map.put("initiatedBy", "0x" + transaction.getInitiator());
             map.put("value", "0x" + (new BigInteger(transaction.getValue())).toString(16));
-            map.put("data",  data);
+            map.put("data", data);
             map.put("gas", "0");
             map.put("gasPrice", "0x" + transaction.getGasPrice());
             map.put("isError", "0");
