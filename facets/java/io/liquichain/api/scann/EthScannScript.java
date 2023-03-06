@@ -2,9 +2,7 @@ package io.liquichain.api.scann;
 
 
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.List;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.math.BigInteger;
@@ -20,7 +18,6 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.storage.RepositoryService;
 import org.meveo.api.persistence.CrossStorageApi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class EthScannScript extends Script {
