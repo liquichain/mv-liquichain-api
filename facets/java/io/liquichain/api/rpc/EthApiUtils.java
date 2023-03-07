@@ -30,7 +30,7 @@ public class EthApiUtils extends Script {
             "  \"jsonrpc\": \"2.0\",\n" +
             "  \"result\": " + formatResult(result) + "\n" +
             "}";
-        LOG.info("response: {}", response);
+        LOG.debug("response: {}", response);
         return response;
     }
 
@@ -43,7 +43,7 @@ public class EthApiUtils extends Script {
             "    \"message\": \"" + message + "\"\n" +
             "  }\n" +
             "}";
-        LOG.info("error response: {}", response);
+        LOG.debug("error response: {}", response);
         return response;
     }
 
