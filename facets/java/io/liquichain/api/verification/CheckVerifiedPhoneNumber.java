@@ -41,7 +41,7 @@ public class CheckVerifiedPhoneNumber extends Script {
                                                                  .by("phoneNumber", phoneNumber)
                                                                  .getResult();
 
-        LOG.info("verifiedPhoneNumber: {}", verifiedPhoneNumber);
+        LOG.debug("verifiedPhoneNumber: {}", verifiedPhoneNumber);
 
         if (verifiedPhoneNumber == null) {
             result= "phone_number_does_not_exist";

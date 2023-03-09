@@ -87,7 +87,7 @@ public class VerifyOtpForPasswordReset extends Script {
             return;
         }
 
-        LOG.info("VerifyOtpForPasswordReset - verify otp:{} to:{}", otp, to);
+        LOG.debug("VerifyOtpForPasswordReset - verify otp:{} to:{}", otp, to);
 
         OutboundSMS latestSMS = crossStorageApi.find(defaultRepo, OutboundSMS.class)
                                                .by("to", to)
@@ -106,10 +106,10 @@ public class VerifyOtpForPasswordReset extends Script {
             long attempts = latestSMS.getVerificationAttempts();
             boolean isTooManyAttempts = attempts >= MAX_ATTEMPTS;
 
-            LOG.info("creationDate: {}", creationDate);
-            LOG.info("isExpired: {}", isExpired);
-            LOG.info("isVerified: {}", isVerified);
-            LOG.info("isFailed: {}", isFailed);
+            LOG.debug("creationDate: {}", creationDate);
+            LOG.debug("isExpired: {}", isExpired);
+            LOG.debug("isVerified: {}", isVerified);
+            LOG.debug("isFailed: {}", isFailed);
 
             if (isVerified) {
                 result = buildError("already_verified");
@@ -133,7 +133,7 @@ public class VerifyOtpForPasswordReset extends Script {
                 latestSMS.setVerificationAttempts(++attempts);
                 result = buildError("otp_incorrect");
             }
-            LOG.info("result:{}", result);
+            LOG.debug("result:{}", result);
             if (!isVerified || !isFailed) {
                 try {
                     crossStorageApi.createOrUpdate(defaultRepo, latestSMS);

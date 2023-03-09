@@ -134,7 +134,7 @@ public class KeycloakUserService extends Script {
     }
 
     private String login() {
-        LOG.info("login - START");
+        LOG.debug("login - START");
         String token;
         Response response = null;
         try {
@@ -154,7 +154,7 @@ public class KeycloakUserService extends Script {
                 response.close();
             }
         }
-        LOG.info("login - SUCCESS");
+        LOG.debug("login - SUCCESS");
         return token;
     }
 
@@ -210,8 +210,8 @@ public class KeycloakUserService extends Script {
         String updateResult;
         try {
             String requestUrl = USERS_URL + "/" + userId;
-            LOG.info("update url: {}", requestUrl);
-            LOG.info("userDetails: {}", userDetails);
+            LOG.debug("update url: {}", requestUrl);
+            LOG.debug("userDetails: {}", userDetails);
             response = client.target(requestUrl)
                              .request(MediaType.APPLICATION_JSON)
                              .header("Authorization", "Bearer " + token)
@@ -267,17 +267,17 @@ public class KeycloakUserService extends Script {
             String userDetails = buildUserDetails(username, emailAddress, name, password);
             String saveResult = createKeycloakUser(token, userDetails);
             createMeveoUser(name, username, emailAddress);
-            LOG.info("saveResult: {}", saveResult);
+            LOG.debug("saveResult: {}", saveResult);
         } else {
-            LOG.info("No username and password included, will not create keycloak and meveo user.");
+            LOG.debug("No username and password included, will not create keycloak and meveo user.");
         }
     }
 
     public void updateUser(String name, String publicInfo, String privateInfo, Wallet wallet) throws BusinessException {
-        LOG.info("publicInfo == {}", publicInfo);
+        LOG.debug("publicInfo == {}", publicInfo);
         String currentPublicInfo = wallet.getPublicInfo();
         String currentPrivateInfo = wallet.getPrivateInfo();
-        LOG.info("wallet currentPublicInfo == {}", wallet.getPublicInfo());
+        LOG.debug("wallet currentPublicInfo == {}", wallet.getPublicInfo());
 
         Map<String, Object> currentPublicInfoMap = null;
         if (StringUtils.isNotBlank(currentPublicInfo)) {
@@ -303,7 +303,7 @@ public class KeycloakUserService extends Script {
                 : currentUsername;
         }
 
-        LOG.info("currentUsername: {}", currentUsername);
+        LOG.debug("currentUsername: {}", currentUsername);
         if (StringUtils.isBlank(currentUsername)) {
             createUser(name, publicInfo, privateInfo);
         } else {
@@ -342,13 +342,13 @@ public class KeycloakUserService extends Script {
             boolean shouldUpdateUser = hasPassword || hasUsername
                 && (differentName || differentEmailAddress || differentUsername || differentLocale);
 
-            LOG.info("hasPassword: {}", hasPassword);
-            LOG.info("hasUsername: {}", hasUsername);
-            LOG.info("name: {} => {}", wallet.getName(), name);
-            LOG.info("email address: {} => {}", currentEmailAddress, emailAddress);
-            LOG.info("username: {} => {}", currentUsername, username);
-            LOG.info("locale: {} => {}", currentLocale, locale);
-            LOG.info("shouldUpdateUser: {}", shouldUpdateUser);
+            LOG.debug("hasPassword: {}", hasPassword);
+            LOG.debug("hasUsername: {}", hasUsername);
+            LOG.debug("name: {} => {}", wallet.getName(), name);
+            LOG.debug("email address: {} => {}", currentEmailAddress, emailAddress);
+            LOG.debug("username: {} => {}", currentUsername, username);
+            LOG.debug("locale: {} => {}", currentLocale, locale);
+            LOG.debug("shouldUpdateUser: {}", shouldUpdateUser);
 
             if (shouldUpdateUser) {
                 String token = login();
@@ -375,7 +375,7 @@ public class KeycloakUserService extends Script {
                     }
 
                     if (differentLocale) {
-                        LOG.info("add/replace locale");
+                        LOG.debug("add/replace locale");
                         Map<String, Object> attributesMap = Objects
                             .requireNonNullElse((Map<String, Object>) userMap.get("attributes"), new HashMap<>());
                         String newLocale = Objects.requireNonNullElse(locale, currentLocale);
@@ -387,7 +387,7 @@ public class KeycloakUserService extends Script {
 
                     String userDetails = toJson(userMap);
                     String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
-                    LOG.info("updateResult: {}", updateResult);
+                    LOG.debug("updateResult: {}", updateResult);
                 } else { // create keycloak user
                     if (StringUtils.isBlank(password)) {
                         String errorMessage =
@@ -398,14 +398,14 @@ public class KeycloakUserService extends Script {
                     String userDetails = buildUserDetails(username, emailAddress, name, password);
                     String saveResult = createKeycloakUser(token, userDetails);
                     createMeveoUser(name, username, emailAddress);
-                    LOG.info("saveResult: {}", saveResult);
+                    LOG.debug("saveResult: {}", saveResult);
                 }
             } else {
-                LOG.info("No changes detected, will not update keycloak user");
+                LOG.debug("No changes detected, will not update keycloak user");
             }
 
             if (shouldUpdateUser) {
-                LOG.info("shouldUpdateUser");
+                LOG.debug("shouldUpdateUser");
                 User user = userService.findByUsername(currentUsername);
                 if (user != null) { // update meveo user
                     // TODO - meveo username cannot be updated
@@ -425,7 +425,7 @@ public class KeycloakUserService extends Script {
                     createMeveoUser(name, username, emailAddress);
                 }
             } else {
-                LOG.info("No changes detected, will not update meveo user");
+                LOG.debug("No changes detected, will not update meveo user");
             }
         }
     }
@@ -446,7 +446,7 @@ public class KeycloakUserService extends Script {
             Map<String, Object> userMap = findUser(token, username);
 
             if (userMap != null) { // update keycloak user
-                LOG.info("new password: {}", password);
+                LOG.debug("new password: {}", password);
                 List<Map<String, Object>> credentials = new ArrayList<>();
                 Map<String, Object> credentialMap = new HashMap<>();
                 credentialMap.put("type", "password");
@@ -456,7 +456,7 @@ public class KeycloakUserService extends Script {
                 userMap.put("credentials", credentials);
                 String userDetails = toJson(userMap);
                 String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
-                LOG.info("updateResult: {}", updateResult);
+                LOG.debug("updateResult: {}", updateResult);
             } else { // create keycloak user
                 String emailUuid = wallet.getEmailAddress().getUuid();
                 VerifiedEmail verifiedEmail = crossStorageApi.find(defaultRepo, emailUuid, VerifiedEmail.class);
@@ -465,7 +465,7 @@ public class KeycloakUserService extends Script {
                 String userDetails = this.buildUserDetails(username, emailAddress, name, password);
                 String saveResult = this.createKeycloakUser(token, userDetails);
                 this.createMeveoUser(name, username, emailAddress);
-                LOG.info("saveResult: {}", saveResult);
+                LOG.debug("saveResult: {}", saveResult);
             }
         } catch (Exception e) {
             String errorMessage = "Failed to update user with phone number: " + phoneNumber + ". - " + e.getMessage();

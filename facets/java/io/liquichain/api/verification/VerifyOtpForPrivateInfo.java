@@ -74,7 +74,7 @@ public class VerifyOtpForPrivateInfo extends Script {
             return;
         }
 
-        LOG.info("VerifyOtpForPrivateInfo - verify otp:{} phoneNumber:{}", otp, phoneNumber);
+        LOG.debug("VerifyOtpForPrivateInfo - verify otp:{} phoneNumber:{}", otp, phoneNumber);
 
         OutboundSMS latestSMS = crossStorageApi.find(defaultRepo, OutboundSMS.class)
                                                .by("to", phoneNumber)
@@ -94,10 +94,10 @@ public class VerifyOtpForPrivateInfo extends Script {
             Long attempts = verificatonAttempts == null ? 0L : verificatonAttempts;
             boolean isTooManyAttempts = attempts >= MAX_ATTEMPTS;
 
-            LOG.info("creationDate: {}", creationDate);
-            LOG.info("isExpired: {}", isExpired);
-            LOG.info("isVerified: {}", isVerified);
-            LOG.info("isFailed: {}", isFailed);
+            LOG.debug("creationDate: {}", creationDate);
+            LOG.debug("isExpired: {}", isExpired);
+            LOG.debug("isVerified: {}", isVerified);
+            LOG.debug("isFailed: {}", isFailed);
 
             if (isVerified) {
                 result = buildError("already_verified");
@@ -127,7 +127,7 @@ public class VerifyOtpForPrivateInfo extends Script {
                 latestSMS.setVerificationAttempts(++attempts);
                 result = buildError("otp_incorrect");
             }
-            LOG.info("result:{}", result);
+            LOG.debug("result:{}", result);
             if (!isVerified || !isFailed) {
                 try {
                     crossStorageApi.createOrUpdate(defaultRepo, latestSMS);

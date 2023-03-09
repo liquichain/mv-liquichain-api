@@ -42,7 +42,7 @@ public class CheckVerifiedEmail extends Script {
                                                            .by("email", email)
                                                            .getResult();
 
-        LOG.info("verifiedEmail: {}", verifiedEmail);
+        LOG.debug("verifiedEmail: {}", verifiedEmail);
 
         if (verifiedEmail == null) {
             result= "email_does_not_exist";

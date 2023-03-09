@@ -59,10 +59,10 @@ public class GetUserWalletInfo extends Script {
 
             Map<String, Object> privateInfo = new HashMap<>();
             VerifiedEmail verifiedEmail = wallet.getEmailAddress();
-            LOG.info("verifiedEmail={}", verifiedEmail);
+            LOG.debug("verifiedEmail={}", verifiedEmail);
             if (verifiedEmail != null) {
                 String emailId = verifiedEmail.getUuid();
-                LOG.info("wallet_info emailId={}", emailId);
+                LOG.debug("wallet_info emailId={}", emailId);
                 String emailAddress = verifiedEmail.getEmail();
                 boolean hasEmailAddress = StringUtils.isNotBlank(emailAddress);
                 if (StringUtils.isNotBlank(emailId) && !hasEmailAddress) {
@@ -77,7 +77,7 @@ public class GetUserWalletInfo extends Script {
                         emailAddress = null;
                     }
                 }
-                LOG.info("wallet_info emailAddress={}", emailAddress);
+                LOG.debug("wallet_info emailAddress={}", emailAddress);
                 if (verifiedEmail != null && StringUtils.isNotBlank(emailAddress)) {
                     Map<String, Object> email = new HashMap<>();
                     email.put("emailAddress", emailAddress);
@@ -88,10 +88,10 @@ public class GetUserWalletInfo extends Script {
             }
 
             VerifiedPhoneNumber verifiedPhoneNumber = wallet.getPhoneNumber();
-            LOG.info("wallet_info verifiedPhoneNumber={}", verifiedPhoneNumber);
+            LOG.debug("wallet_info verifiedPhoneNumber={}", verifiedPhoneNumber);
             if (verifiedPhoneNumber != null) {
                 String phoneId = verifiedPhoneNumber.getUuid();
-                LOG.info("wallet_info phoneId={}", phoneId);
+                LOG.debug("wallet_info phoneId={}", phoneId);
                 String phoneNumber = verifiedPhoneNumber.getPhoneNumber();
                 boolean hasPhoneNumber = StringUtils.isNotBlank(phoneNumber);
                 if (StringUtils.isNotBlank(phoneId) && !hasPhoneNumber) {
@@ -105,7 +105,7 @@ public class GetUserWalletInfo extends Script {
                         phoneNumber = null;
                     }
                 }
-                LOG.info("wallet_info phoneNumber={}", phoneNumber);
+                LOG.debug("wallet_info phoneNumber={}", phoneNumber);
                 if (verifiedPhoneNumber != null && StringUtils.isNotBlank(phoneNumber)) {
                     Map<String, Object> phone = new HashMap<>();
                     phone.put("phoneNumber", phoneNumber);
