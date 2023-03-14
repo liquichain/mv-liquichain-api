@@ -45,7 +45,7 @@ public class GetUserWalletInfo extends Script {
                 throw new RuntimeException("Username is empty");
             }
             Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class)
-                                           .by("likeCriterias privateInfo", "*" + username + "*")
+                                           .by("likeCriterias privateInfo", "*\"" + username + "\"*")
                                            .getResult();
 
             if (wallet == null) {
