@@ -178,6 +178,7 @@ public class EthScannScript extends Script {
             map.put("cumulativeGasUsed", "");
             map.put("gasUsed", "");
             map.put("confirmations", "1");
+            map.put("assetId", transaction.getAssetId());
             results.add(map);
         }
         return createResponse("success", "Balance history retrieved.", toJson(results));
