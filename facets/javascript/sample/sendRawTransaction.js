@@ -1,7 +1,7 @@
 import "https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js";
 import abi from "./abi.js";
 
-const web3 = new Web3("https://dev.telecelplay.io/meveo/rest/jsonrpc");
+const web3 = new Web3("https://dev.jips.io/meveo/rest/jsonrpc");
 const mainContainer = document.getElementById("main");
 const contractAddress = "0xContractAddress"; // fetch the contractAddress from server
 

@@ -68,11 +68,11 @@
     </repository>
     <repository>
       <id>staging-teleceplay</id>
-      <url>https://staging.telecelplay.io/meveo/maven</url>
+      <url>https://staging.jips.io/meveo/maven</url>
     </repository>
     <repository>
       <id>meveo-repo</id>
-      <url>https://dev.telecelplay.io/meveo/maven</url>
+      <url>https://dev.jips.io/meveo/maven</url>
     </repository>
     <repository>
       <snapshots>

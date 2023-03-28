@@ -1842,8 +1842,8 @@ This request is made via POST method to json rpc method **wallet_creation** with
     "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
     "3ea21960cc11bb3d82bcf47d2992e39935e182a401385720f842cbdddc97a408",
     "0x42d1db7d16c111e62a8725371eb04e98ef353de88d11be7faef6768d18f0603851e4cfed4fd7d5130a70be022f8f96d6e280dedbcf190d9804d1540e95f0939c1c",
-    "{\"shippingAddress\":{\"email\":\"testwallet1@telecelplay.io\",\"phone\":\"+639991234567\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
-    "{\"username\": \"walletuser\", \"emailAddress\":\"testwallet1@telecelplay.io\", \"password\": \"walletuser\",\"phoneNumber\":\"+639991234567\"}"
+    "{\"shippingAddress\":{\"email\":\"testwallet1@liquchain.io\",\"phone\":\"+639991234567\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+    "{\"username\": \"walletuser\", \"emailAddress\":\"testwallet1@liquichain.io\", \"password\": \"walletuser\",\"phoneNumber\":\"+639991234567\"}"
   ]
 }
 ```
@@ -1877,8 +1877,8 @@ This request is made via POST method to json rpc method **wallet_update** with t
     "Test Wallet",
     "0xac08e612D1318BC9c0Aa671A1b90199bB12Bd876",
     "0x80682b0d9f06cec1797c8d303eb0ee5b42129eed9d5d3aa7118c3b924cd23cf5539831ad585e90db545356c7db3ee18461aff0301ca2d64c922f685fc664b6be1c",
-    "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
-    "{\"emailAddress\":\"account2@telecelplay.io\", \"phoneNumber\":\"+639997654321\"}"
+    "{\"shippingAddress\":{\"email\":\"account2@mafao.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}",
+    "{\"emailAddress\":\"account2@liquichain.io\", \"phoneNumber\":\"+639997654321\"}"
   ]
 }
 ```
@@ -1918,14 +1918,14 @@ This request is made via POST method to json rpc method **wallet_info** with the
   "jsonrpc": "2.0",
   "result": {
     "name": "Test Wallet",
-    "publicInfo": "{\"shippingAddress\":{\"email\":\"account2@telecelplay.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}"
+    "publicInfo": "{\"shippingAddress\":{\"email\":\"account2@liquichain.io\",\"phone\":\"+639997654321\",\"address\":\"Milo\",\"street\":\"Kaban\",\"zipCode\":\"39242\",\"city\":\"Ciney\",\"country\":\"Combo\"},\"coords\":null}"
   }
 }
 ```
 
 ## Password reset process
 To reset password, OTP verification is required.  Follow the steps below for proper password reset process.
-1. Send an OTP to the wallet's verified phone number using either [`mv-twilio`](https://github.com/telecelplay/mv-twilio) or [`mv-smstelecel`](https://github.com/telecelplay/mv-smstelecel) module.
+1. Send an OTP to the wallet's verified phone number using either [`mv-twilio`](https://github.com/liquichain/mv-twilio) or [`mv-smstelecel`](https://github.com/mafao/mv-smstelecel) module.
 2. Verify the OTP using the `verifyOtpForPasswordReset` endpoint with the following details:
 **POST - /rest/verifyOtpForPasswordReset/{phoneNumber}**
 - **phoneNumber** - is the verified phone number associated with the user wallet
@@ -1958,4 +1958,4 @@ The block parameter can have the following values:
 - `pending` : `tag` - The last block mined plus pending transactions. Use only with [eth_getTransactionCount](#eth_getTransactionCount).
 
 ## Postman Collections
-[Postman](https://www.postman.com/) collections with sample requests are available in the [**/facets/postman**](https://github.com/telecelplay/mv-liquichain-api/tree/master/facets/postman) folder. 
+[Postman](https://www.postman.com/) collections with sample requests are available in the [**/facets/postman**](https://github.com/mafao/mv-liquichain-api/tree/master/facets/postman) folder. 

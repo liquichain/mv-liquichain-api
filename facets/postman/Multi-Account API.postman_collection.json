@@ -20,7 +20,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_creation\",\n\t\"params\": [\n\t\t\"Wallet User\",\n\t\t\"{{walletId}}\",\n\t\t\"8f66f7a6391b814a5d4f13edd0482180cdfb88194733342c1831628fab137620\",\n\t\t\"0x0414d83991d91f25b67cb453ed30ab1854f527cbc7b836d0da02db19c6273ba17df40c7bf86d64d775a1547fa3705a6d0a6f2d40d0de723845e14fa92c9594021c\",\n\t\t\"{}\",\n\t\t\"{\\\"username\\\": \\\"wallet.user\\\", \\\"password\\\": \\\"Pa$sw0rd\\\", \\\"emailAddress\\\":\\\"wallet.user@telecelplay.com\\\", \\\"phoneNumber\\\":\\\"+639991234567\\\"}\"\n\t]\n}",
+					"raw": "{\n\t\"jsonrpc\": \"2.0\",\n\t\"method\": \"wallet_creation\",\n\t\"params\": [\n\t\t\"Wallet User\",\n\t\t\"{{walletId}}\",\n\t\t\"8f66f7a6391b814a5d4f13edd0482180cdfb88194733342c1831628fab137620\",\n\t\t\"0x0414d83991d91f25b67cb453ed30ab1854f527cbc7b836d0da02db19c6273ba17df40c7bf86d64d775a1547fa3705a6d0a6f2d40d0de723845e14fa92c9594021c\",\n\t\t\"{}\",\n\t\t\"{\\\"username\\\": \\\"wallet.user\\\", \\\"password\\\": \\\"Pa$sw0rd\\\", \\\"emailAddress\\\":\\\"wallet.user@liquichain.com\\\", \\\"phoneNumber\\\":\\\"+639991234567\\\"}\"\n\t]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
