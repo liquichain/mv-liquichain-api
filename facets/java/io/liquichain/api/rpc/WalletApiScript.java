@@ -1,12 +1,9 @@
 package io.liquichain.api.rpc;
 
-import java.util.*;
 import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.liquichain.api.service.KeycloakUserService;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.exception.EntityDoesNotExistsException;
 import org.meveo.api.persistence.CrossStorageApi;
@@ -23,12 +20,18 @@ import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
 import org.meveo.service.storage.RepositoryService;
 
+import io.liquichain.api.service.KeycloakUserService;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.crypto.*;
-import org.web3j.utils.*;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
+import org.web3j.crypto.Sign;
+import org.web3j.utils.Numeric;
 
 public class WalletApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(WalletApiScript.class);

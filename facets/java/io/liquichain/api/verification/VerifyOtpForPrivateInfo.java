@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
+import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
@@ -13,7 +14,6 @@ import org.meveo.model.customEntities.VerifiedPhoneNumber;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
 
 import org.slf4j.Logger;

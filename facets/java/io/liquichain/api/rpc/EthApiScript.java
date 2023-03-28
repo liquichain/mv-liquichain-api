@@ -10,6 +10,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.meveo.admin.exception.BusinessException;
+import org.meveo.api.exception.EntityDoesNotExistsException;
+import org.meveo.api.persistence.CrossStorageApi;
+import org.meveo.commons.utils.ParamBean;
+import org.meveo.commons.utils.ParamBeanFactory;
+import org.meveo.model.customEntities.Wallet;
+import org.meveo.model.customEntities.*;
+import org.meveo.model.storage.Repository;
+import org.meveo.service.script.Script;
+import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.handler.ContractMethodExecutor;
 import io.liquichain.api.handler.EthereumMethodExecutor;
@@ -19,26 +34,10 @@ import io.liquichain.api.rpc.EthApiScript.EthService;
 import io.liquichain.core.BlockForgerScript;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.meveo.api.exception.EntityDoesNotExistsException;
-import org.meveo.api.persistence.CrossStorageApi;
-import org.meveo.model.customEntities.*;
-import org.meveo.model.customEntities.Wallet;
-import org.meveo.model.storage.Repository;
-import org.meveo.service.script.Script;
-import org.meveo.admin.exception.BusinessException;
-import org.meveo.commons.utils.ParamBean;
-import org.meveo.commons.utils.ParamBeanFactory;
-import org.meveo.service.storage.RepositoryService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.*;
-import org.web3j.utils.*;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import org.web3j.utils.Numeric;
 
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);

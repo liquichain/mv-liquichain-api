@@ -3,8 +3,7 @@ package io.liquichain.api.verification;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.VerifiedEmail;
@@ -14,8 +13,10 @@ import org.meveo.model.storage.Repository;
 import org.meveo.security.MeveoUser;
 import org.meveo.service.crm.impl.CurrentUserProducer;
 import org.meveo.service.script.Script;
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

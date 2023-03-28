@@ -1,24 +1,23 @@
 package io.liquichain.api.scann;
 
-
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.meveo.admin.exception.BusinessException;
+import org.meveo.api.persistence.CrossStorageApi;
+import org.meveo.model.customEntities.Transaction;
+import org.meveo.model.customEntities.Wallet;
+import org.meveo.model.storage.Repository;
+import org.meveo.service.script.Script;
+import org.meveo.service.storage.RepositoryService;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.meveo.service.script.Script;
-import org.meveo.admin.exception.BusinessException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.meveo.model.customEntities.Wallet;
-import org.meveo.model.customEntities.Transaction;
-import org.meveo.model.storage.Repository;
-import org.meveo.service.storage.RepositoryService;
-import org.meveo.api.persistence.CrossStorageApi;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class EthScannScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthScannScript.class);

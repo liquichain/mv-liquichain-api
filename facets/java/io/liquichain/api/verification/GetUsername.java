@@ -1,12 +1,13 @@
 package io.liquichain.api.verification;
 
-import static io.liquichain.api.rpc.EthApiUtils.*;
+import static io.liquichain.api.rpc.EthApiUtils.convert;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.VerifiedEmail;
@@ -14,11 +15,8 @@ import org.meveo.model.customEntities.VerifiedPhoneNumber;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.storage.RepositoryService;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
