@@ -44,7 +44,7 @@ public class CreateOutboundSMS extends Script {
         sms.setOtpCode(otp);
         sms.setPurpose("OTP");
         sms.setCreationDate(Instant.now());
-        sms.setMessage("Your telecelplay verification code is: " + otp);
+        sms.setMessage("Your mafao verification code is: " + otp);
         sms.setResponse("message sent");
 
         try {
