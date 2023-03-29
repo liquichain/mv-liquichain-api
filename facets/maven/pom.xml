@@ -50,13 +50,13 @@
   <dependencies>
     <dependency>
       <groupId>org.web3j</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>crypto</artifactId>
       <version>4.8.9</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.web3j</groupId>
-      <artifactId>crypto</artifactId>
+      <artifactId>core</artifactId>
       <version>4.8.9</version>
       <scope>provided</scope>
     </dependency>
