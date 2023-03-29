@@ -205,6 +205,29 @@ public class KeycloakUserService extends Script {
         return saveResult;
     }
 
+    public String deleteKeycloakUser(String token, String userId) throws BusinessException {
+        Response response = null;
+        String deleteResult;
+        try {
+            response = client.target(USERS_URL + "/" + userId)
+                             .request(MediaType.APPLICATION_JSON)
+                             .header("Authorization", "Bearer " + token)
+                             .delete();
+            deleteResult = response.readEntity(String.class);
+            if (deleteResult != null && deleteResult.contains("error")) {
+                Map<String, Object> resultMap = convert(deleteResult);
+                LOG.error("Failed to delete keycloak user: " + deleteResult);
+                String errorMessage = "" + resultMap.get("errorMessage");
+                throw new BusinessException("Failed to delete keycloak user. Cause: " + errorMessage);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        return deleteResult;
+    }
+
     public String updateKeycloakUser(String token, String userId, String userDetails) throws BusinessException {
         Response response = null;
         String updateResult;
@@ -271,6 +294,12 @@ public class KeycloakUserService extends Script {
         } else {
             LOG.debug("No username and password included, will not create keycloak and meveo user.");
         }
+    }
+
+    public void deleteUser(String username) throws BusinessException {
+        String token = login();
+        Map<String, Object> userMap = findUser(token, username);
+        LOG.info("userMap: {}", toJson(userMap));
     }
 
     public void updateUser(String name, String publicInfo, String privateInfo, Wallet wallet) throws BusinessException {
