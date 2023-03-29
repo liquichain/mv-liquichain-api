@@ -30,7 +30,6 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class KeycloakUserService extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(KeycloakUserService.class);
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -39,10 +38,10 @@ public class KeycloakUserService extends Script {
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
     private static final Client client = new ResteasyClientBuilder()
-        .connectionPoolSize(CONNECTION_POOL_SIZE)
-        .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
-        .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
-        .build();
+            .connectionPoolSize(CONNECTION_POOL_SIZE)
+            .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+            .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+            .build();
 
     private final UserService userService;
     private final RoleService roleService;
@@ -55,7 +54,7 @@ public class KeycloakUserService extends Script {
     private final String USERS_URL;
 
     public KeycloakUserService(ParamBean config, CrossStorageApi crossStorageApi, Repository defaultRepo,
-        UserService userService, RoleService roleService) {
+            UserService userService, RoleService roleService) {
         this.crossStorageApi = crossStorageApi;
         this.defaultRepo = defaultRepo;
         this.userService = userService;
@@ -108,28 +107,28 @@ public class KeycloakUserService extends Script {
         emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
 
         String userDetails = "{\n" +
-            "    \"username\": \"" + username + "\",\n" +
-            "    \"enabled\": true,\n" +
-            "    \"email\": \"" + emailAddress + "\",\n" +
-            "    \"emailVerified\": true,\n" +
-            "    \"firstName\": \"" + name + "\",\n" +
-            "    \"lastName\": \"\",\n" +
-            "    \"attributes\": {\n" +
-            "        \"locale\": [\"en\"]\n" +
-            "    },\n" +
-            "    \"credentials\": [{\n" +
-            "        \"type\": \"password\",\n" +
-            "        \"value\": \"" + password + "\",\n" +
-            "        \"temporary\": false\n" +
-            "    }],\n" +
-            "    \"access\": {\n" +
-            "        \"manageGroupMembership\": true,\n" +
-            "        \"view\": true,\n" +
-            "        \"mapRoles\": true,\n" +
-            "        \"impersonate\": false,\n" +
-            "        \"manage\": true\n" +
-            "    }\n" +
-            "}";
+                "    \"username\": \"" + username + "\",\n" +
+                "    \"enabled\": true,\n" +
+                "    \"email\": \"" + emailAddress + "\",\n" +
+                "    \"emailVerified\": true,\n" +
+                "    \"firstName\": \"" + name + "\",\n" +
+                "    \"lastName\": \"\",\n" +
+                "    \"attributes\": {\n" +
+                "        \"locale\": [\"en\"]\n" +
+                "    },\n" +
+                "    \"credentials\": [{\n" +
+                "        \"type\": \"password\",\n" +
+                "        \"value\": \"" + password + "\",\n" +
+                "        \"temporary\": false\n" +
+                "    }],\n" +
+                "    \"access\": {\n" +
+                "        \"manageGroupMembership\": true,\n" +
+                "        \"view\": true,\n" +
+                "        \"mapRoles\": true,\n" +
+                "        \"impersonate\": false,\n" +
+                "        \"manage\": true\n" +
+                "    }\n" +
+                "}";
         return userDetails;
     }
 
@@ -139,9 +138,9 @@ public class KeycloakUserService extends Script {
         Response response = null;
         try {
             Form form = new Form()
-                .param("grant_type", "client_credentials")
-                .param("client_id", CLIENT_ID)
-                .param("client_secret", CLIENT_SECRET);
+                    .param("grant_type", "client_credentials")
+                    .param("client_id", CLIENT_ID)
+                    .param("client_secret", CLIENT_SECRET);
 
             response = client.target(LOGIN_URL)
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
@@ -296,10 +295,13 @@ public class KeycloakUserService extends Script {
         }
     }
 
-    public void deleteUser(String username) throws BusinessException {
+    public void deleteUser(User user) throws BusinessException {
         String token = login();
+        String username = user.getUserName();
         Map<String, Object> userMap = findUser(token, username);
-        LOG.info("userMap: {}", toJson(userMap));
+        String userId = "" + userMap.get("id");
+        deleteKeycloakUser(token, userId);
+        userService.remove(user);
     }
 
     public void updateUser(String name, String publicInfo, String privateInfo, Wallet wallet) throws BusinessException {
@@ -328,8 +330,8 @@ public class KeycloakUserService extends Script {
 
         if (isNotEmptyMap(currentPrivateInfoMap)) {
             currentUsername = StringUtils.isNotBlank(currentPrivateInfoMap.get("username"))
-                ? currentPrivateInfoMap.get("username")
-                : currentUsername;
+                    ? currentPrivateInfoMap.get("username")
+                    : currentUsername;
         }
 
         LOG.debug("currentUsername: {}", currentUsername);
@@ -369,7 +371,7 @@ public class KeycloakUserService extends Script {
             boolean differentLocale = StringUtils.compare(locale, currentLocale) != 0;
 
             boolean shouldUpdateUser = hasPassword || hasUsername
-                && (differentName || differentEmailAddress || differentUsername || differentLocale);
+                    && (differentName || differentEmailAddress || differentUsername || differentLocale);
 
             LOG.debug("hasPassword: {}", hasPassword);
             LOG.debug("hasUsername: {}", hasUsername);
@@ -406,7 +408,7 @@ public class KeycloakUserService extends Script {
                     if (differentLocale) {
                         LOG.debug("add/replace locale");
                         Map<String, Object> attributesMap = Objects
-                            .requireNonNullElse((Map<String, Object>) userMap.get("attributes"), new HashMap<>());
+                                .requireNonNullElse((Map<String, Object>) userMap.get("attributes"), new HashMap<>());
                         String newLocale = Objects.requireNonNullElse(locale, currentLocale);
                         List<String> localeList = new ArrayList<>();
                         localeList.add(newLocale);
@@ -420,7 +422,7 @@ public class KeycloakUserService extends Script {
                 } else { // create keycloak user
                     if (StringUtils.isBlank(password)) {
                         String errorMessage =
-                            "Keycloak user does not exist, include a password in privateInfo to create a new one.";
+                                "Keycloak user does not exist, include a password in privateInfo to create a new one.";
                         LOG.error(errorMessage);
                         throw new BusinessException(errorMessage);
                     }
@@ -467,7 +469,6 @@ public class KeycloakUserService extends Script {
             Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class)
                                            .by("phoneNumber", verifiedPhoneNumber)
                                            .getResult();
-
 
             Map<String, Object> privateInfo = convert(wallet.getPrivateInfo());
             String username = "" + privateInfo.get("username");
