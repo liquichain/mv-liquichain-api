@@ -296,10 +296,13 @@ public class KeycloakUserService extends Script {
     }
 
     public void deleteUser(User user) throws BusinessException {
-        String token = login();
         String username = user.getUserName();
+
+        String token = login();
+
         Map<String, Object> userMap = findUser(token, username);
         String userId = "" + userMap.get("id");
+
         deleteKeycloakUser(token, userId);
         userService.remove(user);
     }
