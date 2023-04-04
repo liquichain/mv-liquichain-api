@@ -355,9 +355,10 @@ public class WalletApiScript extends Script {
                 crossStorageApi.createOrUpdate(defaultRepo, verifiedPhoneNumber);
                 wallet.setPhoneNumber(verifiedPhoneNumber);
             }
-
             String newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
+
             keycloakUserService.saveKeycloakAttribute(username, "wallet_id", newHash);
+
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
             LOG.error(CREATE_WALLET_ERROR, e);
