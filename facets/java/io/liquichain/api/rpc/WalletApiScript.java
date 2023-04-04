@@ -316,8 +316,9 @@ public class WalletApiScript extends Script {
             }
         }
 
+        String username = null;
         try {
-            keycloakUserService.createUser(name, publicInfo, privateInfo);
+            username = keycloakUserService.createUser(name, publicInfo, privateInfo);
         } catch (BusinessException e) {
             return createErrorResponse(requestId, INVALID_REQUEST, e.getMessage());
         }
@@ -356,13 +357,7 @@ public class WalletApiScript extends Script {
             }
 
             String newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
-            if (!Objects.equals(newHash, walletHash)) {
-                LOG.debug("wallet_creation Wallet hash changed from {} to {}", walletHash, newHash);
-                wallet.setUuid(walletHash);
-                LOG.debug("wallet_creation Attempt to update wallet with hash: {}", walletHash);
-                newHash = crossStorageApi.createOrUpdate(defaultRepo, wallet);
-                LOG.debug("wallet_creation Updated wallet hash: {}", newHash);
-            }
+            keycloakUserService.saveKeycloakAttribute(username, "wallet_id", newHash);
             return createResponse(requestId, walletHash);
         } catch (Exception e) {
             LOG.error(CREATE_WALLET_ERROR, e);

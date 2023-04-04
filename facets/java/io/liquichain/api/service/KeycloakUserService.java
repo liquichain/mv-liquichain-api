@@ -251,6 +251,13 @@ public class KeycloakUserService extends Script {
         return updateResult;
     }
 
+    public void saveKeycloakAttribute(String username, String name, String value) throws BusinessException {
+        String token = login();
+        Map<String, Object> userMap = findUser(token, username);
+        LOG.debug("userMap: {}", userMap);
+
+    }
+
     public void createMeveoUser(String name, String username, String emailAddress) throws BusinessException {
         User user = new User();
         Name fullName = new Name();
@@ -264,7 +271,7 @@ public class KeycloakUserService extends Script {
         userService.create(user);
     }
 
-    public void createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
+    public String createUser(String name, String publicInfo, String privateInfo) throws BusinessException {
         Map<String, Object> publicMap = StringUtils.isNotBlank(publicInfo) ? convert(publicInfo) : null;
         Map<String, String> privateMap = StringUtils.isNotBlank(privateInfo) ? convert(privateInfo) : null;
 
@@ -293,6 +300,7 @@ public class KeycloakUserService extends Script {
         } else {
             LOG.debug("No username and password included, will not create keycloak and meveo user.");
         }
+        return username;
     }
 
     public void deleteUser(User user) throws BusinessException {
