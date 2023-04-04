@@ -83,10 +83,10 @@ public class KeycloakUserService extends Script {
         return json;
     }
 
-    public static <T> T convert(Object data) {
+    public static <T> T convert(String data) {
         T value = null;
         try {
-            value = mapper.readValue(("" + data), new TypeReference<T>() {
+            value = mapper.readValue((data), new TypeReference<T>() {
             });
         } catch (Exception e) {
             LOG.error("Failed to parse data: {}", data, e);
@@ -255,7 +255,7 @@ public class KeycloakUserService extends Script {
         String token = login();
         Map<String, Object> userMap = findUser(token, username);
         LOG.debug("userMap: {}", userMap);
-        Map<String, Object> attributes = convert(userMap.get("attributes"));
+        Map<String, Object> attributes = (Map<String, Object>) userMap.get("attributes");
         attributes.put(attribute, value);
         userMap.put("attributes", attributes);
         String userDetails = toJson(userMap);
