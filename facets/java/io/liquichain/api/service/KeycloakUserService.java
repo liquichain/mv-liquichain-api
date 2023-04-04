@@ -255,7 +255,6 @@ public class KeycloakUserService extends Script {
         String token = login();
         Map<String, Object> userMap = findUser(token, username);
         LOG.debug("userMap: {}", userMap);
-
     }
 
     public void createMeveoUser(String name, String username, String emailAddress) throws BusinessException {
