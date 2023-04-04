@@ -83,10 +83,10 @@ public class KeycloakUserService extends Script {
         return json;
     }
 
-    public static <T> T convert(String data) {
+    public static <T> T convert(Object data) {
         T value = null;
         try {
-            value = mapper.readValue(data, new TypeReference<T>() {
+            value = mapper.readValue(("" + data), new TypeReference<T>() {
             });
         } catch (Exception e) {
             LOG.error("Failed to parse data: {}", data, e);
@@ -251,10 +251,16 @@ public class KeycloakUserService extends Script {
         return updateResult;
     }
 
-    public void saveKeycloakAttribute(String username, String name, String value) throws BusinessException {
+    public void saveKeycloakAttribute(String username, String attribute, String value) throws BusinessException {
         String token = login();
         Map<String, Object> userMap = findUser(token, username);
         LOG.debug("userMap: {}", userMap);
+        Map<String, Object> attributes = convert(userMap.get("attributes"));
+        attributes.put(attribute, value);
+        userMap.put("attributes", attributes);
+        String userDetails = toJson(userMap);
+        String updateResult = updateKeycloakUser(token, "" + userMap.get("id"), userDetails);
+        LOG.debug("saveKeycloakAttribute result: {}", updateResult);
     }
 
     public void createMeveoUser(String name, String username, String emailAddress) throws BusinessException {
