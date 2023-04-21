@@ -1,5 +1,7 @@
 package io.liquichain.api.verification;
 
+import static io.liquichain.api.verification.GetUsername.isValidEmail;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 public class GetUserWalletInfo extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(GetUserWalletInfo.class);
+
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
@@ -45,9 +48,24 @@ public class GetUserWalletInfo extends Script {
             if (StringUtils.isBlank(username)) {
                 throw new RuntimeException("Username is empty");
             }
-            Wallet wallet = crossStorageApi.find(defaultRepo, Wallet.class)
-                                           .by("likeCriterias privateInfo", "*\"" + username + "\"*")
-                                           .getResult();
+            Wallet wallet = null;
+            VerifiedEmail verifiedEmail = null;
+            if (isValidEmail(username)) {
+                verifiedEmail = crossStorageApi.find(defaultRepo, VerifiedEmail.class)
+                                               .by("emailAddress", username)
+                                               .getResult();
+                if (verifiedEmail == null) {
+                    throw new RuntimeException("No matching email for username: " + username);
+                }
+                wallet = crossStorageApi.find(defaultRepo, Wallet.class)
+                                        .by("emailAddress", verifiedEmail)
+                                        .getResult();
+
+            } else {
+                wallet = crossStorageApi.find(defaultRepo, Wallet.class)
+                                        .by("likeCriterias privateInfo", "*\"" + username + "\"*")
+                                        .getResult();
+            }
 
             if (wallet == null) {
                 throw new RuntimeException("Failed to retrieve wallet for username: " + username);
@@ -59,7 +77,9 @@ public class GetUserWalletInfo extends Script {
             response.put("publicInfo", convert(wallet.getPublicInfo()));
 
             Map<String, Object> privateInfo = new HashMap<>();
-            VerifiedEmail verifiedEmail = wallet.getEmailAddress();
+            if (verifiedEmail == null) {
+                verifiedEmail = wallet.getEmailAddress();
+            }
             LOG.debug("verifiedEmail={}", verifiedEmail);
             if (verifiedEmail != null) {
                 String emailId = verifiedEmail.getUuid();
@@ -68,8 +88,7 @@ public class GetUserWalletInfo extends Script {
                 boolean hasEmailAddress = StringUtils.isNotBlank(emailAddress);
                 if (StringUtils.isNotBlank(emailId) && !hasEmailAddress) {
                     try {
-                        verifiedEmail =
-                            crossStorageApi.find(defaultRepo, emailId, VerifiedEmail.class);
+                        verifiedEmail = crossStorageApi.find(defaultRepo, emailId, VerifiedEmail.class);
                         if (verifiedEmail != null) {
                             emailAddress = verifiedEmail.getEmail();
                         }
