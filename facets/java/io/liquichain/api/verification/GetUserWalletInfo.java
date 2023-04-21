@@ -52,7 +52,7 @@ public class GetUserWalletInfo extends Script {
             VerifiedEmail verifiedEmail = null;
             if (isValidEmail(username)) {
                 verifiedEmail = crossStorageApi.find(defaultRepo, VerifiedEmail.class)
-                                               .by("emailAddress", username)
+                                               .by("email", username)
                                                .getResult();
                 if (verifiedEmail == null) {
                     throw new RuntimeException("No matching email for username: " + username);
