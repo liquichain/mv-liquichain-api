@@ -59,12 +59,12 @@ public class EthScannScript extends Script {
             address = address.substring(2);
         }
         switch (action) {
-            case "balance":
-                result = getBalance(address);
-                break;
-            case "balancehistory":
-                result = getTransactionList(address);
-                break;
+        case "balance":
+            result = getBalance(address);
+            break;
+        case "balancehistory":
+            result = getTransactionList(address);
+            break;
         }
     }
 
@@ -113,7 +113,7 @@ public class EthScannScript extends Script {
         try {
             Wallet wallet = crossStorageApi.find(defaultRepo, hash.toLowerCase(), Wallet.class);
             return createResponse("success", "OK-Missing/Invalid API Key, rate limit of 1/5sec applied",
-                "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
+                    "\"0x" + new BigInteger(wallet.getBalance()).toString(16)) + "\"";
         } catch (Exception e) {
             return createResponse("fail", "Resource not found", e.getMessage());
         }
@@ -144,7 +144,7 @@ public class EthScannScript extends Script {
 
         String walletId = normalizeHash(hash);
         List<Transaction> transactions = crossStorageApi.find(defaultRepo, Transaction.class)
-                                                        .by("likeCriterias fromHexHash toHexHash initiator", walletId)
+                                                        .or(List.of("fromHexHash", "toHexHash", "initiator"), walletId)
                                                         .orderBy("creationDate", false)
                                                         .limit(limit)
                                                         .offset(offset)
