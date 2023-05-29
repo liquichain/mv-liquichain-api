@@ -9,7 +9,7 @@
     "code" : "mv-twilio",
     "description" : "Twilio implementation",
     "currentVersion" : "0.1",
-    "gitUrl" : "https://github.com/unikbase/mv-twilio.git",
+    "gitUrl" : "https://github.com/liquichain/mv-twilio.git",
     "gitBranch" : "master"
   }],
   "moduleFiles" : [ ]
