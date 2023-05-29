@@ -8,7 +8,7 @@
   "moduleDependencies" : [ {
     "code" : "mv-twilio",
     "description" : "Twilio implementation",
-    "currentVersion" : "0.1",
+    "currentVersion" : "0.2",
     "gitUrl" : "https://github.com/liquichain/mv-twilio.git",
     "gitBranch" : "master"
   }],
