@@ -5,6 +5,12 @@
   "currentVersion" : "0.20",
   "isInDraft" : true,
   "autoCommit" : false,
-  "moduleDependencies" : [ ],
+  "moduleDependencies" : [ {
+    "code" : "mv-twilio",
+    "description" : "Twilio implementation",
+    "currentVersion" : "0.1",
+    "gitUrl" : "https://github.com/unikbase/mv-twilio.git",
+    "gitBranch" : "master"
+  }],
   "moduleFiles" : [ ]
 }
