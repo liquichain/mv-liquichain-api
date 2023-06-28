@@ -49,9 +49,7 @@ public class EthApiScript extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
     private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
 
-
     public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY}
-
 
     public static class EthApiConstants {
         public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
@@ -72,17 +70,16 @@ public class EthApiScript extends Script {
         public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
     }
 
-
     public static class EthService {
         private final String BESU_API_URL;
         private static final int CONNECTION_POOL_SIZE = 50;
         private static final int MAX_POOLED_PER_ROUTE = 5;
         private static final long CONNECTION_TTL = 5;
         private final Client client = new ResteasyClientBuilder()
-            .connectionPoolSize(CONNECTION_POOL_SIZE)
-            .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
-            .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
-            .build();
+                .connectionPoolSize(CONNECTION_POOL_SIZE)
+                .maxPooledPerRoute(MAX_POOLED_PER_ROUTE)
+                .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
+                .build();
 
         public EthService(ParamBean config) {
             BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
@@ -98,11 +95,11 @@ public class EthApiScript extends Script {
             Response response = null;
 
             String body = "{" +
-                "  \"id\": " + formatId(id) + "," +
-                "  \"jsonrpc\": \"" + jsonRpcVersion + "\"," +
-                "  \"method\": \"" + method + "\"," +
-                "  \"params\": " + toJson(params) +
-                "}";
+                    "  \"id\": " + formatId(id) + "," +
+                    "  \"jsonrpc\": \"" + jsonRpcVersion + "\"," +
+                    "  \"method\": \"" + method + "\"," +
+                    "  \"params\": " + toJson(params) +
+                    "}";
 
             LOG.debug("callEthJsonRpc body: {}", body);
 
@@ -125,7 +122,6 @@ public class EthApiScript extends Script {
         }
     }
 
-
     protected String result;
 
     public String getResult() {
@@ -142,18 +138,17 @@ public class EthApiScript extends Script {
         this.init();
         BlockchainProcessor processor = null;
         switch (BLOCKCHAIN_BACKEND) {
-            case BESU:
-                processor = new BesuProcessor(crossStorageApi, defaultRepo, config);
-                break;
-            case DATABASE:
-            default:
-                processor = new DatabaseProcessor(crossStorageApi, defaultRepo, config);
+        case BESU:
+            processor = new BesuProcessor(crossStorageApi, defaultRepo, config);
+            break;
+        case DATABASE:
+        default:
+            processor = new DatabaseProcessor(crossStorageApi, defaultRepo, config);
         }
         processor.execute(parameters);
         result = processor.getResult();
     }
 }
-
 
 abstract class BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BlockchainProcessor.class);
@@ -183,7 +178,7 @@ abstract class BlockchainProcessor {
         isHookAdded = !TRANSACTION_HOOKS.containsKey(key);
         if (isHookAdded) {
             Pattern pattern = Pattern.compile(regex);
-            TRANSACTION_HOOKS.put(key, new Object[] {pattern, script});
+            TRANSACTION_HOOKS.put(key, new Object[] { pattern, script });
         }
         return isHookAdded;
     }
@@ -230,9 +225,9 @@ abstract class BlockchainProcessor {
         Wallet walletWithSameName = null;
         try {
             walletWithSameName = crossStorageApi
-                .find(defaultRepo, Wallet.class)
-                .by("name", name)
-                .getResult();
+                    .find(defaultRepo, Wallet.class)
+                    .by("name", name)
+                    .getResult();
         } catch (Exception e) {
             // do nothing, we want wallet name to be unique
         }
@@ -251,10 +246,10 @@ abstract class BlockchainProcessor {
         VerifiedEmail existingEmail = null;
         try {
             existingEmail = crossStorageApi
-                .find(defaultRepo, VerifiedEmail.class)
-                .by("email", email)
-                .by("not-inList walletId", Arrays.asList(walletId))
-                .getResult();
+                    .find(defaultRepo, VerifiedEmail.class)
+                    .by("email", email)
+                    .by("not-inList walletId", Arrays.asList(walletId))
+                    .getResult();
         } catch (Exception e) {
             // do nothing, we want email address to be unique
         }
@@ -267,17 +262,17 @@ abstract class BlockchainProcessor {
     }
 
     protected String validatePhoneNumber(String phoneNumber, String walletId)
-        throws BusinessException {
+            throws BusinessException {
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
             throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
         }
         VerifiedPhoneNumber existingPhoneNumber = null;
         try {
             existingPhoneNumber = crossStorageApi
-                .find(defaultRepo, VerifiedPhoneNumber.class)
-                .by("phoneNumber", phoneNumber)
-                .by("not-inList walletId", Arrays.asList(walletId))
-                .getResult();
+                    .find(defaultRepo, VerifiedPhoneNumber.class)
+                    .by("phoneNumber", phoneNumber)
+                    .by("not-inList walletId", Arrays.asList(walletId))
+                    .getResult();
         } catch (Exception e) {
             // do nothing, we want wallet phoneNumber to be unique
         }
@@ -296,15 +291,15 @@ abstract class BlockchainProcessor {
         String s = "0x" + signature.substring(66, 130);
         String v = "0x" + signature.substring(130, 132);
         String publicKey = Sign
-            .signedMessageHashToKey(
-                messageHash,
-                new Sign.SignatureData(
-                    Numeric.hexStringToByteArray(v)[0],
-                    Numeric.hexStringToByteArray(r),
-                    Numeric.hexStringToByteArray(s)
+                .signedMessageHashToKey(
+                        messageHash,
+                        new Sign.SignatureData(
+                                Numeric.hexStringToByteArray(v)[0],
+                                Numeric.hexStringToByteArray(r),
+                                Numeric.hexStringToByteArray(s)
+                        )
                 )
-            )
-            .toString(16);
+                .toString(16);
         String address = Keys.getAddress(publicKey);
         LOG.debug("address: " + address);
         return address;
@@ -321,7 +316,6 @@ abstract class BlockchainProcessor {
     }
 }
 
-
 class BesuProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(BesuProcessor.class);
 
@@ -335,8 +329,8 @@ class BesuProcessor extends BlockchainProcessor {
         boolean hasEthereumMethods = ethereumMethods != null && !ethereumMethods.isEmpty();
         if (hasEthereumMethods) {
             this.ethereumMethods = ethereumMethods
-                .stream()
-                .collect(Collectors.toMap(EthereumMethod::getMethod, method -> method));
+                    .stream()
+                    .collect(Collectors.toMap(EthereumMethod::getMethod, method -> method));
         } else {
             this.ethereumMethods = new HashMap<>();
         }
@@ -356,25 +350,25 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         switch (method) {
-            case "net_version":
-                result = createResponse(requestId, "1662");
-                break;
-            case "eth_chainId":
-                result = createResponse(requestId, "0x67e");
-                break;
-            case "eth_sendSignedTransaction":
-            case "eth_sendRawTransaction":
-                result = sendRawTransaction(requestId, parameters);
-                break;
-            case "eth_getProof":
-            case "eth_getWork":
-            case "eth_submitWork":
-            case "eea_sendRawTransaction":
-                result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
-                break;
-            default:
-                result = ethService.callEthJsonRpc(requestId, parameters);
-                break;
+        case "net_version":
+            result = createResponse(requestId, "1662");
+            break;
+        case "eth_chainId":
+            result = createResponse(requestId, "0x67e");
+            break;
+        case "eth_sendSignedTransaction":
+        case "eth_sendRawTransaction":
+            result = sendRawTransaction(requestId, parameters);
+            break;
+        case "eth_getProof":
+        case "eth_getWork":
+        case "eth_submitWork":
+        case "eea_sendRawTransaction":
+            result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
+            break;
+        default:
+            result = ethService.callEthJsonRpc(requestId, parameters);
+            break;
         }
     }
 
@@ -384,8 +378,8 @@ class BesuProcessor extends BlockchainProcessor {
         String transactionHash = normalizeHash(Hash.sha3(data));
         try {
             Transaction existingTransaction = crossStorageApi
-                .find(defaultRepo, Transaction.class)
-                .by("hexHash", transactionHash).getResult();
+                    .find(defaultRepo, Transaction.class)
+                    .by("hexHash", transactionHash).getResult();
             if (existingTransaction != null) {
                 String message = String.format(TRANSACTION_EXISTS_ERROR, transactionHash);
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, message);
@@ -412,7 +406,7 @@ class BesuProcessor extends BlockchainProcessor {
         String defaultData = "{\"type\":\"transfer\",\"description\":\"Transfer coins\"}";
         String defaultValue = rawTransaction.getValue().toString();
         MethodHandlerResult handlerResult =
-            new MethodHandlerResult("transfer", defaultData, rawRecipient, defaultValue);
+                new MethodHandlerResult("transfer", defaultData, rawRecipient, defaultValue);
 
         LiquichainApp liquichainApp = null;
         try {
@@ -435,7 +429,7 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.debug("hasAbi: {}", hasAbi);
             if (hasAbi) {
                 ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
-                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract);
+                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract, transactionHash, data);
                 handlerResult = executor.execute(input);
             }
         } else {
@@ -449,7 +443,7 @@ class BesuProcessor extends BlockchainProcessor {
                 return createErrorResponse(requestId, TRANSACTION_REJECTED, RECIPIENT_NOT_FOUND);
             }
         }
-        LOG.debug("Handler result: {}", handlerResult);
+        LOG.debug("Handler result: {}", toJson(handlerResult));
 
         result = ethService.callEthJsonRpc(requestId, parameters);
         boolean hasError = result.contains("\"error\"");
@@ -457,65 +451,45 @@ class BesuProcessor extends BlockchainProcessor {
             return result;
         }
 
-        if (rawTransaction instanceof SignedRawTransaction) {
-            try {
-                SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
-                Sign.SignatureData signatureData = signedTransaction.getSignatureData();
-                String recipient = Objects.requireNonNullElse(handlerResult.getRecipient(), rawRecipient);
+        try {
+            String recipient = Objects.requireNonNullElse(handlerResult.getRecipient(), rawRecipient);
+            Transaction transaction = handlerResult.getTransaction() != null
+                    ? handlerResult.getTransaction()
+                    : buildTransactionDetails(rawTransaction, transactionHash, recipient, data);
+            LOG.debug("Transaction CEI details: {}", toJson(transaction));
 
-                Transaction transaction = new Transaction();
-                transaction.setHexHash(transactionHash);
-                transaction.setFromHexHash(normalizeHash(signedTransaction.getFrom()));
-                transaction.setToHexHash(normalizeHash(recipient));
-                transaction.setNonce("" + rawTransaction.getNonce());
-                transaction.setGasPrice("" + rawTransaction.getGasPrice());
-                transaction.setGasLimit("" + rawTransaction.getGasLimit());
-                transaction.setValue(handlerResult.getValue());
-                transaction.setType("" + handlerResult.getTransactionType());
-                transaction.setSignedHash(data);
-                transaction.setData(handlerResult.getExtraData());
-                transaction.setRawData(rawTransaction.getData());
-                transaction.setBlockNumber("1");
-                transaction.setBlockHash("e8594f30d08b412027f4546506249d09134b9283530243e01e4cdbc34945bcf0");
-                transaction.setCreationDate(java.time.Instant.now());
-                transaction.setV(toHex(signatureData.getV()));
-                transaction.setS(toHex(signatureData.getS()));
-                transaction.setR(toHex(signatureData.getR()));
-                LOG.debug("Transaction CEI details: {}", toJson(transaction));
-
-                String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
-                LOG.debug("Created transaction on DB with uuid: {}", uuid);
-            } catch (Exception e) {
-                return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
-            }
+            String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
+            LOG.debug("Created transaction on DB with uuid: {}", uuid);
+        } catch (Exception e) {
+            return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
         }
+
         return result;
     }
 }
-
 
 class DatabaseProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
 
     private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
-        + "\"extraData" +
-        "\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
-        + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
-        + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
-        + "\"logsBloom" +
-        "\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\","
-        + "\"miner\":\"0x0000000000000000000000000000000000000000\","
-        + "\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\","
-        + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
-        + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
-        + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-        + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
-        + "\"size\":\"0x260\","
-        + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
-        + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
-        + "],"
-        + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
-        + "\"uncles\":[  " + "]}";
+            + "\"extraData" +
+            "\":\"0xd58301090083626f7286676f312e3133856c696e75780000000000000000000021c9effaf6549e725463c7877ddebe9a2916e03228624e4bfd1e3f811da792772b54d9e4eb793c54afb4a29f014846736755043e4778999046d0577c6e57e72100\","
+            + "\"gasLimit\":\"0xe984c2\"," + "\"gasUsed\":\"0x0\","
+            + "\"hash\":\"0xaa14340feb15e26bc354bb839b2aa41cc7984676249c155ac5e4d281a8d08809\","
+            + "\"logsBloom" +
+            "\":\"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\","
+            + "\"miner\":\"0x0000000000000000000000000000000000000000\","
+            + "\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\","
+            + "\"nonce\":\"0x0000000000000000\"," + "\"number\":\"0x1b4\","
+            + "\"parentHash\":\"0xc8ccb81f484a428a3a1669d611f55f880b362b612f726711947d98f5bc5af573\","
+            + "\"receiptsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
+            + "\"sha3Uncles\":\"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347\","
+            + "\"size\":\"0x260\","
+            + "\"stateRoot\":\"0xffcb834d62706995e9e7bf10cc9a9e42a82fea998d59b3a5cfad8975dbfe3f87\","
+            + "\"timestamp\":\"0x5ed9a43f\"," + "\"totalDifficulty\":\"0x881\"," + "\"transactions\":["
+            + "],"
+            + "\"transactionsRoot\":\"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\","
+            + "\"uncles\":[  " + "]}";
 
     public DatabaseProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
@@ -527,48 +501,48 @@ class DatabaseProcessor extends BlockchainProcessor {
         LOG.debug("json rpc: {}, parameters:{}", method, parameters);
         String requestId = "" + parameters.get("id");
         switch (method) {
-            case "eth_call":
-                result = createResponse(requestId, "0x");
-                break;
-            case "eth_chainId":
-                result = createResponse(requestId, "0x4c");
-                break;
-            case "web3_clientVersion":
-                result = createResponse(requestId, "liquichainCentral");
-                break;
-            case "net_version":
-                result = createResponse(requestId, "7");
-                break;
-            case "eth_blockNumber":
-                result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
-                break;
-            case "eth_getBalance":
-                result = getBalance(requestId, parameters);
-                break;
-            case "eth_getTransactionCount":
-                result = getTransactionCount(requestId, parameters);
-                break;
-            case "eth_getBlockByNumber":
-                result = createResponse(requestId, SAMPLE_BLOCK);
-                break;
-            case "eth_estimateGas":
-                result = createResponse(requestId, "0x0");
-                break;
-            case "eth_gasPrice":
-                result = createResponse(requestId, "0x0");
-                break;
-            case "eth_getCode":
-                result = getCode(requestId, parameters);
-                break;
-            case "eth_sendRawTransaction":
-                result = sendRawTransaction(requestId, parameters);
-                break;
-            case "eth_getTransactionByHash":
-                result = getTransactionByHash(requestId, parameters);
-                break;
-            default:
-                result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
-                break;
+        case "eth_call":
+            result = createResponse(requestId, "0x");
+            break;
+        case "eth_chainId":
+            result = createResponse(requestId, "0x4c");
+            break;
+        case "web3_clientVersion":
+            result = createResponse(requestId, "liquichainCentral");
+            break;
+        case "net_version":
+            result = createResponse(requestId, "7");
+            break;
+        case "eth_blockNumber":
+            result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
+            break;
+        case "eth_getBalance":
+            result = getBalance(requestId, parameters);
+            break;
+        case "eth_getTransactionCount":
+            result = getTransactionCount(requestId, parameters);
+            break;
+        case "eth_getBlockByNumber":
+            result = createResponse(requestId, SAMPLE_BLOCK);
+            break;
+        case "eth_estimateGas":
+            result = createResponse(requestId, "0x0");
+            break;
+        case "eth_gasPrice":
+            result = createResponse(requestId, "0x0");
+            break;
+        case "eth_getCode":
+            result = getCode(requestId, parameters);
+            break;
+        case "eth_sendRawTransaction":
+            result = sendRawTransaction(requestId, parameters);
+            break;
+        case "eth_getTransactionByHash":
+            result = getTransactionByHash(requestId, parameters);
+            break;
+        default:
+            result = createErrorResponse(requestId, METHOD_NOT_FOUND, NOT_IMPLEMENTED_ERROR);
+            break;
         }
     }
 
@@ -579,9 +553,9 @@ class DatabaseProcessor extends BlockchainProcessor {
 
         try {
             Transaction transaction = crossStorageApi
-                .find(defaultRepo, Transaction.class)
-                .by("hexHash", hash)
-                .getResult();
+                    .find(defaultRepo, Transaction.class)
+                    .by("hexHash", hash)
+                    .getResult();
             String transactionDetails = "{\n";
             transactionDetails += "\"blockHash\": \"0x" + transaction.getBlockHash() + "\",\n";
             transactionDetails += "\"blockNumber\": \"" + toBigHex(transaction.getBlockNumber()) + "\",\n";
@@ -602,7 +576,7 @@ class DatabaseProcessor extends BlockchainProcessor {
             transactionDetails += "\"s\": \"" + transaction.getS() + "\",\n";
             transactionDetails += "\"to\": \"0x" + transaction.getToHexHash() + "\",\n";
             transactionDetails +=
-                "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
+                    "\"transactionIndex\": \"0x" + toBigHex(transaction.getTransactionIndex() + "") + "\",";
             transactionDetails += "\"v\": \"" + transaction.getV() + "\",";
             transactionDetails += "\"value\": \"" + toBigHex(transaction.getValue()) + "\"\n";
             transactionDetails += "}";
@@ -622,9 +596,9 @@ class DatabaseProcessor extends BlockchainProcessor {
         result = "0x0";
         try {
             existingTransaction = crossStorageApi
-                .find(defaultRepo, Transaction.class)
-                .by("hexHash", transactionHash)
-                .getResult();
+                    .find(defaultRepo, Transaction.class)
+                    .by("hexHash", transactionHash)
+                    .getResult();
         } catch (Exception e) {
             // do nothing, we want transaction to be unique
         }
@@ -682,7 +656,7 @@ class DatabaseProcessor extends BlockchainProcessor {
             message = "insufficient balance";
             BigInteger originBalance = new BigInteger(originWallet.getBalance());
             LOG.debug("originWallet 0x{} old balance:{}", transaction.getFromHexHash(),
-                originWallet.getBalance());
+                    originWallet.getBalance());
             if (value.compareTo(originBalance) <= 0) {
                 BlockForgerScript.addTransaction(transaction);
             } else {

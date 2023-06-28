@@ -1,8 +1,11 @@
 package io.liquichain.api.handler;
 
+import static io.liquichain.api.rpc.EthApiUtils.toJson;
+
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
+import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
 
 public class MethodHandlerResult extends Script {
@@ -10,6 +13,11 @@ public class MethodHandlerResult extends Script {
     private String extraData;
     private String recipient;
     private String value;
+    private Transaction transaction;
+
+    public MethodHandlerResult(Transaction transaction) {
+        this.transaction = transaction;
+    }
 
     public MethodHandlerResult(String transactionType, String extraData) {
         this(transactionType, extraData, null, null);
@@ -54,13 +62,22 @@ public class MethodHandlerResult extends Script {
         this.value = value;
     }
 
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
     @Override
     public String toString() {
         return "MethodHandlerResult{" +
-            "transactionType='" + transactionType + '\'' +
-            ", extraData='" + extraData + '\'' +
-            ", value=" + value +
-            '}';
+                "transactionType='" + transactionType + '\'' +
+                ", extraData='" + extraData + '\'' +
+                ", value=" + value +
+                ", transaction=" + toJson(transaction) +
+                '}';
     }
 
     @Override

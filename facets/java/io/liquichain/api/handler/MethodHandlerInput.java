@@ -19,11 +19,14 @@ public class MethodHandlerInput extends Script {
 
     private final RawTransaction rawTransaction;
     private final String smartContractAddress;
+    private final String transactionHash;
+    private final String data;
     private final CrossStorageApi crossStorageApi;
     private final Repository defaultRepo;
     private final ParamBean config;
 
-    public MethodHandlerInput(RawTransaction rawTransaction, String smartContractAddress) {
+    public MethodHandlerInput(RawTransaction rawTransaction, String smartContractAddress, String transactionHash,
+            String data) {
         this.crossStorageApi = getCDIBean(CrossStorageApi.class);
         RepositoryService repositoryService = getCDIBean(RepositoryService.class);
         this.defaultRepo = repositoryService.findDefaultRepository();
@@ -32,6 +35,8 @@ public class MethodHandlerInput extends Script {
 
         this.rawTransaction = rawTransaction;
         this.smartContractAddress = smartContractAddress;
+        this.transactionHash = transactionHash;
+        this.data = data;
     }
 
     public RawTransaction getRawTransaction() {
@@ -40,6 +45,14 @@ public class MethodHandlerInput extends Script {
 
     public String getSmartContractAddress() {
         return smartContractAddress;
+    }
+
+    public String getTransactionHash() {
+        return transactionHash;
+    }
+
+    public String getData() {
+        return data;
     }
 
     public CrossStorageApi getCrossStorageApi() {
@@ -54,11 +67,14 @@ public class MethodHandlerInput extends Script {
         return config;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "MethodHandlerInput{" +
-            "rawTransaction=" + rawTransaction +
-            ", smartContractAddress='" + smartContractAddress + '\'' +
-            '}';
+                "rawTransaction=" + rawTransaction +
+                ", smartContractAddress='" + smartContractAddress + "'" +
+                ", transactionHash=" + transactionHash +
+                ", data='" + data +
+                '}';
     }
 
     @Override
