@@ -452,10 +452,16 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         try {
-            String recipient = Objects.requireNonNullElse(handlerResult.getRecipient(), rawRecipient);
-            Transaction transaction = handlerResult.getTransaction() != null
-                    ? handlerResult.getTransaction()
-                    : buildTransactionDetails(rawTransaction, transactionHash, recipient, data);
+            Transaction transaction;
+            if (handlerResult.getTransaction() == null) {
+                String recipient = Objects.requireNonNullElse(handlerResult.getRecipient(), rawRecipient);
+                transaction = buildTransactionDetails(rawTransaction, transactionHash, recipient, data);
+                transaction.setType(handlerResult.getTransactionType());
+                transaction.setData(handlerResult.getExtraData());
+                transaction.setValue(handlerResult.getValue());
+            } else {
+                transaction = handlerResult.getTransaction();
+            }
             LOG.debug("Transaction CEI details: {}", toJson(transaction));
 
             String uuid = crossStorageApi.createOrUpdate(defaultRepo, transaction);
