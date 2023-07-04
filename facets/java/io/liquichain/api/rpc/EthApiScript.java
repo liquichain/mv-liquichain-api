@@ -33,6 +33,7 @@ import io.liquichain.api.handler.MethodHandlerResult;
 import io.liquichain.api.rpc.EthApiScript.EthService;
 import io.liquichain.core.BlockForgerScript;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -374,8 +375,10 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
+        LOG.info("sendRawTransaction parameters: {}", parameters);
         String data = params.get(0);
         String transactionHash = normalizeHash(Hash.sha3(data));
+        LOG.info("computed transactionHash: {}", transactionHash);
         try {
             Transaction existingTransaction = crossStorageApi
                     .find(defaultRepo, Transaction.class)
@@ -390,7 +393,7 @@ class BesuProcessor extends BlockchainProcessor {
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
         String rawRecipient = rawTransaction.getTo();
-        LOG.debug("RawTransaction recipient: {}", rawRecipient);
+        LOG.info("RawTransaction recipient: {}", rawRecipient);
 
         // as per besu documentation
         // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
@@ -446,9 +449,50 @@ class BesuProcessor extends BlockchainProcessor {
         LOG.debug("Handler result: {}", toJson(handlerResult));
 
         result = ethService.callEthJsonRpc(requestId, parameters);
-        boolean hasError = result.contains("\"error\"");
+        Map<String, Object> resultMap = convert(result);
+        LOG.info("sendRawTransaction result: {}", toJson(result));
+
+        Object errorMessage = resultMap.get("error");
+        boolean hasError = errorMessage != null && StringUtils.isNotEmpty(errorMessage.toString());
         if (hasError) {
             return result;
+        }
+
+        Object receivedHash = resultMap.get("result");
+
+        String transactionError = null;
+        if (receivedHash != null) {
+            LOG.info("received hash: {}", receivedHash);
+            Map<String, Object> receiptParams = new HashMap<>() {{
+                put("id", parameters.get("id"));
+                put("jsonrpc", parameters.get("jsonrpc"));
+                put("method", "eth_getTransactionReceipt");
+                put("params", List.of(receivedHash));
+            }};
+
+            LOG.info("transaction receipt parameters: {}", toJson(receiptParams));
+            String receiptResult = ethService.callEthJsonRpc(requestId, receiptParams);
+            LOG.info("transaction receipt result: {}", receiptResult);
+            Map<String, Object> receiptResultMap = convert(receiptResult);
+            hasError = errorMessage != null && StringUtils.isNotEmpty(errorMessage.toString());
+            if (hasError) {
+                return result;
+            }
+
+            Object receiptResultValue = resultMap.get("result");
+            if (receiptResultValue != null) {
+                Map<String, Object> resultValueMap = convert("" + receiptResultValue);
+                if (resultValueMap != null) {
+                    if (!"0x1".equals(resultValueMap.get("status"))) {
+                        Object receiptError = resultValueMap.get("error");
+                        transactionError = receiptError != null ? "" + receiptError : null;
+                    }
+                }
+            }
+        }
+
+        if (StringUtils.isNotEmpty(transactionError)) {
+            result = createErrorResponse(requestId, INVALID_REQUEST, transactionError);
         }
 
         try {
