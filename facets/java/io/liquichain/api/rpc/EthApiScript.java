@@ -473,6 +473,7 @@ class BesuProcessor extends BlockchainProcessor {
             LOG.info("transaction receipt parameters: {}", toJson(receiptParams));
             String receiptResult = ethService.callEthJsonRpc(requestId, receiptParams);
             LOG.info("transaction receipt result: {}", receiptResult);
+
             Map<String, Object> receiptResultMap = convert(receiptResult);
             hasError = errorMessage != null && StringUtils.isNotEmpty(errorMessage.toString());
             if (hasError) {
