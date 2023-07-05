@@ -148,14 +148,14 @@ public class EthApiScript extends Script {
 
         private TransactionReceipt retrieveTransactionReceipt(String requestId, String hash,
                 Map<String, Object> parameters) {
-            LOG.info("received hash: {}", hash);
+            LOG.debug("received hash: {}", hash);
             Map<String, Object> receiptParams = new HashMap<>() {{
                 put("id", parameters.get("id"));
                 put("jsonrpc", parameters.get("jsonrpc"));
                 put("method", "eth_getTransactionReceipt");
                 put("params", List.of(hash));
             }};
-            LOG.info("transaction receipt parameters: {}", toJson(receiptParams));
+            LOG.debug("transaction receipt parameters: {}", toJson(receiptParams));
 
             String receiptResult = null;
             try {
@@ -163,7 +163,7 @@ public class EthApiScript extends Script {
             } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            LOG.info("transaction receipt result: {}", receiptResult);
+            LOG.debug("transaction receipt result: {}", receiptResult);
 
             Map<String, Object> receiptResultMap = convert(receiptResult);
             Object errorMessage = receiptResultMap.get("error");
@@ -467,10 +467,10 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        LOG.info("sendRawTransaction parameters: {}", parameters);
+        LOG.debug("sendRawTransaction parameters: {}", parameters);
         String data = params.get(0);
         String transactionHash = normalizeHash(Hash.sha3(data));
-        LOG.info("computed transactionHash: {}", transactionHash);
+        LOG.debug("computed transactionHash: {}", transactionHash);
         try {
             Transaction existingTransaction = crossStorageApi
                     .find(defaultRepo, Transaction.class)
@@ -485,7 +485,7 @@ class BesuProcessor extends BlockchainProcessor {
 
         RawTransaction rawTransaction = TransactionDecoder.decode(data);
         String rawRecipient = rawTransaction.getTo();
-        LOG.info("RawTransaction recipient: {}", rawRecipient);
+        LOG.debug("RawTransaction recipient: {}", rawRecipient);
 
         // as per besu documentation
         // (https://besu.hyperledger.org/en/stable/Tutorials/Contracts/Deploying-Contracts/):
@@ -546,7 +546,7 @@ class BesuProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
         }
         Map<String, Object> resultMap = convert(result);
-        LOG.info("sendRawTransaction result: {}", toJson(result));
+        LOG.debug("sendRawTransaction result: {}", toJson(result));
 
         Object errorMessage = resultMap.get("error");
         boolean hasError = errorMessage != null && StringUtils.isNotEmpty(errorMessage.toString());
