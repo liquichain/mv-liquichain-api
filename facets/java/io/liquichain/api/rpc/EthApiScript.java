@@ -566,8 +566,9 @@ class BesuProcessor extends BlockchainProcessor {
             return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
         }
 
-        if (transactionReceipt.isSuccess()) {
-            return createErrorResponse(requestId, TRANSACTION_REJECTED, "Transaction failed.");
+        if (!transactionReceipt.isSuccess()) {
+            return createErrorResponse(requestId, TRANSACTION_REJECTED,
+                    "Transaction: " + receivedHash + " failed, check transaction logs.");
         }
 
         try {
