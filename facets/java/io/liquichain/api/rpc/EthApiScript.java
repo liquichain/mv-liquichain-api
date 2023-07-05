@@ -177,7 +177,7 @@ public class EthApiScript extends Script {
                 return new TransactionReceipt(false, true);
             }
 
-            Map<String, Object> resultMap = convert(resultObject.toString());
+            Map<String, Object> resultMap = (Map<String, Object>) resultObject;
             Object resultError = resultMap.get("error");
             String transactionError = resultError != null ? resultError.toString() : null;
             if (StringUtils.isNotEmpty(transactionError)) {
