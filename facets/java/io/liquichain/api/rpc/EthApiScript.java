@@ -1,11 +1,14 @@
 package io.liquichain.api.rpc;
 
 import static io.liquichain.api.rpc.EthApiScript.EthApiConstants.*;
+import static io.liquichain.api.rpc.EthApiScript.TransactionReceipt;
 import static io.liquichain.api.rpc.EthApiUtils.*;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +46,9 @@ import org.web3j.utils.Numeric;
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
+    private static final int SLEEP_DURATION = 1000;
+    private static final int ATTEMPTS = 40;
+
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
@@ -71,6 +77,24 @@ public class EthApiScript extends Script {
         public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
     }
 
+    public static class TransactionReceipt {
+        private boolean success;
+        private boolean nullResult;
+
+        public TransactionReceipt(boolean success, boolean nullResult) {
+            this.success = success;
+            this.nullResult = nullResult;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public boolean isNullResult() {
+            return nullResult;
+        }
+    }
+
     public static class EthService {
         private final String BESU_API_URL;
         private static final int CONNECTION_POOL_SIZE = 50;
@@ -86,14 +110,11 @@ public class EthApiScript extends Script {
             BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
         }
 
-        public String callEthJsonRpc(String requestId, Map<String, Object> parameters) {
+        public CompletableFuture<String> callEthJsonRpc(String requestId, Map<String, Object> parameters) {
             Object id = parameters.get("id");
             Object jsonRpcVersion = parameters.get("jsonrpc");
             Object method = parameters.get("method");
             Object params = parameters.get("params");
-
-            String result;
-            Response response = null;
 
             String body = "{" +
                     "  \"id\": " + formatId(id) + "," +
@@ -102,24 +123,91 @@ public class EthApiScript extends Script {
                     "  \"params\": " + toJson(params) +
                     "}";
 
-            LOG.debug("callEthJsonRpc body: {}", body);
-
-            try {
-                response = client.target(BESU_API_URL)
-                                 .request(MediaType.APPLICATION_JSON)
-                                 .post(Entity.json(body));
-                result = response.readEntity(String.class);
-            } catch (Exception e) {
-                LOG.error(PROXY_REQUEST_ERROR, e);
-                return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
-            } finally {
-                if (response != null) {
-                    response.close();
+            return CompletableFuture.supplyAsync(() -> {
+                String result;
+                Response response = null;
+                LOG.debug("callEthJsonRpc body: {}", body);
+                try {
+                    response = client.target(BESU_API_URL)
+                                     .request(MediaType.APPLICATION_JSON)
+                                     .post(Entity.json(body));
+                    result = response.readEntity(String.class);
+                } catch (Exception e) {
+                    LOG.error(PROXY_REQUEST_ERROR, e);
+                    return createErrorResponse(requestId, INTERNAL_ERROR, PROXY_REQUEST_ERROR);
+                } finally {
+                    if (response != null) {
+                        response.close();
+                    }
                 }
+
+                LOG.debug("callEthJsonRpc result: {}", result);
+                return result;
+            });
+        }
+
+        private TransactionReceipt retrieveTransactionReceipt(String requestId, String hash,
+                Map<String, Object> parameters) {
+            LOG.info("received hash: {}", hash);
+            Map<String, Object> receiptParams = new HashMap<>() {{
+                put("id", parameters.get("id"));
+                put("jsonrpc", parameters.get("jsonrpc"));
+                put("method", "eth_getTransactionReceipt");
+                put("params", List.of(hash));
+            }};
+            LOG.info("transaction receipt parameters: {}", toJson(receiptParams));
+
+            String receiptResult = null;
+            try {
+                receiptResult = callEthJsonRpc(requestId, receiptParams).get();
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            LOG.info("transaction receipt result: {}", receiptResult);
+
+            Map<String, Object> receiptResultMap = convert(receiptResult);
+            Object errorMessage = receiptResultMap.get("error");
+            boolean hasError = errorMessage != null && StringUtils.isNotEmpty(errorMessage.toString());
+            if (hasError) {
+                throw new RuntimeException(errorMessage.toString());
             }
 
-            LOG.debug("callEthJsonRpc result: {}", result);
-            return result;
+            Object resultObject = receiptResultMap.get("result");
+            if (resultObject == null) {
+                return new TransactionReceipt(false, true);
+            }
+
+            Map<String, Object> resultMap = convert(resultObject.toString());
+            Object resultError = resultMap.get("error");
+            String transactionError = resultError != null ? resultError.toString() : null;
+            if (StringUtils.isNotEmpty(transactionError)) {
+                throw new RuntimeException(transactionError);
+            }
+
+            boolean success = "0x1".equals(resultMap.get("status"));
+            return new TransactionReceipt(success, false);
+        }
+
+        public TransactionReceipt waitForTransactionReceipt(String requestId, String hash,
+                Map<String, Object> parameters) {
+            if (hash != null) {
+                TransactionReceipt transactionReceipt = retrieveTransactionReceipt(requestId, hash, parameters);
+                for (int attempt = ATTEMPTS; attempt > 0; attempt--) {
+                    if (transactionReceipt.isNullResult()) {
+                        try {
+                            Thread.sleep(SLEEP_DURATION);
+                            transactionReceipt = retrieveTransactionReceipt(requestId, hash, parameters);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException("Encountered error while delaying thread.", e);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                return transactionReceipt;
+            } else {
+                throw new RuntimeException("No transaction hash provided.");
+            }
         }
     }
 
@@ -368,7 +456,11 @@ class BesuProcessor extends BlockchainProcessor {
             result = createErrorResponse(requestId, INVALID_REQUEST, NOT_IMPLEMENTED_ERROR);
             break;
         default:
-            result = ethService.callEthJsonRpc(requestId, parameters);
+            try {
+                result = ethService.callEthJsonRpc(requestId, parameters).get();
+            } catch (InterruptedException | ExecutionException e) {
+                result = createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+            }
             break;
         }
     }
@@ -448,7 +540,11 @@ class BesuProcessor extends BlockchainProcessor {
         }
         LOG.debug("Handler result: {}", toJson(handlerResult));
 
-        result = ethService.callEthJsonRpc(requestId, parameters);
+        try {
+            result = ethService.callEthJsonRpc(requestId, parameters).get();
+        } catch (InterruptedException | ExecutionException e) {
+            return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+        }
         Map<String, Object> resultMap = convert(result);
         LOG.info("sendRawTransaction result: {}", toJson(result));
 
@@ -459,41 +555,19 @@ class BesuProcessor extends BlockchainProcessor {
         }
 
         Object receivedHash = resultMap.get("result");
-
-        String transactionError = null;
-        if (receivedHash != null) {
-            LOG.info("received hash: {}", receivedHash);
-            Map<String, Object> receiptParams = new HashMap<>() {{
-                put("id", parameters.get("id"));
-                put("jsonrpc", parameters.get("jsonrpc"));
-                put("method", "eth_getTransactionReceipt");
-                put("params", List.of(receivedHash));
-            }};
-
-            LOG.info("transaction receipt parameters: {}", toJson(receiptParams));
-            String receiptResult = ethService.callEthJsonRpc(requestId, receiptParams);
-            LOG.info("transaction receipt result: {}", receiptResult);
-
-            Map<String, Object> receiptResultMap = convert(receiptResult);
-            hasError = errorMessage != null && StringUtils.isNotEmpty(errorMessage.toString());
-            if (hasError) {
-                return result;
-            }
-
-            Object receiptResultValue = resultMap.get("result");
-            if (receiptResultValue != null) {
-                Map<String, Object> resultValueMap = convert("" + receiptResultValue);
-                if (resultValueMap != null) {
-                    if (!"0x1".equals(resultValueMap.get("status"))) {
-                        Object receiptError = resultValueMap.get("error");
-                        transactionError = receiptError != null ? "" + receiptError : null;
-                    }
-                }
-            }
+        if (receivedHash == null) {
+            return createErrorResponse(requestId, TRANSACTION_REJECTED, "No transaction hash received.");
         }
 
-        if (StringUtils.isNotEmpty(transactionError)) {
-            result = createErrorResponse(requestId, INVALID_REQUEST, transactionError);
+        TransactionReceipt transactionReceipt = null;
+        try {
+            transactionReceipt = ethService.waitForTransactionReceipt(requestId, receivedHash.toString(), parameters);
+        } catch (Exception e) {
+            return createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
+        }
+
+        if (transactionReceipt.isSuccess()) {
+            return createErrorResponse(requestId, TRANSACTION_REJECTED, "Transaction failed.");
         }
 
         try {
