@@ -50,7 +50,7 @@ public class EthApiUtils extends Script {
                 "    \"message\": \"" + message + "\"\n" +
                 "  }\n" +
                 "}";
-        LOG.debug("error response: {}", response);
+        LOG.error("error response: {}", response);
         return response;
     }
 

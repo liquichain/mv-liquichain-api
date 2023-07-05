@@ -33,7 +33,6 @@ public class ContractMethodExecutor extends Script {
         this.contractMethodHandlers = new HashMap<>();
         handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
         List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
-
         this.functionSignatures = abiDefinitions
             .stream()
             .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
