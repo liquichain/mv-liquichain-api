@@ -98,7 +98,7 @@ public class ContractMethodExecutor extends Script {
             .findFirst()
             .orElse(new ContractFunctionSignature());
 
-        LOG.info("function signature: {}", functionSignature);
+        LOG.info("function signature: {}", toJson(functionSignature));
         String type = functionSignature.getName();
         Map<String, Object> parameters = functionSignature.parseParameters(rawData);
         String description = functionSignature.getFunctionDefinition();
