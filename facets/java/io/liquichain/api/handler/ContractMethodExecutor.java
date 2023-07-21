@@ -34,10 +34,11 @@ public class ContractMethodExecutor extends Script {
         handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
         List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
         this.functionSignatures = abiDefinitions
-            .stream()
-            .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
-            .map(ContractFunctionSignature::new)
-            .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
+                .stream()
+                .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
+                .map(ContractFunctionSignature::new)
+                .peek(signature -> LOG.info("signature: {}", toJson(signature)))
+                .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
     }
 
     public interface ContractMethodHandler {
@@ -54,11 +55,11 @@ public class ContractMethodExecutor extends Script {
         }
 
         Map.Entry<String, String> handler = contractMethodHandlers
-            .entrySet()
-            .stream()
-            .filter(entry -> normalizedData.startsWith(entry.getKey()))
-            .findFirst()
-            .orElse(null);
+                .entrySet()
+                .stream()
+                .filter(entry -> normalizedData.startsWith(entry.getKey()))
+                .findFirst()
+                .orElse(null);
 
         if (handler == null) {
             return parseSmartContractResult(rawData);
@@ -83,7 +84,7 @@ public class ContractMethodExecutor extends Script {
             contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
             LOG.info("handler class instantiated.");
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-                 InvocationTargetException e) {
+                InvocationTargetException e) {
             throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
         }
         return contractMethodHandler.processData(input, parameters);
@@ -92,11 +93,11 @@ public class ContractMethodExecutor extends Script {
     private MethodHandlerResult parseSmartContractResult(String rawData) {
         String transactionData = lowercaseHex(rawData);
         ContractFunctionSignature functionSignature = this.functionSignatures
-            .values()
-            .stream()
-            .filter(value -> transactionData.startsWith(value.getSignature()))
-            .findFirst()
-            .orElse(new ContractFunctionSignature());
+                .values()
+                .stream()
+                .filter(value -> transactionData.startsWith(value.getSignature()))
+                .findFirst()
+                .orElse(new ContractFunctionSignature());
 
         LOG.info("function signature: {}", toJson(functionSignature));
         String type = functionSignature.getName();
@@ -114,7 +115,6 @@ public class ContractMethodExecutor extends Script {
         super.execute(parameters);
     }
 }
-
 
 class ContractFunctionSignature {
     private static final Logger LOG = LoggerFactory.getLogger(ContractFunctionSignature.class);
@@ -228,13 +228,14 @@ class ContractFunctionSignature {
         return Objects.hash(signature);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "ContractFunctionSignature{" +
-            "signature='" + signature + '\'' +
-            ", name='" + name + '\'' +
-            ", inputParameters=" + inputParameters +
-            ", parameterNames=" + parameterNames +
-            ", functionDefinition='" + functionDefinition + '\'' +
-            '}';
+                "signature='" + signature + '\'' +
+                ", name='" + name + '\'' +
+                ", inputParameters=" + inputParameters +
+                ", parameterNames=" + parameterNames +
+                ", functionDefinition='" + functionDefinition + '\'' +
+                '}';
     }
 }
