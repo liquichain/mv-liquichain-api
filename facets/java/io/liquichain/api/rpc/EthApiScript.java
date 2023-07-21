@@ -467,7 +467,7 @@ class BesuProcessor extends BlockchainProcessor {
 
     private String sendRawTransaction(String requestId, Map<String, Object> parameters) {
         List<String> params = (List<String>) parameters.get("params");
-        LOG.info("sendRawTransaction parameters: {}", parameters);
+        LOG.info("sendRawTransaction parameters: {}", params);
         String data = params.get(0);
         String transactionHash = normalizeHash(Hash.sha3(data));
         LOG.debug("computed transactionHash: {}", transactionHash);
