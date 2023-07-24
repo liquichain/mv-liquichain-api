@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
+import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
 
@@ -162,6 +163,10 @@ public class EthApiUtils extends Script {
         }
     }
 
+    public static Transaction buildTransactionDetails(MethodHandlerInput methodHandlerInput) {
+        return buildTransactionDetails(methodHandlerInput, null);
+    }
+
     public static Transaction buildTransactionDetails(MethodHandlerInput methodHandlerInput, String recipient) {
         String transactionHash = methodHandlerInput.getTransactionHash();
         String data = methodHandlerInput.getData();
@@ -172,7 +177,9 @@ public class EthApiUtils extends Script {
     public static Transaction buildTransactionDetails(RawTransaction rawTransaction, String transactionHash,
             String recipient, String data) {
         Transaction transaction = loadCommonData(rawTransaction, transactionHash, data);
-        transaction.setToHexHash(normalizeHash(recipient));
+        if (!StringUtils.isBlank(recipient)) {
+            transaction.setToHexHash(normalizeHash(recipient));
+        }
         return transaction;
     }
 
