@@ -9,5 +9,5 @@
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ ]
+  "importScriptInstances" : [ "io.liquichain.api.handler.MethodHandlerInput" ]
 }
