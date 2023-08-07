@@ -103,7 +103,7 @@ public class KeycloakUserService extends Script {
         return defaultRoles;
     }
 
-    private String buildUserDetails(String username, String emailAddress, String name, String password) {
+    public String buildUserDetails(String username, String emailAddress, String name, String password) {
         emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
 
         String userDetails = "{\n" +
@@ -132,7 +132,7 @@ public class KeycloakUserService extends Script {
         return userDetails;
     }
 
-    private String login() {
+    public String login() {
         LOG.debug("login - START");
         String token;
         Response response = null;
