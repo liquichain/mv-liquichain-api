@@ -103,7 +103,7 @@ public class KeycloakUserService extends Script {
         return defaultRoles;
     }
 
-    public String buildUserDetails(String username, String emailAddress, String name, String password) {
+    private String buildUserDetails(String username, String emailAddress, String name, String password) {
         emailAddress = StringUtils.isBlank(emailAddress) ? "" : emailAddress;
 
         String userDetails = "{\n" +
@@ -132,7 +132,7 @@ public class KeycloakUserService extends Script {
         return userDetails;
     }
 
-    public String login() {
+    private String login() {
         LOG.debug("login - START");
         String token;
         Response response = null;
@@ -297,14 +297,20 @@ public class KeycloakUserService extends Script {
         boolean hasUsername = StringUtils.isNotBlank(username);
         boolean hasPassword = StringUtils.isNotBlank(password);
         if (hasUsername && hasPassword) {
-            String token = login();
-            String userDetails = buildUserDetails(username, emailAddress, name, password);
-            String saveResult = createKeycloakUser(token, userDetails);
-            createMeveoUser(name, username, emailAddress);
-            LOG.debug("saveResult: {}", saveResult);
+            return createUser(username, emailAddress, name, password);
         } else {
-            LOG.debug("No username and password included, will not create keycloak and meveo user.");
+            LOG.warn("No username and password included, will not create keycloak and meveo user.");
+            return username;
         }
+    }
+
+    public String createUser(String username, String emailAddress, String name, String password)
+            throws BusinessException {
+        String token = login();
+        String userDetails = buildUserDetails(username, emailAddress, name, password);
+        String keycloakUser = createKeycloakUser(token, userDetails);
+        createMeveoUser(name, username, emailAddress);
+        LOG.info("keycloak result: {}", keycloakUser);
         return username;
     }
 
