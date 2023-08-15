@@ -81,6 +81,7 @@ public class GetUsername extends Script {
             if (wallet == null) {
                 throw new RuntimeException("Failed to retrieve wallet for: " + emailOrNumber);
             }
+
             String privateInfo = wallet.getPrivateInfo();
             if (StringUtils.isBlank(privateInfo)) {
                 throw new RuntimeException("Private info is empty.");
@@ -91,6 +92,7 @@ public class GetUsername extends Script {
             if (StringUtils.isBlank(username)) {
                 throw new RuntimeException("Username not found.");
             }
+
             result.put("status", "success");
             result.put("result", username);
         } catch (Exception e) {
