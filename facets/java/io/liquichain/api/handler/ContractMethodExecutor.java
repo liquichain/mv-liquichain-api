@@ -4,6 +4,7 @@ import static io.liquichain.api.rpc.EthApiUtils.lowercaseHex;
 import static io.liquichain.api.rpc.EthApiUtils.toJson;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.SignatureException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.SignedRawTransaction;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 
 public class ContractMethodExecutor extends Script {
@@ -78,6 +80,12 @@ public class ContractMethodExecutor extends Script {
 
         ContractFunctionSignature functionSignature = functionSignatures.get(handler.getKey());
         Map<String, Object> parameters = functionSignature.parseParameters(rawData);
+        SignedRawTransaction signedTransaction = (SignedRawTransaction) rawTransaction;
+        try {
+            parameters.put("senderWallet", signedTransaction.getFrom());
+        } catch (SignatureException e) {
+            throw new RuntimeException("Failed to retrieve sender wallet address.", e);
+        }
 
         ContractMethodHandler contractMethodHandler;
         try {
