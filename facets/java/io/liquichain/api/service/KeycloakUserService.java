@@ -159,6 +159,7 @@ public class KeycloakUserService extends Script {
 
     public Map<String, Object> findUser(String username) throws BusinessException {
         String token = login();
+
         return findUser(token, username);
     }
 
