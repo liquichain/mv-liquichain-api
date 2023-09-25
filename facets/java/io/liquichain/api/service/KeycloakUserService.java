@@ -166,6 +166,7 @@ public class KeycloakUserService extends Script {
         Response response = null;
         String getResult;
         List<Map<String, Object>> dataMap;
+
         try {
             String findUserUrl = USERS_URL + "?username=" + username;
             response = client.target(findUserUrl)
