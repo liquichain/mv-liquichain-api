@@ -49,21 +49,6 @@
       <id>maven central</id>
       <url>https://repo1.maven.org/maven2/</url>
     </repository>
-    <repository>
-      <id>staging-teleceplay</id>
-      <url>https://staging.jips.io/meveo/maven</url>
-    </repository>
-    <repository>
-      <id>meveo-repo</id>
-      <url>https://dev.jips.io/meveo/maven</url>
-    </repository>
-    <repository>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>github</id>
-      <url>https://maven.pkg.github.com/meveo-org/meveo</url>
-    </repository>
   </repositories>
   <build />
 </project>
