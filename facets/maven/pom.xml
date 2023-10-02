@@ -49,6 +49,18 @@
       <id>maven central</id>
       <url>https://repo1.maven.org/maven2/</url>
     </repository>
+    <repository>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>github</id>
+      <name>meveo github</name>
+      <url>https://smichea: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@maven.pkg.github.com/meveo-org/meveo</url>
+    </repository>
+    <repository>
+      <id>meveo-repo</id>
+      <url>https://dev1.unikbase.dev/meveo/maven</url>
+    </repository>
   </repositories>
   <build />
 </project>
