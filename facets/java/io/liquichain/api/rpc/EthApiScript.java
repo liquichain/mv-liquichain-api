@@ -411,7 +411,7 @@ class BesuProcessor extends BlockchainProcessor {
     private final EthService ethService;
     private final Map<String, EthereumMethod> ethereumMethods;
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
-    private final String CHAIN_ID = Integer.toHexString(Integer.parseInt(NETWORK_ID));
+    private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
