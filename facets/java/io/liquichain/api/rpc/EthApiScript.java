@@ -440,10 +440,10 @@ class BesuProcessor extends BlockchainProcessor {
 
         switch (method) {
         case "net_version":
-            result = createResponse(requestId, "1662");
+            result = createResponse(requestId, "1663");
             break;
         case "eth_chainId":
-            result = createResponse(requestId, "0x67e");
+            result = createResponse(requestId, "0x67F");
             break;
         case "eth_sendSignedTransaction":
         case "eth_sendRawTransaction":

@@ -9,7 +9,7 @@
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "NONE",
-  "executionRoles" : [ "APP_USER" ],
+  "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ {
     "groupId" : "org.web3j",
