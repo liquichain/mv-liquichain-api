@@ -410,6 +410,8 @@ class BesuProcessor extends BlockchainProcessor {
 
     private final EthService ethService;
     private final Map<String, EthereumMethod> ethereumMethods;
+    private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
+    private final String CHAIN_ID = Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
     public BesuProcessor(CrossStorageApi crossStorageApi, Repository defaultRepo, ParamBean config) {
         super(crossStorageApi, defaultRepo, config);
@@ -441,10 +443,10 @@ class BesuProcessor extends BlockchainProcessor {
 
         switch (method) {
         case "net_version":
-            result = createResponse(requestId, "1663");
+            result = createResponse(requestId, NETWORK_ID);
             break;
         case "eth_chainId":
-            result = createResponse(requestId, "0x67F");
+            result = createResponse(requestId, CHAIN_ID);
             break;
         case "eth_sendSignedTransaction":
         case "eth_sendRawTransaction":
@@ -597,6 +599,8 @@ class BesuProcessor extends BlockchainProcessor {
 
 class DatabaseProcessor extends BlockchainProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseProcessor.class);
+    private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
+    private final String CHAIN_ID = Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
     private static final String SAMPLE_BLOCK = "{" + "\"difficulty\":\"0x5\","
             + "\"extraData" +
@@ -632,13 +636,13 @@ class DatabaseProcessor extends BlockchainProcessor {
             result = createResponse(requestId, "0x");
             break;
         case "eth_chainId":
-            result = createResponse(requestId, "0x4c");
+            result = createResponse(requestId, CHAIN_ID);
             break;
         case "web3_clientVersion":
             result = createResponse(requestId, "liquichainCentral");
             break;
         case "net_version":
-            result = createResponse(requestId, "7");
+            result = createResponse(requestId, NETWORK_ID);
             break;
         case "eth_blockNumber":
             result = createResponse(requestId, "0x" + Long.toHexString(BlockForgerScript.blockHeight));
