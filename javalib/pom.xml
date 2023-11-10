@@ -60,8 +60,15 @@
             </snapshots>
         </repository>
         <repository>
+            <id>unikbase</id>
+            <url>https://maven.pkg.github.com/unikbase/unikbase</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>liquichain</id>
-            <url>https://maven.pkg.github.com/liquichain/mv-liquichain</url>
+            <url>https://maven.pkg.github.com/liquichain/liquichain</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -88,7 +95,7 @@
         <repository>
             <id>liquichain</id>
             <name>Liquichain repo</name>
-            <url>https://maven.pkg.github.com/liquichain/mv-liquichain</url>
+            <url>https://maven.pkg.github.com/liquichain/liquichain</url>
         </repository>
     </distributionManagement>
 </project>
