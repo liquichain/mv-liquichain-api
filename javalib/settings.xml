@@ -19,18 +19,18 @@
                   </repository>
                   <repository>
                     <id>liquichain</id>
-                    <url>https://maven.pkg.github.com/liquichain/mv-liquichain</url>
+                    <url>https://maven.pkg.github.com/liquichain</url>
                     <snapshots>
-                      <enabled>true</enabled>
+                        <enabled>true</enabled>
                     </snapshots>
                   </repository>
-                <repository>
+                  <repository>
                     <id>unikbase</id>
                     <url>https://maven.pkg.github.com/unikbase</url>
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>
-                </repository>
+                  </repository>
             </repositories>
         </profile>
     </profiles>
