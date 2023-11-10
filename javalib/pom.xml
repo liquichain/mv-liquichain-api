@@ -37,12 +37,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.meveo</groupId>
+            <groupId>io.liquichain</groupId>
             <artifactId>mv-twilio</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.meveo</groupId>
+            <groupId>com.unikbase</groupId>
             <artifactId>mv-liquichain</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
@@ -61,14 +61,7 @@
         </repository>
         <repository>
             <id>unikbase</id>
-            <url>https://maven.pkg.github.com/unikbase/unikbase</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>liquichain</id>
-            <url>https://maven.pkg.github.com/liquichain/liquichain</url>
+            <url>https://maven.pkg.github.com/unikbase/mv-liquichain</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -95,7 +88,7 @@
         <repository>
             <id>liquichain</id>
             <name>Liquichain repo</name>
-            <url>https://maven.pkg.github.com/liquichain/liquichain</url>
+            <url>https://maven.pkg.github.com/liquichain/mv-liquichain-api</url>
         </repository>
     </distributionManagement>
 </project>

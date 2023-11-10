@@ -24,6 +24,13 @@
                       <enabled>true</enabled>
                     </snapshots>
                   </repository>
+                <repository>
+                    <id>unikbase</id>
+                    <url>https://maven.pkg.github.com/unikbase</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
             </repositories>
         </profile>
     </profiles>
