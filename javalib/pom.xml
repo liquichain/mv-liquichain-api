@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.meveo</groupId>
-    <artifactId>mv-liquichain</artifactId>
+    <artifactId>mv-liquichain-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <properties>
         <jakartaee-version>8.0.0</jakartaee-version>
@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>org.meveo</groupId>
-            <artifactId>mv-firebase-messaging</artifactId>
+            <artifactId>mv-twilio</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -76,6 +76,7 @@
                 <version>3.2.0</version>
                 <configuration>
                     <includes>
+                        <include>io/liquichain/**</include>
                         <include>org/meveo/**</include>
                     </includes>
                 </configuration>
