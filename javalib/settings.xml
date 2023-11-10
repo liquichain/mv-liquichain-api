@@ -19,14 +19,14 @@
                   </repository>
                   <repository>
                     <id>liquichain</id>
-                    <url>https://maven.pkg.github.com/liquichain</url>
+                    <url>https://maven.pkg.github.com/liquichain/mv-twilio</url>
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>
                   </repository>
                   <repository>
                     <id>unikbase</id>
-                    <url>https://maven.pkg.github.com/unikbase</url>
+                    <url>https://maven.pkg.github.com/unikbase/mv-liquichain</url>
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>
