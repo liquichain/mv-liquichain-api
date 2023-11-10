@@ -46,5 +46,10 @@
             <username>${env.BUILD_USER}</username>
             <password>${env.BUILD_TOKEN}</password>
         </server>
+        <server>
+            <id>unikbase</id>
+            <username>${env.BUILD_USER}</username>
+            <password>${env.BUILD_TOKEN}</password>
+        </server>
     </servers>
 </settings>
