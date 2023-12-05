@@ -1,0 +1,13 @@
+{
+  "code" : "io.liquichain.api.rpc.DatabaseProcessor",
+  "description" : "Database processor",
+  "inputs" : [ ],
+  "outputs" : [ ],
+  "generateOutputs" : false,
+  "type" : "JAVA",
+  "transactionType" : "SAME",
+  "executionRoles" : [ ],
+  "sourcingRoles" : [ ],
+  "mavenDependencies" : [ ],
+  "importScriptInstances" : [ ]
+}
