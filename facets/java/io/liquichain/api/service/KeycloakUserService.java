@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
+import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.admin.User;
 import org.meveo.model.customEntities.VerifiedEmail;
@@ -23,6 +24,7 @@ import org.meveo.model.storage.Repository;
 import org.meveo.service.admin.impl.RoleService;
 import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
+import org.meveo.service.storage.RepositoryService;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,31 +45,21 @@ public class KeycloakUserService extends Script {
             .connectionTTL(CONNECTION_TTL, TimeUnit.SECONDS)
             .build();
 
-    private final UserService userService;
-    private final RoleService roleService;
-    private final CrossStorageApi crossStorageApi;
-    private final Repository defaultRepo;
+    private final UserService userService = getCDIBean(UserService.class);
+    private final RoleService roleService = getCDIBean(RoleService.class);
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    private final ParamBean config = paramBeanFactory.getInstance();
 
-    private final String CLIENT_ID;
-    private final String CLIENT_SECRET;
-    private final String LOGIN_URL;
-    private final String USERS_URL;
-
-    public KeycloakUserService(ParamBean config, CrossStorageApi crossStorageApi, Repository defaultRepo,
-            UserService userService, RoleService roleService) {
-        this.crossStorageApi = crossStorageApi;
-        this.defaultRepo = defaultRepo;
-        this.userService = userService;
-        this.roleService = roleService;
-
-        String AUTH_URL = System.getProperty("meveo.keycloak.url");
-        String REALM = System.getProperty("meveo.keycloak.realm");
-        CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
-        CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
-        LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
-        String CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
-        USERS_URL = CLIENT_REALM_URL + "/users";
-    }
+    private final String AUTH_URL = System.getProperty("meveo.keycloak.url");
+    private final String REALM = System.getProperty("meveo.keycloak.realm");
+    private final String CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
+    private final String CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
+    private final String LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
+    private final String  CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
+    private final String USERS_URL = CLIENT_REALM_URL + "/users";
 
     private boolean isNotEmptyMap(Map<String, ?> map) {
         return map != null && !map.isEmpty();

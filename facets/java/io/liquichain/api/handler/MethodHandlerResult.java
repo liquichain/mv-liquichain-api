@@ -1,14 +1,19 @@
 package io.liquichain.api.handler;
 
-import static io.liquichain.api.rpc.EthApiUtils.toJson;
-
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
+import org.meveo.service.script.ScriptInstanceService;
+
+import io.liquichain.api.rpc.EthApiUtils;
 
 public class MethodHandlerResult extends Script {
+
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+
     private String transactionType;
     private String extraData;
     private String recipient;
@@ -76,7 +81,7 @@ public class MethodHandlerResult extends Script {
                 "transactionType='" + transactionType + '\'' +
                 ", extraData='" + extraData + '\'' +
                 ", value=" + value +
-                ", transaction=" + toJson(transaction) +
+                ", transaction=" + ethApiUtils.toJson(transaction) +
                 '}';
     }
 

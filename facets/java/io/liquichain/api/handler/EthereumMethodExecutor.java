@@ -1,7 +1,6 @@
 package io.liquichain.api.handler;
 
 import static io.liquichain.api.rpc.EthApiScript.EthApiConstants.INTERNAL_ERROR;
-import static io.liquichain.api.rpc.EthApiUtils.createErrorResponse;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -9,12 +8,18 @@ import java.util.Map;
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.model.customEntities.EthereumMethod;
 import org.meveo.service.script.Script;
+import org.meveo.service.script.ScriptInstanceService;
+
+import io.liquichain.api.rpc.EthApiUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EthereumMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthereumMethodExecutor.class);
+
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
 
     private final Map<String, EthereumMethod> ethereumMethods;
 
@@ -45,12 +50,12 @@ public class EthereumMethodExecutor extends Script {
                 ethereumMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
                 LOG.info("handler class instantiated.");
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-                     InvocationTargetException e) {
+                    InvocationTargetException e) {
                 throw new RuntimeException("Unable to instantiate ethereum method handler: " + className, e);
             }
             return ethereumMethodHandler.processRequest(requestId, parameters);
         } catch (Exception e) {
-            return createErrorResponse(requestId, INTERNAL_ERROR, e.getMessage());
+            return ethApiUtils.createErrorResponse(requestId, INTERNAL_ERROR, e.getMessage());
         }
     }
 

@@ -1,7 +1,5 @@
 package io.liquichain.api.verification;
 
-import static io.liquichain.api.rpc.EthApiUtils.convert;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -17,7 +15,10 @@ import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
+import org.meveo.service.script.ScriptInstanceService;
 import org.meveo.service.storage.RepositoryService;
+
+import io.liquichain.api.rpc.EthApiUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,8 @@ public class GetUsername extends Script {
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final UserService userService = getCDIBean(UserService.class);
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
 
     private String emailOrNumber;
     private Map<String, Object> result = new HashMap<>();
@@ -104,7 +107,7 @@ public class GetUsername extends Script {
             throw new RuntimeException("Private info is empty.");
         }
 
-        Map<String, Object> privateInfoMap = convert(privateInfo);
+        Map<String, Object> privateInfoMap = ethApiUtils.convert(privateInfo);
         String username = String.valueOf((Object) privateInfoMap.get("username"));
         if (StringUtils.isBlank(username)) {
             throw new RuntimeException("Username not found.");

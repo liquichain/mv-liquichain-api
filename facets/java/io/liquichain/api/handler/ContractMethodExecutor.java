@@ -1,8 +1,5 @@
 package io.liquichain.api.handler;
 
-import static io.liquichain.api.rpc.EthApiUtils.lowercaseHex;
-import static io.liquichain.api.rpc.EthApiUtils.toJson;
-
 import java.lang.reflect.InvocationTargetException;
 import java.security.SignatureException;
 import java.util.*;
@@ -10,6 +7,9 @@ import java.util.stream.Collectors;
 
 import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.script.Script;
+import org.meveo.service.script.ScriptInstanceService;
+
+import io.liquichain.api.rpc.EthApiUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -27,19 +27,22 @@ public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
     private static final Gson gson = new Gson();
 
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+
     private final Map<String, String> contractMethodHandlers;
     private final Map<String, ContractFunctionSignature> functionSignatures;
 
     public ContractMethodExecutor(String abi, Map<String, String> handlers) {
         super();
         this.contractMethodHandlers = new HashMap<>();
-        handlers.forEach((key, value) -> contractMethodHandlers.put(lowercaseHex(key), value));
+        handlers.forEach((key, value) -> contractMethodHandlers.put(ethApiUtils.lowercaseHex(key), value));
         List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
         this.functionSignatures = abiDefinitions
                 .stream()
                 .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
                 .map(ContractFunctionSignature::new)
-                .peek(signature -> LOG.debug("signature: {}", toJson(signature)))
+                .peek(signature -> LOG.info("signature: {}", ethApiUtils.toJson(signature)))
                 .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
     }
 
@@ -50,7 +53,7 @@ public class ContractMethodExecutor extends Script {
     public MethodHandlerResult execute(MethodHandlerInput input) {
         RawTransaction rawTransaction = input.getRawTransaction();
         String rawData = rawTransaction.getData();
-        String normalizedData = lowercaseHex(rawData);
+        String normalizedData = ethApiUtils.lowercaseHex(rawData);
 
         if (contractMethodHandlers == null || contractMethodHandlers.isEmpty()) {
             return parseSmartContractResult(rawData);
@@ -99,7 +102,7 @@ public class ContractMethodExecutor extends Script {
     }
 
     private MethodHandlerResult parseSmartContractResult(String rawData) {
-        String transactionData = lowercaseHex(rawData);
+        String transactionData = ethApiUtils.lowercaseHex(rawData);
         ContractFunctionSignature functionSignature = this.functionSignatures
                 .values()
                 .stream()
@@ -107,7 +110,7 @@ public class ContractMethodExecutor extends Script {
                 .findFirst()
                 .orElse(new ContractFunctionSignature());
 
-        LOG.info("function signature: {}", toJson(functionSignature));
+        LOG.info("function signature: {}", ethApiUtils.toJson(functionSignature));
         String type = functionSignature.getName();
         Map<String, Object> parameters = functionSignature.parseParameters(rawData);
         String description = functionSignature.getFunctionDefinition();
@@ -115,7 +118,7 @@ public class ContractMethodExecutor extends Script {
         dataMap.put("type", type);
         dataMap.put("description", description);
         dataMap.put("parameters", parameters);
-        return new MethodHandlerResult(type, toJson(dataMap));
+        return new MethodHandlerResult(type, ethApiUtils.toJson(dataMap));
     }
 
     @Override

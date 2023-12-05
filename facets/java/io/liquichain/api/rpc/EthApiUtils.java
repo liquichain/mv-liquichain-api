@@ -3,9 +3,7 @@ package io.liquichain.api.rpc;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.List;
-import java.util.Map;
 
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
@@ -24,15 +22,15 @@ public class EthApiUtils extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static String formatId(Object id) {
+    public String formatId(Object id) {
         return id == null || NumberUtils.isParsable("" + id) ? "" + id : "\"" + id + "\"";
     }
 
-    public static String formatResult(String result) {
+    public String formatResult(String result) {
         return result.startsWith("{") || result.startsWith("[") ? result : "\"" + result + "\"";
     }
 
-    public static String createResponse(Object requestId, String result) {
+    public String createResponse(Object requestId, String result) {
         String response = "{\n" +
                 "  \"id\": " + formatId(requestId) + ",\n" +
                 "  \"jsonrpc\": \"2.0\",\n" +
@@ -42,7 +40,7 @@ public class EthApiUtils extends Script {
         return response;
     }
 
-    public static String createErrorResponse(Object requestId, String errorCode, String message) {
+    public String createErrorResponse(Object requestId, String errorCode, String message) {
         String response = "{\n" +
                 "  \"id\": " + formatId(requestId) + ",\n" +
                 "  \"jsonrpc\": \"2.0\",\n" +
@@ -55,15 +53,15 @@ public class EthApiUtils extends Script {
         return response;
     }
 
-    public static String normalizeHash(String hash) {
+    public String normalizeHash(String hash) {
         return removeHexPrefix(hash).toLowerCase();
     }
 
-    public static String retrieveHash(List<String> parameters, int parameterIndex) {
+    public String retrieveHash(List<String> parameters, int parameterIndex) {
         return normalizeHash(parameters.get(parameterIndex));
     }
 
-    public static boolean isJSONValid(String jsonInString) {
+    public boolean isJSONValid(String jsonInString) {
         try {
             mapper.readTree(jsonInString);
             return true;
@@ -72,7 +70,7 @@ public class EthApiUtils extends Script {
         }
     }
 
-    public static String toJson(Object data) {
+    public String toJson(Object data) {
         String json = null;
         try {
             json = mapper.writeValueAsString(data);
@@ -82,7 +80,7 @@ public class EthApiUtils extends Script {
         return json;
     }
 
-    public static <T> T convert(String data) {
+    public <T> T convert(String data) {
         T value = null;
         try {
             value = mapper.readValue(data, new com.fasterxml.jackson.core.type.TypeReference<T>() {
@@ -93,7 +91,7 @@ public class EthApiUtils extends Script {
         return value;
     }
 
-    public static String toHex(byte[] bytes) {
+    public String toHex(byte[] bytes) {
         StringBuilder hexValue = new StringBuilder();
         for (byte aByte : bytes) {
             hexValue.append(String.format("%02x", aByte));
@@ -101,7 +99,7 @@ public class EthApiUtils extends Script {
         return hexValue.toString().toLowerCase();
     }
 
-    public static String toBigHex(String value) {
+    public String toBigHex(String value) {
         String hexValue = "";
         if (value != null) {
             try {
@@ -113,7 +111,7 @@ public class EthApiUtils extends Script {
         return hexValue;
     }
 
-    public static String addHexPrefix(String data) {
+    public String addHexPrefix(String data) {
         if (data == null) {
             return "";
         }
@@ -123,7 +121,7 @@ public class EthApiUtils extends Script {
         return "0x" + data;
     }
 
-    public static String removeHexPrefix(String data) {
+    public String removeHexPrefix(String data) {
         if (data == null) {
             return "";
         }
@@ -133,11 +131,11 @@ public class EthApiUtils extends Script {
         return data;
     }
 
-    public static String lowercaseHex(String data) {
+    public String lowercaseHex(String data) {
         return addHexPrefix(data).toLowerCase();
     }
 
-    private static Transaction loadCommonData(RawTransaction rawTransaction, String transactionHash, String data) {
+    private Transaction loadCommonData(RawTransaction rawTransaction, String transactionHash, String data) {
         try {
             Transaction transaction = new Transaction();
             if (rawTransaction instanceof SignedRawTransaction) {
@@ -163,18 +161,18 @@ public class EthApiUtils extends Script {
         }
     }
 
-    public static Transaction buildTransactionDetails(MethodHandlerInput methodHandlerInput) {
+    public Transaction buildTransactionDetails(MethodHandlerInput methodHandlerInput) {
         return buildTransactionDetails(methodHandlerInput, null);
     }
 
-    public static Transaction buildTransactionDetails(MethodHandlerInput methodHandlerInput, String recipient) {
+    public Transaction buildTransactionDetails(MethodHandlerInput methodHandlerInput, String recipient) {
         String transactionHash = methodHandlerInput.getTransactionHash();
         String data = methodHandlerInput.getData();
         RawTransaction rawTransaction = methodHandlerInput.getRawTransaction();
         return buildTransactionDetails(rawTransaction, transactionHash, recipient, data);
     }
 
-    public static Transaction buildTransactionDetails(RawTransaction rawTransaction, String transactionHash,
+    public Transaction buildTransactionDetails(RawTransaction rawTransaction, String transactionHash,
             String recipient, String data) {
         Transaction transaction = loadCommonData(rawTransaction, transactionHash, data);
         if (!StringUtils.isBlank(recipient)) {
@@ -182,10 +180,4 @@ public class EthApiUtils extends Script {
         }
         return transaction;
     }
-
-    @Override
-    public void execute(Map<String, Object> parameters) throws BusinessException {
-        super.execute(parameters);
-    }
-
 }

@@ -3,12 +3,10 @@ package io.liquichain.api.rpc;
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
-import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
-import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
-import org.meveo.service.storage.RepositoryService;
+import org.meveo.service.script.ScriptInstanceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +14,11 @@ import org.slf4j.LoggerFactory;
 public class EthApiScript extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiScript.class);
 
-    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
-    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
-    private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final ParamBean config = paramBeanFactory.getInstance();
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
 
     public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY;}
-
-    private BLOCKCHAIN_TYPE BLOCKCHAIN_BACKEND;
 
     public static class EthApiConstants {
         public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
@@ -53,6 +47,29 @@ public class EthApiScript extends Script {
 
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
+        String blockchainType = config.getProperty("txn.blockchain.type", "BESU");
+        BLOCKCHAIN_TYPE type = BLOCKCHAIN_TYPE.valueOf(blockchainType);
+        switch (type) {
+        case BESU:
+            result = executeOnBesu(parameters);
+            break;
+        case DATABASE:
+        default:
+            result = executeOnDatabase(parameters);
+        }
+    }
+
+    private String executeOnBesu(Map<String, Object> parameters) throws BusinessException {
+        BesuProcessor besuProcessor = (BesuProcessor) scriptInstanceService.getExecutionEngine("BesuProcessor", null);
+        besuProcessor.execute(parameters);
+        return besuProcessor.getResult();
+    }
+
+    private String executeOnDatabase(Map<String, Object> parameters) throws BusinessException {
+        DatabaseProcessor databaseProcessor = (DatabaseProcessor) scriptInstanceService.getExecutionEngine(
+                "DatabaseProcessor", null);
+        databaseProcessor.execute(parameters);
+        return databaseProcessor.getResult();
     }
 }
 

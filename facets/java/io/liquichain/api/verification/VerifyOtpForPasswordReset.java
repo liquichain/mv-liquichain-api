@@ -11,9 +11,8 @@ import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.OutboundSMS;
 import org.meveo.model.storage.Repository;
-import org.meveo.service.admin.impl.RoleService;
-import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
+import org.meveo.service.script.ScriptInstanceService;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.service.KeycloakUserService;
@@ -27,12 +26,11 @@ public class VerifyOtpForPasswordReset extends Script {
     private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
-    private final UserService userService = getCDIBean(UserService.class);
-    private final RoleService roleService = getCDIBean(RoleService.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final ParamBean config = paramBeanFactory.getInstance();
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final KeycloakUserService keycloakUserService =
-        new KeycloakUserService(config, crossStorageApi, defaultRepo, userService, roleService);
+            (KeycloakUserService) scriptInstanceService.getExecutionEngine("KeycloakUserService", null);
 
     private final String otpMaxAttempts = config.getProperty("otp.max.attempts", "5");
     private final String otpMaxDelay = config.getProperty("otp.max.delay", "3");
