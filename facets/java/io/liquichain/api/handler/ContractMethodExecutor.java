@@ -28,7 +28,8 @@ public class ContractMethodExecutor extends Script {
     private static final Gson gson = new Gson();
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+            EthApiUtils.class.getName(), null);
 
     private final Map<String, String> contractMethodHandlers;
     private final Map<String, ContractFunctionSignature> functionSignatures;

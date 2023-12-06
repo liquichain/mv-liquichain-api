@@ -19,7 +19,8 @@ public class EthereumMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthereumMethodExecutor.class);
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+            EthApiUtils.class.getName(), null);
 
     private final Map<String, EthereumMethod> ethereumMethods;
 

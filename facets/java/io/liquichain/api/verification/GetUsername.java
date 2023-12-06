@@ -33,7 +33,8 @@ public class GetUsername extends Script {
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final UserService userService = getCDIBean(UserService.class);
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+            EthApiUtils.class.getName(), null);
 
     private String emailOrNumber;
     private Map<String, Object> result = new HashMap<>();

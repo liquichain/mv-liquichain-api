@@ -30,7 +30,7 @@ public class VerifyOtpForPasswordReset extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final KeycloakUserService keycloakUserService =
-            (KeycloakUserService) scriptInstanceService.getExecutionEngine("KeycloakUserService", null);
+            (KeycloakUserService) scriptInstanceService.getExecutionEngine(KeycloakUserService.class.getName(), null);
 
     private final String otpMaxAttempts = config.getProperty("otp.max.attempts", "5");
     private final String otpMaxDelay = config.getProperty("otp.max.delay", "3");

@@ -60,14 +60,15 @@ public class EthApiScript extends Script {
     }
 
     private String executeOnBesu(Map<String, Object> parameters) throws BusinessException {
-        BesuProcessor besuProcessor = (BesuProcessor) scriptInstanceService.getExecutionEngine("BesuProcessor", null);
+        BesuProcessor besuProcessor = (BesuProcessor) scriptInstanceService.getExecutionEngine(
+                BesuProcessor.class.getName(), null);
         besuProcessor.execute(parameters);
         return besuProcessor.getResult();
     }
 
     private String executeOnDatabase(Map<String, Object> parameters) throws BusinessException {
         DatabaseProcessor databaseProcessor = (DatabaseProcessor) scriptInstanceService.getExecutionEngine(
-                "DatabaseProcessor", null);
+                DatabaseProcessor.class.getName(), null);
         databaseProcessor.execute(parameters);
         return databaseProcessor.getResult();
     }

@@ -12,7 +12,8 @@ import io.liquichain.api.rpc.EthApiUtils;
 public class MethodHandlerResult extends Script {
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+            EthApiUtils.class.getName(), null);
 
     private String transactionType;
     private String extraData;

@@ -60,7 +60,7 @@ public class WalletApiScript extends Script {
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final KeycloakUserService keycloakUserService =
-            (KeycloakUserService) scriptInstanceService.getExecutionEngine("KeycloakUserService", null);
+            (KeycloakUserService) scriptInstanceService.getExecutionEngine(KeycloakUserService.class.getName(), null);
 
     private String result;
 

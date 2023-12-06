@@ -46,8 +46,10 @@ public class BesuProcessor extends Script {
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthService ethService = (EthService) scriptInstanceService.getExecutionEngine("EthService", null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine("EthApiUtils", null);
+    private final EthService ethService = (EthService) scriptInstanceService.getExecutionEngine(
+            EthService.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+            EthApiUtils.class.getName(), null);
 
     private final Map<String, EthereumMethod> ethereumMethods;
     protected String result;
