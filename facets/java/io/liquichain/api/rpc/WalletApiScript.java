@@ -49,6 +49,7 @@ public class WalletApiScript extends Script {
     private static final String TRANSACTION_REJECTED = "-32003";
     private static final String METHOD_NOT_FOUND = "-32601";
     private static final List<String> FILTERED_KEYS = Arrays.asList("emailAddress", "phoneNumber", "password");
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);

@@ -28,6 +28,7 @@ public class VerifyOtpForPasswordReset extends Script {
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final ParamBean config = paramBeanFactory.getInstance();
+
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final KeycloakUserService keycloakUserService =
             (KeycloakUserService) scriptInstanceService.getExecutionEngine(KeycloakUserService.class.getName(), null);

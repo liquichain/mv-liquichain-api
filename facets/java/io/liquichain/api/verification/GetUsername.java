@@ -37,7 +37,7 @@ public class GetUsername extends Script {
             EthApiUtils.class.getName(), null);
 
     private String emailOrNumber;
-    private Map<String, Object> result = new HashMap<>();
+    private final Map<String, Object> result = new HashMap<>();
 
     public Map<String, Object> getResult() {
         return result;

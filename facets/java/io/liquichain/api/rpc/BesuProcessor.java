@@ -45,6 +45,7 @@ public class BesuProcessor extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
+
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final EthService ethService = (EthService) scriptInstanceService.getExecutionEngine(
             EthService.class.getName(), null);

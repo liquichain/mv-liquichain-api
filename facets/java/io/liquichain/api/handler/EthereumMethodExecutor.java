@@ -5,7 +5,6 @@ import static io.liquichain.api.rpc.EthApiScript.EthApiConstants.INTERNAL_ERROR;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.model.customEntities.EthereumMethod;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
@@ -59,10 +58,4 @@ public class EthereumMethodExecutor extends Script {
             return ethApiUtils.createErrorResponse(requestId, INTERNAL_ERROR, e.getMessage());
         }
     }
-
-    @Override
-    public void execute(Map<String, Object> parameters) throws BusinessException {
-        super.execute(parameters);
-    }
-
 }

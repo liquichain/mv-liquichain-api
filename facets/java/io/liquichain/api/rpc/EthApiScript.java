@@ -39,7 +39,7 @@ public class EthApiScript extends Script {
         public static final String RECIPIENT_NOT_FOUND = "Recipient wallet does not exist";
     }
 
-    protected String result;
+    private String result;
 
     public String getResult() {
         return this.result;

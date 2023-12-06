@@ -1,8 +1,5 @@
 package io.liquichain.api.handler;
 
-import java.util.Map;
-
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
@@ -84,10 +81,5 @@ public class MethodHandlerResult extends Script {
                 ", value=" + value +
                 ", transaction=" + ethApiUtils.toJson(transaction) +
                 '}';
-    }
-
-    @Override
-    public void execute(Map<String, Object> parameters) throws BusinessException {
-        super.execute(parameters);
     }
 }

@@ -31,6 +31,7 @@ public class DatabaseProcessor extends Script {
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
+
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);

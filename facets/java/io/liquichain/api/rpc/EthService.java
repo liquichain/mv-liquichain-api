@@ -46,6 +46,7 @@ public class EthService extends Script {
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
+
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
     private final String BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
