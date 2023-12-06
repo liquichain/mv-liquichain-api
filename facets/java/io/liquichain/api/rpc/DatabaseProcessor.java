@@ -40,7 +40,7 @@ public class DatabaseProcessor extends Script {
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
-    protected String result;
+    private String result;
 
     public String getResult() {
         return this.result;

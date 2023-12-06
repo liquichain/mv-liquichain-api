@@ -53,7 +53,7 @@ public class BesuProcessor extends Script {
             EthApiUtils.class.getName(), null);
 
     private final Map<String, EthereumMethod> ethereumMethods;
-    protected String result;
+    private String result;
 
     public String getResult() {
         return this.result;
