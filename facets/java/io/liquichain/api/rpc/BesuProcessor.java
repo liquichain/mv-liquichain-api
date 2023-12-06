@@ -170,8 +170,12 @@ public class BesuProcessor extends Script {
             boolean hasAbi = abi != null && abi.length() > 0;
             LOG.debug("hasAbi: {}", hasAbi);
             if (hasAbi) {
-                ContractMethodExecutor executor = new ContractMethodExecutor(abi, handlers);
-                MethodHandlerInput input = new MethodHandlerInput(rawTransaction, smartContract, transactionHash, data);
+                ContractMethodExecutor executor = (ContractMethodExecutor) scriptInstanceService.getExecutionEngine(
+                        ContractMethodExecutor.class.getName(), null);
+                executor.init(abi, handlers);
+                MethodHandlerInput input = (MethodHandlerInput) scriptInstanceService.getExecutionEngine(
+                        MethodHandlerInput.class.getName(), null);
+                input.init(rawTransaction, smartContract, transactionHash, data);
                 handlerResult = executor.execute(input);
             }
         } else {

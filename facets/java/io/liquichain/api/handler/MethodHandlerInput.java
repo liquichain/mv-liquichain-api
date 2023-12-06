@@ -1,8 +1,5 @@
 package io.liquichain.api.handler;
 
-import java.util.Map;
-
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.api.persistence.CrossStorageApi;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
@@ -17,27 +14,16 @@ import org.web3j.crypto.RawTransaction;
 public class MethodHandlerInput extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandlerInput.class);
 
-    private final RawTransaction rawTransaction;
-    private final String smartContractAddress;
-    private final String transactionHash;
-    private final String data;
-    private final CrossStorageApi crossStorageApi;
-    private final Repository defaultRepo;
-    private final ParamBean config;
+    private final CrossStorageApi crossStorageApi = getCDIBean(CrossStorageApi.class);
+    private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
+    private final Repository defaultRepo = repositoryService.findDefaultRepository();
+    private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
+    private final ParamBean config = paramBeanFactory.getInstance();
 
-    public MethodHandlerInput(RawTransaction rawTransaction, String smartContractAddress, String transactionHash,
-            String data) {
-        this.crossStorageApi = getCDIBean(CrossStorageApi.class);
-        RepositoryService repositoryService = getCDIBean(RepositoryService.class);
-        this.defaultRepo = repositoryService.findDefaultRepository();
-        ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
-        this.config = paramBeanFactory.getInstance();
-
-        this.rawTransaction = rawTransaction;
-        this.smartContractAddress = smartContractAddress;
-        this.transactionHash = transactionHash;
-        this.data = data;
-    }
+    private RawTransaction rawTransaction;
+    private String smartContractAddress;
+    private String transactionHash;
+    private String data;
 
     public RawTransaction getRawTransaction() {
         return rawTransaction;
@@ -67,6 +53,13 @@ public class MethodHandlerInput extends Script {
         return config;
     }
 
+    public void init(RawTransaction rawTransaction, String smartContractAddress, String transactionHash, String data) {
+        this.rawTransaction = rawTransaction;
+        this.smartContractAddress = smartContractAddress;
+        this.transactionHash = transactionHash;
+        this.data = data;
+    }
+
     @Override
     public String toString() {
         return "MethodHandlerInput{" +
@@ -75,11 +68,6 @@ public class MethodHandlerInput extends Script {
                 ", transactionHash=" + transactionHash +
                 ", data='" + data +
                 '}';
-    }
-
-    @Override
-    public void execute(Map<String, Object> parameters) throws BusinessException {
-        super.execute(parameters);
     }
 
 }

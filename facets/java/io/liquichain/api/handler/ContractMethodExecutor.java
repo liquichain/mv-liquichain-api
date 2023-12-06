@@ -4,7 +4,6 @@ import java.security.SignatureException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.meveo.admin.exception.BusinessException;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
 
@@ -30,11 +29,10 @@ public class ContractMethodExecutor extends Script {
     private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
 
-    private final Map<String, String> contractMethodHandlers;
-    private final Map<String, ContractFunctionSignature> functionSignatures;
+    private Map<String, String> contractMethodHandlers;
+    private Map<String, ContractFunctionSignature> functionSignatures;
 
-    public ContractMethodExecutor(String abi, Map<String, String> handlers) {
-        super();
+    public void init(String abi, Map<String, String> handlers) {
         this.contractMethodHandlers = new HashMap<>();
         handlers.forEach((key, value) -> contractMethodHandlers.put(ethApiUtils.lowercaseHex(key), value));
         List<AbiDefinition> abiDefinitions = gson.fromJson(abi, new TypeToken<List<AbiDefinition>>() {}.getType());
@@ -114,11 +112,6 @@ public class ContractMethodExecutor extends Script {
         dataMap.put("description", description);
         dataMap.put("parameters", parameters);
         return new MethodHandlerResult(type, ethApiUtils.toJson(dataMap));
-    }
-
-    @Override
-    public void execute(Map<String, Object> parameters) throws BusinessException {
-        super.execute(parameters);
     }
 }
 
