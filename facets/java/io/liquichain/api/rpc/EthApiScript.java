@@ -72,7 +72,6 @@ public class EthApiScript extends Script {
         databaseProcessor.execute(parameters);
         return databaseProcessor.getResult();
     }
-
 }
 
 
