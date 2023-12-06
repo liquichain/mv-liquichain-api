@@ -2,12 +2,15 @@
   "code" : "io.liquichain.api.rpc.DatabaseProcessor",
   "description" : "Database processor",
   "inputs" : [ ],
-  "outputs" : [ ],
+  "outputs" : [ {
+    "name" : "result",
+    "type" : "String"
+  } ],
   "generateOutputs" : false,
   "type" : "JAVA",
   "transactionType" : "SAME",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
   "mavenDependencies" : [ ],
-  "importScriptInstances" : [ ]
+  "importScriptInstances" : [ "io.liquichain.core.BlockForgerScript" ]
 }
