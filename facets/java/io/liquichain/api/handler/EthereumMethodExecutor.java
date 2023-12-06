@@ -58,4 +58,5 @@ public class EthereumMethodExecutor extends Script {
             return ethApiUtils.createErrorResponse(requestId, INTERNAL_ERROR, e.getMessage());
         }
     }
+
 }

@@ -82,4 +82,5 @@ public class MethodHandlerResult extends Script {
                 ", transaction=" + ethApiUtils.toJson(transaction) +
                 '}';
     }
+
 }

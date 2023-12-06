@@ -244,4 +244,5 @@ class ContractFunctionSignature {
                 ", functionDefinition='" + functionDefinition + '\'' +
                 '}';
     }
+
 }

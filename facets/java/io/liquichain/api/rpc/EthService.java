@@ -150,5 +150,4 @@ public class EthService extends Script {
             throw new RuntimeException("No transaction hash provided.");
         }
     }
-
 }

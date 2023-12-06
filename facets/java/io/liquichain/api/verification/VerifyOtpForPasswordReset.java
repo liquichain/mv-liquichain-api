@@ -147,4 +147,5 @@ public class VerifyOtpForPasswordReset extends Script {
             result = buildError("otp_does_not_exist");
         }
     }
+
 }

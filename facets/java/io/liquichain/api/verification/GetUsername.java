@@ -121,5 +121,4 @@ public class GetUsername extends Script {
         result.put("status", "fail");
         result.put("result", e.getMessage());
     }
-
 }

@@ -665,4 +665,5 @@ public class WalletApiScript extends Script {
 
         return createResponse(requestId, toJson(response));
     }
+
 }

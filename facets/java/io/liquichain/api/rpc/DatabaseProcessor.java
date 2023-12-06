@@ -275,4 +275,5 @@ public class DatabaseProcessor extends Script {
             return ethApiUtils.createErrorResponse(requestId, RESOURCE_NOT_FOUND, "Resource not found");
         }
     }
+
 }
