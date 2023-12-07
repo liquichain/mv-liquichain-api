@@ -17,6 +17,7 @@ import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.service.KeycloakUserService;
@@ -60,8 +61,9 @@ public class WalletApiScript extends Script {
     private final String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final KeycloakUserService keycloakUserService =
-            (KeycloakUserService) scriptInstanceService.getExecutionEngine(KeycloakUserService.class.getName(), null);
+    private final ScriptInterface keycloakUserServiceScript = scriptInstanceService.getExecutionEngine(
+            KeycloakUserService.class.getName(), null);
+    private final KeycloakUserService keycloakUserService = (KeycloakUserService) keycloakUserServiceScript;
 
     private String result;
 
