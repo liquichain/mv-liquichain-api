@@ -1,6 +1,5 @@
 package io.liquichain.api.handler;
 
-import java.lang.reflect.InvocationTargetException;
 import java.security.SignatureException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -89,14 +88,8 @@ public class ContractMethodExecutor extends Script {
             throw new RuntimeException("Failed to retrieve sender wallet address.", e);
         }
 
-        ContractMethodHandler contractMethodHandler;
-        try {
-            contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
-            LOG.info("handler class instantiated.");
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-                InvocationTargetException e) {
-            throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
-        }
+        ContractMethodHandler contractMethodHandler = (ContractMethodHandler) scriptInstanceService.getExecutionEngine(
+                className, null);
         return contractMethodHandler.processData(input, parameters);
     }
 
