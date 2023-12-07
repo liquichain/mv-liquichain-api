@@ -18,6 +18,7 @@ import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -44,8 +45,9 @@ public class EthService extends Script {
             .build();
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
 
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();

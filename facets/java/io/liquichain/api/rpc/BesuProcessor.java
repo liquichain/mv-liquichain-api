@@ -21,6 +21,7 @@ import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.handler.ContractMethodExecutor;
@@ -47,10 +48,10 @@ public class BesuProcessor extends Script {
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthService ethService = (EthService) scriptInstanceService.getExecutionEngine(
-            EthService.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
+    private final EthService ethService = ethApiUtils.loadScript(EthService.class, null);
 
     private final Map<String, EthereumMethod> ethereumMethods;
     private String result;

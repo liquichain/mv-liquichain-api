@@ -7,6 +7,7 @@ import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,9 @@ public class EthApiScript extends Script {
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
 
     public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY;}
 
@@ -60,15 +64,13 @@ public class EthApiScript extends Script {
     }
 
     private String executeOnBesu(Map<String, Object> parameters) throws BusinessException {
-        BesuProcessor besuProcessor = (BesuProcessor) scriptInstanceService.getExecutionEngine(
-                BesuProcessor.class.getName(), null);
+        BesuProcessor besuProcessor = ethApiUtils.loadScript(BesuProcessor.class, null);
         besuProcessor.execute(parameters);
         return besuProcessor.getResult();
     }
 
     private String executeOnDatabase(Map<String, Object> parameters) throws BusinessException {
-        DatabaseProcessor databaseProcessor = (DatabaseProcessor) scriptInstanceService.getExecutionEngine(
-                DatabaseProcessor.class.getName(), null);
+        DatabaseProcessor databaseProcessor = ethApiUtils.loadScript(DatabaseProcessor.class, null);
         databaseProcessor.execute(parameters);
         return databaseProcessor.getResult();
     }

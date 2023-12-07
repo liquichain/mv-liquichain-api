@@ -15,6 +15,7 @@ import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.core.BlockForgerScript;
@@ -33,10 +34,10 @@ public class DatabaseProcessor extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
-    private final BlockchainProcessor blockchainProcessor =
-            (BlockchainProcessor) scriptInstanceService.getExecutionEngine(BlockchainProcessor.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
+    private final BlockchainProcessor blockchainProcessor = ethApiUtils.loadScript(BlockchainProcessor.class, null);
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
 

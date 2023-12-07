@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 
 import io.liquichain.api.rpc.EthApiUtils;
 
@@ -26,8 +27,9 @@ public class ContractMethodExecutor extends Script {
     private static final Gson gson = new Gson();
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
 
     private Map<String, String> contractMethodHandlers;
     private Map<String, ContractFunctionSignature> functionSignatures;

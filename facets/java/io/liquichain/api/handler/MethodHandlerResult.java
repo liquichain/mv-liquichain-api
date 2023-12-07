@@ -3,14 +3,16 @@ package io.liquichain.api.handler;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 
 import io.liquichain.api.rpc.EthApiUtils;
 
 public class MethodHandlerResult extends Script {
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) scriptInstanceService.getExecutionEngine(
+    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
             EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
 
     private String transactionType;
     private String extraData;

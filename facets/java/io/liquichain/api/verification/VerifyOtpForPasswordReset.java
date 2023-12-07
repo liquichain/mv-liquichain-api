@@ -13,6 +13,7 @@ import org.meveo.model.customEntities.OutboundSMS;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
 import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.service.KeycloakUserService;
@@ -30,8 +31,9 @@ public class VerifyOtpForPasswordReset extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
 
     private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final KeycloakUserService keycloakUserService =
-            (KeycloakUserService) scriptInstanceService.getExecutionEngine(KeycloakUserService.class.getName(), null);
+    private final ScriptInterface keycloakUserServiceScript = scriptInstanceService.getExecutionEngine(
+            KeycloakUserService.class.getName(), null);
+    private final KeycloakUserService keycloakUserService = (KeycloakUserService) keycloakUserServiceScript;
 
     private final String otpMaxAttempts = config.getProperty("otp.max.attempts", "5");
     private final String otpMaxDelay = config.getProperty("otp.max.delay", "3");

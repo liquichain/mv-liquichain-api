@@ -3,10 +3,13 @@ package io.liquichain.api.rpc;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.List;
+import java.util.Map;
 
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
+import org.meveo.service.script.ScriptInstanceService;
+import org.meveo.service.script.ScriptInterface;
 
 import io.liquichain.api.handler.MethodHandlerInput;
 
@@ -21,6 +24,12 @@ import org.web3j.crypto.SignedRawTransaction;
 public class EthApiUtils extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
     private static final ObjectMapper mapper = new ObjectMapper();
+    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+
+    public <T> T loadScript(Class<T> scriptClass, Map<String, Object> params) {
+        ScriptInterface scriptInterface = scriptInstanceService.getExecutionEngine(scriptClass.getName(), params);
+        return (T) scriptInterface;
+    }
 
     public String formatId(Object id) {
         return id == null || NumberUtils.isParsable("" + id) ? "" + id : "\"" + id + "\"";
