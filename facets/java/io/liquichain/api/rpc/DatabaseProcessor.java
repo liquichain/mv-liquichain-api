@@ -33,11 +33,11 @@ public class DatabaseProcessor extends Script {
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
 
-    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
-            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
-    private final BlockchainProcessor blockchainProcessor = ethApiUtils.loadScript(BlockchainProcessor.class, null);
+    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+    //            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = new EthApiUtils();
+    private final BlockchainProcessor blockchainProcessor = new BlockchainProcessor();
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
