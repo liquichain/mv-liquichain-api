@@ -41,7 +41,7 @@ public class ContractMethodExecutor extends Script {
                 .stream()
                 .filter(abiDefinition -> "function".equals(abiDefinition.getType()))
                 .map(ContractFunctionSignature::new)
-                .peek(signature -> LOG.info("signature: {}", ethApiUtils.toJson(signature)))
+                .peek(signature -> LOG.debug("signature: {}", ethApiUtils.toJson(signature)))
                 .collect(Collectors.toMap(ContractFunctionSignature::getSignature, signature -> signature));
     }
 
