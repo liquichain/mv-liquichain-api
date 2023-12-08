@@ -20,8 +20,6 @@ import org.meveo.model.customEntities.Transaction;
 import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.script.Script;
-import org.meveo.service.script.ScriptInstanceService;
-import org.meveo.service.script.ScriptInterface;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.handler.ContractMethodExecutor;
@@ -47,11 +45,11 @@ public class BesuProcessor extends Script {
     private final String NETWORK_ID = config.getProperty("eth.network.id", "1662");
     private final String CHAIN_ID = "0x" + Integer.toHexString(Integer.parseInt(NETWORK_ID));
 
-    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
-            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
-    private final EthService ethService = ethApiUtils.loadScript(EthService.class, null);
+    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+    //            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = new EthApiUtils();
+    private final EthService ethService = new EthService();
 
     private final Map<String, EthereumMethod> ethereumMethods;
     private String result;
@@ -171,11 +169,9 @@ public class BesuProcessor extends Script {
             boolean hasAbi = abi != null && abi.length() > 0;
             LOG.debug("hasAbi: {}", hasAbi);
             if (hasAbi) {
-                ContractMethodExecutor executor = (ContractMethodExecutor) scriptInstanceService.getExecutionEngine(
-                        ContractMethodExecutor.class.getName(), null);
+                ContractMethodExecutor executor = new ContractMethodExecutor();
                 executor.init(abi, handlers);
-                MethodHandlerInput input = (MethodHandlerInput) scriptInstanceService.getExecutionEngine(
-                        MethodHandlerInput.class.getName(), null);
+                MethodHandlerInput input = new MethodHandlerInput();
                 input.init(rawTransaction, smartContract, transactionHash, data);
                 handlerResult = executor.execute(input);
             }

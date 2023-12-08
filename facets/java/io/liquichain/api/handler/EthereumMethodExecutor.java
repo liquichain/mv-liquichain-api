@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.meveo.model.customEntities.EthereumMethod;
 import org.meveo.service.script.Script;
-import org.meveo.service.script.ScriptInstanceService;
-import org.meveo.service.script.ScriptInterface;
 
 import io.liquichain.api.rpc.EthApiUtils;
 
@@ -18,10 +16,10 @@ import org.slf4j.LoggerFactory;
 public class EthereumMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthereumMethodExecutor.class);
 
-    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
-            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
+    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+    //            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = new EthApiUtils();
 
     private final Map<String, EthereumMethod> ethereumMethods;
 

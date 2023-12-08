@@ -15,8 +15,6 @@ import org.meveo.model.customEntities.Wallet;
 import org.meveo.model.storage.Repository;
 import org.meveo.service.admin.impl.UserService;
 import org.meveo.service.script.Script;
-import org.meveo.service.script.ScriptInstanceService;
-import org.meveo.service.script.ScriptInterface;
 import org.meveo.service.storage.RepositoryService;
 
 import io.liquichain.api.rpc.EthApiUtils;
@@ -33,10 +31,10 @@ public class GetUsername extends Script {
     private final RepositoryService repositoryService = getCDIBean(RepositoryService.class);
     private final Repository defaultRepo = repositoryService.findDefaultRepository();
     private final UserService userService = getCDIBean(UserService.class);
-    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
-            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
+    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+    //            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = new EthApiUtils();
 
     private String emailOrNumber;
     private final Map<String, Object> result = new HashMap<>();

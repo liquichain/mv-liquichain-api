@@ -6,8 +6,6 @@ import org.meveo.admin.exception.BusinessException;
 import org.meveo.commons.utils.ParamBean;
 import org.meveo.commons.utils.ParamBeanFactory;
 import org.meveo.service.script.Script;
-import org.meveo.service.script.ScriptInstanceService;
-import org.meveo.service.script.ScriptInterface;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +15,10 @@ public class EthApiScript extends Script {
 
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
-    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
-            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
+    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+    //            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = new EthApiUtils();
 
     public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY;}
 

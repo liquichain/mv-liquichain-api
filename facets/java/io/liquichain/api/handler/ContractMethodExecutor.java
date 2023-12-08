@@ -1,12 +1,11 @@
 package io.liquichain.api.handler;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.SignatureException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.meveo.service.script.Script;
-import org.meveo.service.script.ScriptInstanceService;
-import org.meveo.service.script.ScriptInterface;
 
 import io.liquichain.api.rpc.EthApiUtils;
 
@@ -26,10 +25,10 @@ public class ContractMethodExecutor extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(ContractMethodExecutor.class);
     private static final Gson gson = new Gson();
 
-    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
-            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = (EthApiUtils) ethApiUtilsScript;
+    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
+    //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
+    //            EthApiUtils.class.getName(), null);
+    private final EthApiUtils ethApiUtils = new EthApiUtils();
 
     private Map<String, String> contractMethodHandlers;
     private Map<String, ContractFunctionSignature> functionSignatures;
@@ -90,8 +89,14 @@ public class ContractMethodExecutor extends Script {
             throw new RuntimeException("Failed to retrieve sender wallet address.", e);
         }
 
-        ContractMethodHandler contractMethodHandler = (ContractMethodHandler) scriptInstanceService.getExecutionEngine(
-                className, null);
+        ContractMethodHandler contractMethodHandler;
+        try {
+            contractMethodHandler = handlerClass.getDeclaredConstructor().newInstance();
+            LOG.info("handler class instantiated.");
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                InvocationTargetException e) {
+            throw new RuntimeException("Unable to instantiate smart contract handler: " + className, e);
+        }
         return contractMethodHandler.processData(input, parameters);
     }
 
