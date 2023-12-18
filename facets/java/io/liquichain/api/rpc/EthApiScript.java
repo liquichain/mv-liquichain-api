@@ -1,5 +1,6 @@
 package io.liquichain.api.rpc;
 
+import java.util.List;
 import java.util.Map;
 
 import org.meveo.admin.exception.BusinessException;
@@ -18,9 +19,9 @@ public class EthApiScript extends Script {
     //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
     //    private final ScriptInterface ethApiUtilsScript = scriptInstanceService.getExecutionEngine(
     //            EthApiUtils.class.getName(), null);
-    private final EthApiUtils ethApiUtils = new EthApiUtils();
+    //    private final EthApiUtils ethApiUtils = new EthApiUtils();
 
-    public enum BLOCKCHAIN_TYPE {DATABASE, BESU, FABRIC, BESU_ONLY;}
+    public static final List<String> BLOCKCHAIN_TYPE = List.of("DATABASE", "BESU", "FABRIC", "BESU_ONLY");
 
     public static class EthApiConstants {
         public static final String NOT_IMPLEMENTED_ERROR = "Feature not yet implemented";
@@ -50,12 +51,12 @@ public class EthApiScript extends Script {
     @Override
     public void execute(Map<String, Object> parameters) throws BusinessException {
         String blockchainType = config.getProperty("txn.blockchain.type", "BESU");
-        BLOCKCHAIN_TYPE type = BLOCKCHAIN_TYPE.valueOf(blockchainType);
+        String type = BLOCKCHAIN_TYPE.contains(blockchainType) ? blockchainType : null;
         switch (type) {
-        case BESU:
+        case "BESU":
             result = executeOnBesu(parameters);
             break;
-        case DATABASE:
+        case "DATABASE":
         default:
             result = executeOnDatabase(parameters);
         }
