@@ -29,8 +29,8 @@ public class EthService extends Script {
     public static final String IS_SUCCESS = "isSuccess";
     public static final String IS_NULL = "isNull";
 
-    private static final int SLEEP_DURATION = 1000;
-    private static final int ATTEMPTS = 40;
+    private static final int SLEEP_DURATION = 2000;
+    private static final int ATTEMPTS = 50;
 
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
