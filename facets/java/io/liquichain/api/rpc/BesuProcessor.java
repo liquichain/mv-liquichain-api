@@ -28,6 +28,7 @@ import io.liquichain.api.handler.MethodHandlerInput;
 import io.liquichain.api.handler.MethodHandlerResult;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.Hash;
@@ -169,11 +170,16 @@ public class BesuProcessor extends Script {
             boolean hasAbi = abi != null && abi.length() > 0;
             LOG.debug("hasAbi: {}", hasAbi);
             if (hasAbi) {
+                LOG.info("Start calling smart contract method handler.");
+                StopWatch stopWatch = new StopWatch();
+                stopWatch.start();
                 ContractMethodExecutor executor = new ContractMethodExecutor();
                 executor.init(abi, handlers);
                 MethodHandlerInput input = new MethodHandlerInput();
                 input.init(rawTransaction, smartContract, transactionHash, data);
                 handlerResult = executor.execute(input);
+                stopWatch.stop();
+                LOG.info("Executed smart contract handler in: {}ms", stopWatch.getTime());
             }
         } else {
             Wallet recipientWallet;
@@ -190,7 +196,12 @@ public class BesuProcessor extends Script {
         LOG.debug("Handler result: {}", ethApiUtils.toJson(handlerResult));
 
         try {
+            LOG.info("Start calling smart contract method on blockchain.");
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             result = ethService.callEthJsonRpc(requestId, parameters).get();
+            stopWatch.stop();
+            LOG.info("Executed smart contract method call on blockchain in: {}ms", stopWatch.getTime());
         } catch (InterruptedException | ExecutionException e) {
             return ethApiUtils.createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
         }
@@ -210,7 +221,12 @@ public class BesuProcessor extends Script {
 
         Map<String, Boolean> transactionReceipt = null;
         try {
+            LOG.info("Retrieving transaction receipt for hash: {}", receivedHash);
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             transactionReceipt = ethService.waitForTransactionReceipt(requestId, receivedHash.toString(), parameters);
+            stopWatch.stop();
+            LOG.info("Retrieving transaction reciept took: {}ms", stopWatch.getTime());
         } catch (Exception e) {
             return ethApiUtils.createErrorResponse(requestId, TRANSACTION_REJECTED, e.getMessage());
         }
