@@ -29,9 +29,6 @@ public class EthService extends Script {
     public static final String IS_SUCCESS = "isSuccess";
     public static final String IS_NULL = "isNull";
 
-    private static final int SLEEP_DURATION = 2000;
-    private static final int ATTEMPTS = 50;
-
     private static final int CONNECTION_POOL_SIZE = 50;
     private static final int MAX_POOLED_PER_ROUTE = 5;
     private static final long CONNECTION_TTL = 5;
@@ -50,6 +47,9 @@ public class EthService extends Script {
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
     private final String BESU_API_URL = config.getProperty("besu.api.url", "https://testnet.liquichain.io/rpc");
+
+    private final int SLEEP_DURATION = Integer.parseInt(config.getProperty("besu.receipt.attempt.interval", "1000"));
+    private final int ATTEMPTS = Integer.parseInt(config.getProperty("besu.receipt.attempt.count", "30"));
 
     public CompletableFuture<String> callEthJsonRpc(String requestId, Map<String, Object> parameters) {
         Object id = parameters.get("id");
