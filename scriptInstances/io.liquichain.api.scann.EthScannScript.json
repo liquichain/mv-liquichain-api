@@ -23,11 +23,6 @@
   "transactionType" : "SAME",
   "executionRoles" : [ ],
   "sourcingRoles" : [ ],
-  "mavenDependencies" : [ {
-    "groupId" : "org.web3j",
-    "artifactId" : "crypto",
-    "version" : "4.8.9",
-    "coordinates" : "org.web3j:crypto:4.8.9"
-  } ],
+  "mavenDependencies" : [ ],
   "importScriptInstances" : [ ]
 }

@@ -14,8 +14,8 @@
   "mavenDependencies" : [ {
     "groupId" : "org.web3j",
     "artifactId" : "core",
-    "version" : "4.8.9",
-    "coordinates" : "org.web3j:core:4.8.9"
+    "version" : "5.0.0",
+    "coordinates" : "org.web3j:core:5.0.0"
   } ],
   "importScriptInstances" : [ ]
 }
