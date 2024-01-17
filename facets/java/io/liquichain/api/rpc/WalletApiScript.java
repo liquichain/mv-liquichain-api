@@ -58,9 +58,6 @@ public class WalletApiScript extends Script {
     private final ParamBean config = paramBeanFactory.getInstance();
     private final String APP_NAME = config.getProperty("eth.api.appname", "licoin");
 
-    //    private final ScriptInstanceService scriptInstanceService = getCDIBean(ScriptInstanceService.class);
-    //    private final ScriptInterface keycloakUserServiceScript = scriptInstanceService.getExecutionEngine(
-    //            KeycloakUserService.class.getName(), null);
     private final KeycloakUserService keycloakUserService = new KeycloakUserService();
 
     private String result;
@@ -187,8 +184,7 @@ public class WalletApiScript extends Script {
         return value;
     }
 
-    public void validateSignature(String walletHash, String signature, String message)
-            throws BusinessException {
+    public void validateSignature(String walletHash, String signature, String message) throws BusinessException {
         String validatedAddress;
         try {
             validatedAddress = parseAddress(signature, message);
@@ -196,7 +192,7 @@ public class WalletApiScript extends Script {
             LOG.error(INVALID_REQUEST, e);
             throw new BusinessException(e.getMessage());
         }
-        boolean sameAddress = walletHash.equals(validatedAddress);
+        boolean sameAddress = walletHash != null && walletHash.equals(validatedAddress);
         LOG.debug("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
                 walletHash, sameAddress);
 
@@ -205,8 +201,7 @@ public class WalletApiScript extends Script {
         }
     }
 
-    private String validatePhoneNumber(String phoneNumber, String walletId)
-            throws BusinessException {
+    private String validatePhoneNumber(String phoneNumber, String walletId) throws BusinessException {
         if (StringUtils.isBlank(phoneNumber)) {
             throw new BusinessException(PHONE_NUMBER_REQUIRED_ERROR);
         }
