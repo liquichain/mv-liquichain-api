@@ -68,10 +68,15 @@ public class WalletApiScript extends Script {
 
     private String parseAddress(String signature, String message) throws Exception {
         byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
-        LOG.debug("messageHash={}", Numeric.toHexString(messageHash));
+        LOG.info("messageHash={}", Numeric.toHexString(messageHash));
+
         String r = signature.substring(0, 66);
         String s = "0x" + signature.substring(66, 130);
         String v = "0x" + signature.substring(130, 132);
+        LOG.info("r: " + r);
+        LOG.info("s: " + s);
+        LOG.info("v: " + v);
+
         String publicKey = Sign
                 .signedMessageHashToKey(
                         messageHash,
@@ -81,7 +86,8 @@ public class WalletApiScript extends Script {
                                 Numeric.hexStringToByteArray(s)))
                 .toString(16);
         String address = Keys.getAddress(publicKey);
-        LOG.debug("address: " + address);
+        LOG.info("address: " + address);
+
         return address;
     }
 
