@@ -26,8 +26,8 @@
   "mavenDependencies" : [ {
     "groupId" : "org.web3j",
     "artifactId" : "crypto",
-    "version" : "4.8.9",
-    "coordinates" : "org.web3j:crypto:4.8.9"
+    "version" : "5.0.0",
+    "coordinates" : "org.web3j:crypto:5.0.0"
   } ],
   "importScriptInstances" : [ ]
 }
