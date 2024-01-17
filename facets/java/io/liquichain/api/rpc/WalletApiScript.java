@@ -69,7 +69,7 @@ public class WalletApiScript extends Script {
         return this.result;
     }
 
-    protected String parseAddress(String signature, String message) throws Exception {
+    private String parseAddress(String signature, String message) throws Exception {
         byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
         LOG.debug("messageHash={}", Numeric.toHexString(messageHash));
         String r = signature.substring(0, 66);
@@ -187,7 +187,7 @@ public class WalletApiScript extends Script {
         return value;
     }
 
-    private void validateSignature(String walletHash, String signature, String message)
+    public void validateSignature(String walletHash, String signature, String message)
             throws BusinessException {
         String validatedAddress;
         try {
