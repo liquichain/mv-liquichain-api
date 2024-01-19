@@ -1,5 +1,8 @@
 package io.liquichain.api.rpc;
 
+import static io.liquichain.api.rpc.EthApiUtils.parseAddress;
+import static io.liquichain.api.rpc.EthApiUtils.validateSignature;
+
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,7 +45,6 @@ public class WalletApiScript extends Script {
     private static final String UNKNOWN_WALLET_ERROR = "Unknown wallet";
     private static final String UNKNOWN_APPLICATION_ERROR = "Unknown application";
     private static final String WALLET_EXISTS_ERROR = "Wallet already exists";
-    private static final String INVALID_SIGNATURE_ERROR = "Invalid signature";
     private static final String INVALID_REQUEST = "-32600";
     private static final String INTERNAL_ERROR = "-32603";
     private static final String TRANSACTION_REJECTED = "-32003";
@@ -64,31 +66,6 @@ public class WalletApiScript extends Script {
 
     public String getResult() {
         return this.result;
-    }
-
-    private String parseAddress(String signature, String message) throws Exception {
-        byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
-        LOG.info("messageHash={}", Numeric.toHexString(messageHash));
-
-        String r = signature.substring(0, 66);
-        String s = "0x" + signature.substring(66, 130);
-        String v = "0x" + signature.substring(130, 132);
-        LOG.info("r: " + r);
-        LOG.info("s: " + s);
-        LOG.info("v: " + v);
-
-        String publicKey = Sign
-                .signedMessageHashToKey(
-                        messageHash,
-                        new Sign.SignatureData(
-                                Numeric.hexStringToByteArray(v)[0],
-                                Numeric.hexStringToByteArray(r),
-                                Numeric.hexStringToByteArray(s)))
-                .toString(16);
-        String address = Keys.getAddress(publicKey);
-        LOG.info("address: " + address);
-
-        return address;
     }
 
     protected <T> T findEntity(String uuid, Class<T> clazz) {
@@ -188,23 +165,6 @@ public class WalletApiScript extends Script {
             LOG.error("Failed to parse data: {}", data, e);
         }
         return value;
-    }
-
-    public void validateSignature(String walletHash, String signature, String message) throws BusinessException {
-        String validatedAddress;
-        try {
-            validatedAddress = parseAddress(signature, message);
-        } catch (Exception e) {
-            LOG.error(INVALID_REQUEST, e);
-            throw new BusinessException(e.getMessage());
-        }
-        boolean sameAddress = walletHash != null && walletHash.equals(validatedAddress);
-        LOG.debug("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
-                walletHash, sameAddress);
-
-        if (!sameAddress) {
-            throw new BusinessException(INVALID_SIGNATURE_ERROR);
-        }
     }
 
     private String validatePhoneNumber(String phoneNumber, String walletId) throws BusinessException {
@@ -666,5 +626,4 @@ public class WalletApiScript extends Script {
 
         return createResponse(requestId, toJson(response));
     }
-
 }

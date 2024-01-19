@@ -1,9 +1,11 @@
 package io.liquichain.api.rpc;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.SignatureException;
 import java.util.List;
 
+import org.meveo.admin.exception.BusinessException;
 import org.meveo.commons.utils.StringUtils;
 import org.meveo.model.customEntities.Transaction;
 import org.meveo.service.script.Script;
@@ -14,12 +16,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.web3j.crypto.RawTransaction;
-import org.web3j.crypto.Sign;
-import org.web3j.crypto.SignedRawTransaction;
+import org.web3j.crypto.*;
+import org.web3j.utils.Numeric;
 
 public class EthApiUtils extends Script {
     private static final Logger LOG = LoggerFactory.getLogger(EthApiUtils.class);
+    private static final String INVALID_REQUEST = "-32600";
+    private static final String INVALID_SIGNATURE_ERROR = "Invalid signature";
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public String formatId(Object id) {
@@ -177,5 +180,47 @@ public class EthApiUtils extends Script {
             transaction.setToHexHash(normalizeHash(recipient));
         }
         return transaction;
+    }
+
+    public static String parseAddress(String signature, String message) throws Exception {
+        byte[] messageHash = Hash.sha3(message.getBytes(StandardCharsets.UTF_8));
+        LOG.info("messageHash={}", Numeric.toHexString(messageHash));
+
+        String r = signature.substring(0, 66);
+        String s = "0x" + signature.substring(66, 130);
+        String v = "0x" + signature.substring(130, 132);
+        LOG.info("r: " + r);
+        LOG.info("s: " + s);
+        LOG.info("v: " + v);
+
+        String publicKey = Sign
+                .signedMessageHashToKey(
+                        messageHash,
+                        new Sign.SignatureData(
+                                Numeric.hexStringToByteArray(v)[0],
+                                Numeric.hexStringToByteArray(r),
+                                Numeric.hexStringToByteArray(s)))
+                .toString(16);
+        String address = Keys.getAddress(publicKey);
+        LOG.info("address: " + address);
+
+        return address;
+    }
+
+    public static void validateSignature(String walletHash, String signature, String message) throws BusinessException {
+        String validatedAddress;
+        try {
+            validatedAddress = parseAddress(signature, message);
+        } catch (Exception e) {
+            LOG.error(INVALID_REQUEST, e);
+            throw new BusinessException(e.getMessage());
+        }
+        boolean sameAddress = walletHash != null && walletHash.equals(validatedAddress);
+        LOG.debug("validated address: {}, walletHash: {}, same address: {}", validatedAddress,
+                walletHash, sameAddress);
+
+        if (!sameAddress) {
+            throw new BusinessException(INVALID_SIGNATURE_ERROR);
+        }
     }
 }
