@@ -60,6 +60,7 @@ public class KeycloakUserService extends Script {
     private final String CLIENT_SECRET = config.getProperty("keycloak.client.secret",
             "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
     private final String LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
+    private final String USER_LOGIN_URL = AUTH_URL + "/realms/meveo/protocol/openid-connect/token";
     private final String CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
     private final String USERS_URL = CLIENT_REALM_URL + "/users";
 
@@ -159,11 +160,10 @@ public class KeycloakUserService extends Script {
             Form form = new Form()
                     .param("grant_type", "password")
                     .param("client_id", "meveo-web")
-                    .param("client_secret", CLIENT_SECRET)
                     .param("username", "appclient")
                     .param("password", APPCLIENT_CREDENTIALS);
 
-            response = client.target(LOGIN_URL)
+            response = client.target(USER_LOGIN_URL)
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
                              .post(Entity.form(form));
             String loginData = response.readEntity(String.class);
