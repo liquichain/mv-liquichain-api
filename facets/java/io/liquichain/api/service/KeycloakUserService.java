@@ -53,12 +53,14 @@ public class KeycloakUserService extends Script {
     private final ParamBeanFactory paramBeanFactory = getCDIBean(ParamBeanFactory.class);
     private final ParamBean config = paramBeanFactory.getInstance();
 
+    private final String APPCLIENT_CREDENTIALS = config.getProperty("appclient.credentials", "");
     private final String AUTH_URL = System.getProperty("meveo.keycloak.url");
     private final String REALM = System.getProperty("meveo.keycloak.realm");
     private final String CLIENT_ID = config.getProperty("keycloak.client.id", "admin-cli");
-    private final String CLIENT_SECRET = config.getProperty("keycloak.client.secret", "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
+    private final String CLIENT_SECRET = config.getProperty("keycloak.client.secret",
+            "1d1e1d9f-2d98-4f43-ac69-c8ecc1f188a5");
     private final String LOGIN_URL = AUTH_URL + "/realms/master/protocol/openid-connect/token";
-    private final String  CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
+    private final String CLIENT_REALM_URL = AUTH_URL + "/admin/realms/" + REALM;
     private final String USERS_URL = CLIENT_REALM_URL + "/users";
 
     private boolean isNotEmptyMap(Map<String, ?> map) {
@@ -133,6 +135,33 @@ public class KeycloakUserService extends Script {
                     .param("grant_type", "client_credentials")
                     .param("client_id", CLIENT_ID)
                     .param("client_secret", CLIENT_SECRET);
+
+            response = client.target(LOGIN_URL)
+                             .request(MediaType.APPLICATION_FORM_URLENCODED)
+                             .post(Entity.form(form));
+            String loginData = response.readEntity(String.class);
+            Map<String, String> dataMap = convert(loginData);
+            token = dataMap.get("access_token");
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        LOG.debug("login - SUCCESS");
+        return token;
+    }
+
+    public String loginAppClient() {
+        LOG.debug("login - START");
+        String token;
+        Response response = null;
+        try {
+            Form form = new Form()
+                    .param("grant_type", "password")
+                    .param("client_id", "meveo-web")
+                    .param("client_secret", CLIENT_SECRET)
+                    .param("username", "appclient")
+                    .param("password", APPCLIENT_CREDENTIALS);
 
             response = client.target(LOGIN_URL)
                              .request(MediaType.APPLICATION_FORM_URLENCODED)
